@@ -3,7 +3,7 @@
 This analysis demonstrates that on internet (as seen by Cloudflare at least) the
 file extension may not be served with its corresponding mimetype.
 
-Considering Cloudflare's scale, even a very small pourcentage can reprensent a
+Considering Cloudflare's scale, even a very small percentage can reprensent a
 lot of requests.
 
 ## `.js`
