@@ -8,7 +8,9 @@ Proposed by [littledan](https://github.com/littledan) and [xtuc](https://github.
 
 https://github.com/w3c/webcomponents/issues/839
 
-"The author is the only true arbiter of the parse goal of content".
+"The author is the only true arbiter of the parse goal of content" -- Jordan H.
+
+More information about the possible [mistmatch between file extension and the HTTP Content Type header](content-type-vs-file-extension.md).
 
 ### Semantics
 

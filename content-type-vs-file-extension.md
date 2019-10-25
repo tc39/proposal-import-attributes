@@ -1,4 +1,20 @@
-# ContentType vs Extension
+# Mismatch between Content-Type and file extension on the web
+
+For Node.js or tooling we can make the association between the type of a file and its extension.
+For example, it might sound obvious that a file ending with `.js` would correspond to a `application/javascript` file.
+
+Interestingly, Node.js or webpack does allow to arbitrarily redirect module resolution.
+Our previous assumption is already not guaranteed. See [#4](https://github.com/littledan/proposal-module-attributes/issues/4).
+
+Moreover, on the web the server needs to send a `Content-Type` header to the client, so that
+the client can know how to interpret the ressource being transfered.
+
+The web server could be misconfigured (or malicious) and send a wrong `Content-Type` header to the client. For example,
+a file with the extension `.css` could end up being a JavaScript file and be evaluated by the client.
+
+This proposal will allow the developer to assert that their ressources will be interpreted correctly.
+
+## Analysis
 
 This analysis demonstrates that on internet (as seen by Cloudflare at least) the
 file extension may not be served with its corresponding mimetype.
@@ -6,11 +22,11 @@ file extension may not be served with its corresponding mimetype.
 Considering Cloudflare's scale, even a very small percentage can reprensent a
 lot of requests.
 
-## `.js`
+### `.js`
 
 ContentType header for files ending with `.js`:
 
-| minetype                 | %                |
+| mimetype                 | %                |
 |--------------------------|------------------|
 | application/javascript   | 61.82757604      |
 | empty                    | 20.11803875      |
@@ -34,11 +50,11 @@ ContentType header for files ending with `.js`:
 | text/x-asm               | 0.00003384688983 |
 
 
-## `.json`
+### `.json`
 
 ContentType header for files ending with `.json`:
 
-| minetype                 | %                  |
+| mimetype                 | %                  |
 |--------------------------|--------------------|
 | application/json         | 67.62137903        |
 | text/html                | 14.67113587        |
