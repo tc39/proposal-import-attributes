@@ -1,28 +1,40 @@
-# ES module attributes
+# ES Module Attributes
 
-Proposal for syntax to import ES modules with attributes
+Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)) and Daniel Ehrenberg ([@littledan](https://github.com/littledan))
 
-Proposed by [littledan](https://github.com/littledan) and [xtuc](https://github.com/xtuc).
+Status: Stage 0
+
+The ES Module Attributes proposal is an investigation into providing inline syntax for module import statements to pass on more information alongside the module specifier, with an initial aim to support non-JS ESM module types.
 
 ## Motivation
 
-https://github.com/w3c/webcomponents/issues/839
+As one example of an application: standards-track JSON ESM modules were [proposed](https://github.com/w3c/webcomponents/issues/770) to allow JavaScript modules to easily import JSON data files, similarly to how they are supported in many nonstandard JavaScript module systems. This idea quickly got broad support from web developers and browsers, and was merged into HTML, with an implementation created by Microsoft.
+
+However, in [an issue](https://github.com/w3c/webcomponents/issues/839), Ryosuke Niwa (Apple) and Anne van Kesteren (Mozilla) proposed that security would be improved if some syntactic marker were required when importing JSON modules and similar module types which cannot execute code, to prevent a scenario where the responding server unexpectedly provides a different MIME type, causing code to be unexpectedly executed. The solution was to somehow indicate that a module was JSON, or in general, not to be executed, somewhere in addition to the MIME type.
+
+Some developers have the intuition that the file extension could be used to determine the module type, as it is in many existing non-standard module systems. However, it's a deep web architectural principle that the suffix of the URL (which you might think of as the "file extension" outside of the web) does not lead to semantics of how the page is interpreted. In practice, on the web, there is a widespread [mistmatch between file extension and the HTTP Content Type header](content-type-vs-file-extension.md). All of this sums up to it being infeasible to depend on file extensions/suffixes included in the module specifier to be the basis for this checking.
 
 "The author is the only true arbiter of the parse goal of content" -- Jordan H.
 
-More information about the possible [mistmatch between file extension and the HTTP Content Type header](content-type-vs-file-extension.md).
+There are other possible pieces of metadata which could be associated with modules, see [#8](https://github.com/littledan/proposal-module-attributes/issues/8) for futher discussion.
 
-### Semantics
+## Rationale
 
-On the web, before any code executes this semantics apply before any code executes.
+There are three places where this data could be provided:
+- As part of the module specifier (e.g., as a pseudo-scheme)
+  - Challenges: Adds complexity to URLs or other module specifier syntaxes, and risks being confusing to developers (further discussion: [#11](https://github.com/littledan/proposal-module-attributes/issues/11))
+- Separately, out of band (e.g., a separate resource file)
+  - Challenges: How to load that resource file; what should the format be; unergonomic to have to jump between files during development (further discussion: [#13](https://github.com/littledan/proposal-module-attributes/issues/13))
+- In the JavaScript source text
+  - Challenges: Requires a change at the JavaScript language level (this proposal)
 
-A possible extension of this proposal would be to allow to specifiy a SRI hash in module's attributes.
+This proposal pursues the third option, as we expect it to lead to the best developer experience, and are hopeful that language design/standardization issues can be resolved.
 
-#### `type`
+## Early draft syntax
 
-Check that the ressource has the expected type using its mimetype.
+Module attributes have to be made available in several different contexts. This section contains one possible syntax, but there are other options, discussed in [#6](https://github.com/littledan/proposal-module-attributes/issues/6).
 
-## Integrations
+Here, a key-value syntax is used, with the key `type` indicating the module type. Such key-value syntax can be used in various different contexts. Another option is to have just a single string (discussion in [#11](https://github.com/littledan/proposal-module-attributes/issues/11)).
 
 ### import statements
 
@@ -48,12 +60,11 @@ import("foo.json", { type: "json" })
 <script src="foo.wasm" type="webassembly"></script>
 ```
 
-WebAssembly's validation will fail if the magic number is not correct.
-We'd assert that the mimetype matches the type before even before running the WebAssembly validation.
+WebAssembly's validation would fail if the magic number is not correct, but we'd assert that the mimetype matches the type before even before running the WebAssembly validation.
 
 ### WebAssembly
 
-Introduce a new custom section (named `importattributes`) that will annotate with attributes each imported module (based on the import section).
+Introduce a new custom section (named `importattributes`) that will annotate with attributes each imported module (which is listed in the import section).
 
 ### Worker instantiation
 
@@ -61,12 +72,10 @@ Introduce a new custom section (named `importattributes`) that will annotate wit
 new Worker("foo.wasm", { type: "webassembly" });
 ```
 
-### Tooling
+## Status and plan for standardization
 
-Tooling could take advantage of the module attributes to generate better code or add additional features.
+This proposal has not yet been presented in a standards body. It's considered Stage 0 in TC39's process because we plan to present it to the committee. The plan is to collect feedback in issues, and present for Stage 1 in the December 2019 TC39 meeting.
 
-### Node.js
+Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general plan for alignment across JS environments ([#10](https://github.com/littledan/proposal-module-attributes/issues/10)). Stage 2 will also require that we have a strong initial answer for the surface syntax ([#6](https://github.com/littledan/proposal-module-attributes/issues/6)), including the choice of whether we use a single string or key/value pairs ([#12](https://github.com/littledan/proposal-module-attributes/issues/12)).
 
-```sh
-node --experimental-modules --input-type=webassembly foo.wasm
-```
+Please leave any feedback you have in the [issues](http://github.com/littledan/proposal-module-attributes/issues)!
