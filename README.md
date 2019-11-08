@@ -18,6 +18,8 @@ Some developers have the intuition that the file extension could be used to dete
 
 There are other possible pieces of metadata which could be associated with modules, see [#8](https://github.com/littledan/proposal-module-attributes/issues/8) for futher discussion.
 
+Proposed ES module types that are blocked by this security concern, in addition to JSON modules, include [CSS modules](https://github.com/whatwg/html/pull/4898) and potentially [HTML modules](https://github.com/whatwg/html/pull/4505) if the HTML module  proposal is restricted to [not allow script](https://github.com/w3c/webcomponents/issues/805).
+
 ## Rationale
 
 There are three places where this data could be provided:
