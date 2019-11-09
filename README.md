@@ -38,6 +38,8 @@ Module attributes have to be made available in several different contexts. This 
 
 Here, a key-value syntax is used, with the key `type` indicating the module type. Such key-value syntax can be used in various different contexts. Another option is to have just a single string (discussion in [#11](https://github.com/littledan/proposal-module-attributes/issues/11)).
 
+The JavaScript standard would basically be responsible for passing the options bag up to the host environment, which could then decide how to interpret it. Issues [#24](https://github.com/littledan/proposal-module-attributes/issues/24) and [#25](https://github.com/littledan/proposal-module-attributes/issues/25) discuss the Web and Node.js semantics respectively, and issue [#10](https://github.com/littledan/proposal-module-attributes/issues/10) discusses how much we may or may not want to aim for unified behavior across different JavaScript environments.
+
 ### import statements
 
 The ImportDeclaration would allow any arbitrary attributes after the `with` keyword.
@@ -78,6 +80,6 @@ new Worker("foo.wasm", { type: "webassembly" });
 
 This proposal has not yet been presented in a standards body. It's considered Stage 0 in TC39's process because we plan to present it to the committee. The plan is to collect feedback in issues, and present for Stage 1 in the December 2019 TC39 meeting.
 
-Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general plan for alignment across JS environments ([#10](https://github.com/littledan/proposal-module-attributes/issues/10)). Stage 2 will also require that we have a strong initial answer for the surface syntax ([#6](https://github.com/littledan/proposal-module-attributes/issues/6)), including the choice of whether we use a single string or key/value pairs ([#12](https://github.com/littledan/proposal-module-attributes/issues/12)).
+Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general plan for semantics across various JS environments ([#10](https://github.com/littledan/proposal-module-attributes/issues/10), [#24](https://github.com/littledan/proposal-module-attributes/issues/24) and [#25](https://github.com/littledan/proposal-module-attributes/issues/25)). Stage 2 will also require that we have a strong initial answer for the surface syntax ([#6](https://github.com/littledan/proposal-module-attributes/issues/6)), including the choice of whether we use a single string or key/value pairs ([#12](https://github.com/littledan/proposal-module-attributes/issues/12)).
 
 Please leave any feedback you have in the [issues](http://github.com/littledan/proposal-module-attributes/issues)!
