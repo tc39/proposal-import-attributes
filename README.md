@@ -66,9 +66,11 @@ import("foo.json", { type: "json" })
 
 WebAssembly's validation would fail if the magic number is not correct, but we'd assert that the mimetype matches the type before even before running the WebAssembly validation.
 
+Note, it's still uncertain whether importing WebAssembly modules would need to be marked specially, or could use `type="module"` just like JavaScript (and no special `with type:` in import statements). Further discussion in [#19](https://github.com/littledan/proposal-module-attributes/issues/19).
+
 ### WebAssembly
 
-Introduce a new custom section (named `importattributes`) that will annotate with attributes each imported module (which is listed in the import section).
+For imports of other module types from within a WebAssembly module, this proposal would introduce a new custom section (named `importattributes`) that will annotate with attributes each imported module (which is listed in the import section).
 
 ### Worker instantiation
 
