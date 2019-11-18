@@ -14,8 +14,6 @@ However, in [an issue](https://github.com/w3c/webcomponents/issues/839), Ryosuke
 
 Some developers have the intuition that the file extension could be used to determine the module type, as it is in many existing non-standard module systems. However, it's a deep web architectural principle that the suffix of the URL (which you might think of as the "file extension" outside of the web) does not lead to semantics of how the page is interpreted. In practice, on the web, there is a widespread [mistmatch between file extension and the HTTP Content Type header](content-type-vs-file-extension.md). All of this sums up to it being infeasible to depend on file extensions/suffixes included in the module specifier to be the basis for this checking.
 
-"The author is the only true arbiter of the parse goal of content" -- Jordan H.
-
 There are other possible pieces of metadata which could be associated with modules, see [#8](https://github.com/littledan/proposal-module-attributes/issues/8) for futher discussion.
 
 Proposed ES module types that are blocked by this security concern, in addition to JSON modules, include [CSS modules](https://github.com/whatwg/html/pull/4898) and potentially [HTML modules](https://github.com/whatwg/html/pull/4505) if the HTML module  proposal is restricted to [not allow script](https://github.com/w3c/webcomponents/issues/805).
