@@ -1,6 +1,6 @@
 # ES Module Attributes
 
-Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), and Myles Borins ([@MylesBorins](https://github.com/MylesBorins))
+Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), Myles Borins ([@MylesBorins](https://github.com/MylesBorins)), and Dan Clark ([@dandclark](https://github.com/dandclark))
 
 Status: Stage 1
 
