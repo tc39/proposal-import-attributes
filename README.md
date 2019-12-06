@@ -1,8 +1,8 @@
 # ES Module Attributes
 
-Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)) and Daniel Ehrenberg ([@littledan](https://github.com/littledan))
+Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), and Myles Borins ([@MylesBorins](https://github.com/MylesBorins))
 
-Status: Stage 0
+Status: Stage 1
 
 The ES Module Attributes proposal is an investigation into providing inline syntax for module import statements to pass on more information alongside the module specifier, with an initial aim to support non-JS ESM module types.
 
