@@ -34,40 +34,39 @@ This proposal pursues the third option, as we expect it to lead to the best deve
 
 Module attributes have to be made available in several different contexts. This section contains one possible syntax, but there are other options, discussed in [#6](https://github.com/littledan/proposal-module-attributes/issues/6).
 
-Here, a key-value syntax is used, with the key `type` used as an example indicating the module type. Such key-value syntax can be used in various different contexts. Another option is to have just a single string (discussion in [#11](https://github.com/littledan/proposal-module-attributes/issues/11)).
+Here, a single string is permitted to describe a single module attribute, as discussed in [#12](https://github.com/littledan/proposal-module-attributes/issues/12).
+
+Although unspecified in the module attributes proposal, this intention of the proposal champions is that this string would be interpreted as the module type, as shown in the following examples.
 
 The JavaScript standard would basically be responsible for passing the options bag up to the host environment, which could then decide how to interpret it. Issues [#24](https://github.com/littledan/proposal-module-attributes/issues/24) and [#25](https://github.com/littledan/proposal-module-attributes/issues/25) discuss the Web and Node.js feature and semantic requirements respectively, and issue [#10](https://github.com/littledan/proposal-module-attributes/issues/10) discusses how to allow different JavaScript environments to have interoperability.
 
 ### import statements
 
-The ImportDeclaration would allow any arbitrary attributes after the `with` keyword.
-
-For example, in some environments a `type` key could be mandatory to load a module that isn't JavaScript (json, css, html, ...).
+The ImportDeclaration would allow a string provided at the end of an import statement with the `as` keyword.
 
 ```js
-import json from "./foo.json" with type: "json";
+import json from "./foo.json" as "json";
 ```
 
 ### dynamic import()
 
-The `import` function will allow to provide arbitrary attributes as its second arguments.
+The `import()` pseudo-function would allow the string as its second argument.
 
 ```js
-import("foo.json", { type: "json" })
+import("foo.json", "json")
 ```
-### Integration Example
 
-A host environment may wish to have `type` or similar apply to loading WebAssembly. WebAssembly's validation would fail if the magic number is not correct, but we'd assert that the mimetype matches the type before even before running the WebAssembly validation.
+### Integration of modules into environments
 
-Note, this is an example; it's still uncertain whether importing WebAssembly modules would need to be marked specially, or could use `type="module"` just like JavaScript (and no special `with type:` in import statements). Further discussion in [#19](https://github.com/littledan/proposal-module-attributes/issues/19).
-
-From there, a host environment could integrate with its own APIs or even other languages:
+Host environments (e.g., the Web platform, Node.js) often provide various different ways of loading modules. The analogous string could be passed through these ways of loading other kinds of modules.
 
 #### Worker instantiation
 
 ```js
-new Worker("foo.wasm", { type: "webassembly" });
+new Worker("foo.wasm", { as: "webassembly" });
 ```
+
+Sidebar about WebAssembly module types and the web: it's still uncertain whether importing WebAssembly modules would need to be marked specially, or would be imported just like JavaScript. Further discussion in [#19](https://github.com/littledan/proposal-module-attributes/issues/19).
 
 #### HTML
 
@@ -75,14 +74,26 @@ new Worker("foo.wasm", { type: "webassembly" });
 <script src="foo.wasm" type="webassembly"></script>
 ```
 
+(See the caveat about WebAssembly above.)
+
 #### WebAssembly
 
-For imports of other module types from within a WebAssembly module, this proposal would introduce a new custom section (named `importattributes`) that will annotate with attributes each imported module (which is listed in the import section).
+In the context of the [WebAssembly/ESM integration proposal](https://github.com/webassembly/esm-integration): For imports of other module types from within a WebAssembly module, this proposal would introduce a new custom section (named `importattributes`) that will annotate with attributes each imported module (which is listed in the import section).
 
 ## Status and plan for standardization
 
-This proposal has not yet been presented in a standards body. It's considered Stage 0 in TC39's process because we plan to present it to the committee. The plan is to collect feedback in issues, and present for Stage 1 in the December 2019 TC39 meeting.
+This proposal is at Stage 1.
 
 Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/littledan/proposal-module-attributes/issues/10), [#24](https://github.com/littledan/proposal-module-attributes/issues/24) and [#25](https://github.com/littledan/proposal-module-attributes/issues/25)). Stage 2 will also require that we have a strong initial answer for the surface syntax ([#6](https://github.com/littledan/proposal-module-attributes/issues/6)), including the choice of whether we use a single string or key/value pairs ([#12](https://github.com/littledan/proposal-module-attributes/issues/12)).
 
 Please leave any feedback you have in the [issues](http://github.com/littledan/proposal-module-attributes/issues)!
+
+### Anticipated follow-on proposal: Richer `as` values
+
+In a possible follow-on proposal, other kinds of literals such as object literals, array literals or numbers may be permitted following `as`, if they only consist of constants with no need for runtime evaluation. For example:
+
+```js
+import value from "module" as {key1: "value1", key2: [1, 2, 3]};
+```
+
+This would allow module attributes to scale up to multiple pieces of data, not privileging a single attribute forever. Due to the lack of strong use cases, we've left this capability for a follow-on proposal.
