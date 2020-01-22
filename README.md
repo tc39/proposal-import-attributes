@@ -38,7 +38,7 @@ Here, a single string is permitted to describe a single module attribute, as dis
 
 Although unspecified in the module attributes proposal, this intention of the proposal champions is that this string would be interpreted as the module type, as shown in the following examples.
 
-The JavaScript standard would basically be responsible for passing the options bag up to the host environment, which could then decide how to interpret it. Issues [#24](https://github.com/littledan/proposal-module-attributes/issues/24) and [#25](https://github.com/littledan/proposal-module-attributes/issues/25) discuss the Web and Node.js feature and semantic requirements respectively, and issue [#10](https://github.com/littledan/proposal-module-attributes/issues/10) discusses how to allow different JavaScript environments to have interoperability.
+The JavaScript standard would basically be responsible for passing the string up to the host environment, which could then decide how to interpret it. Issues [#24](https://github.com/littledan/proposal-module-attributes/issues/24) and [#25](https://github.com/littledan/proposal-module-attributes/issues/25) discuss the Web and Node.js feature and semantic requirements respectively, and issue [#10](https://github.com/littledan/proposal-module-attributes/issues/10) discusses how to allow different JavaScript environments to have interoperability.
 
 ### import statements
 
@@ -47,6 +47,8 @@ The ImportDeclaration would allow a string provided at the end of an import stat
 ```js
 import json from "./foo.json" as "json";
 ```
+
+The host environment would determine the interpretation of `"json"`. In the Web and similar environments, `as "json"` would be required to load JSON modules, whereas no `as` syntax would be used for JavaScript modules.
 
 ### dynamic import()
 
