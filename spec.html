@@ -30,8 +30,8 @@
       <ins>[no LineTerminator here] `as` StringLiteral</ins>
 
     ImportCall[Yield, Await] :
-      `import` `(` AssignmentExpression[+In, ?Yield, ?Await] `)`
-      <ins>`import` `(` AssignmentExpression[+In, ?Yield, ?Await] `,` AssignmentExpression[+In, ?Yield, ?Await]`)`</ins>
+      `import` `(` AssignmentExpression[+In, ?Yield, ?Await] `,`? `)`
+      <ins>`import` `(` AssignmentExpression[+In, ?Yield, ?Await] `,` AssignmentExpression[+In, ?Yield, ?Await] `,`? `)`</ins>
   </emu-grammar>
 </emu-clause>
 
@@ -46,7 +46,7 @@
       <emu-clause id="sec-import-call-runtime-semantics-evaluation">
         <h1>Runtime Semantics: Evaluation</h1>
 
-        <emu-grammar>ImportCall : `import` `(` AssignmentExpression `)`</emu-grammar>
+        <emu-grammar>ImportCall : `import` `(` AssignmentExpression `,`? `)`</emu-grammar>
         <emu-alg>
           1. Let _referencingScriptOrModule_ be ! GetActiveScriptOrModule().
           1. Let _argRef_ be the result of evaluating |AssignmentExpression|.
@@ -58,7 +58,7 @@
           1. Return _promiseCapability_.[[Promise]].
         </emu-alg>
 
-        <ins><emu-grammar>ImportCall : `import` `(` AssignmentExpression, AssignmentExpression `)`</emu-grammar></ins>
+        <ins><emu-grammar>ImportCall : `import` `(` AssignmentExpression, AssignmentExpression `,`? `)`</emu-grammar></ins>
         <emu-alg>
           1. Let _referencingScriptOrModule_ be ! GetActiveScriptOrModule().
           1. Let _argRef_ be the result of evaluating <ins>the first</ins> |AssignmentExpression|.
