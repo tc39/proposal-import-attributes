@@ -90,12 +90,12 @@ Standardization here would consist of building consensus not just in TC39 but al
 
 Please leave any feedback you have in the [issues](http://github.com/littledan/proposal-module-attributes/issues)!
 
-### Anticipated follow-on proposal: Richer `as` values
+### Generalized constant form (richer `as` values)
 
-In a possible follow-on proposal, other kinds of literals such as object literals, array literals or numbers may be permitted following `as`, if they only consist of constants with no need for runtime evaluation. For example:
+We can extend the concept of the `as` syntax by generalizing the right hand side value. A constant value, an array or an object containing only constant values. For example:
 
 ```js
 import value from "module" as {key1: "value1", key2: [1, 2, 3]};
 ```
 
-This would allow module attributes to scale up to multiple pieces of data, not privileging a single attribute forever. Due to the lack of strong use cases, we've left this capability for a follow-on proposal.
+This would allow module attributes to scale up to multiple pieces of data, not privileging a single attribute.
