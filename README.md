@@ -134,6 +134,6 @@ At the moment there is nothing in the specification text that refers to caching.
 
 ## Specification
 
-* [HTML Version](https://tc39.github.io/proposal-module-attributes/)
+* [Specification Outline](https://tc39.es/proposal-module-attributes/)
 
 [import-maps proposal]: https://github.com/WICG/import-maps
