@@ -139,5 +139,4 @@ It is possible that hosts will explore additional caching and coalescing beyond 
 ## Specification
 
 * [Specification Outline](https://tc39.es/proposal-module-attributes/)
-
 [import-maps proposal]: https://github.com/WICG/import-maps
