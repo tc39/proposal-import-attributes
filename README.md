@@ -116,7 +116,7 @@ While there very well could be a future where an out of band manifest could be u
 
 ### Are there cross-environment concerns?
 
-Absolutely. This proposal is not attempting to standardize what `types` hosts will be allowed to support. It will be up to each runtime to decide which `types` to support, as well as how to handle the the case of an unsupported module `type` being imported.
+Absolutely. This proposal is not attempting to standardize the specific `type`s a host will be allowed to support. It will be up to each runtime to decide which `type`s to support, as well as how to handle the the case of an unsupported module `type` being imported.
 
 Module specifiers are an example of prior art for this type of decision making. It is left up to the host how to resolve a module specifier into a URL that will eventually be loaded. The [import-maps proposal][] is a great example of work done outside of TC39 to allow hosts to share behavior for undefined parts of the spec.
 
