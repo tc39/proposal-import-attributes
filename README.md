@@ -88,7 +88,7 @@ In the context of the [WebAssembly/ESM integration proposal](https://github.com/
 
 This proposal is at Stage 1.
 
-Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/littledan/proposal-module-attributes/issues/10), [#24](https://github.com/littledan/proposal-module-attributes/issues/24) and [#25](https://github.com/littledan/proposal-module-attributes/issues/25)).
+Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/tc39/proposal-module-attributes/issues/10), [#24](https://github.com/tc39/proposal-module-attributes/issues/24) and [#25](https://github.com/tc39/proposal-module-attributes/issues/25)).
 
 Please leave any feedback you have in the [issues](http://github.com/littledan/proposal-module-attributes/issues)!
 
