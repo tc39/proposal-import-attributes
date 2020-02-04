@@ -100,7 +100,7 @@ We can extend the concept of the `as` syntax by generalizing the right hand side
 import value from "module" as {key1: "value1", key2: [1, 2, 3]};
 ```
 
-This would allow module attributes to scale to support a variety of metadata. It is currently unclear if the generalized constant form will be pursued in this proposal or in a follow up. In either case the addition of the generalized constant form is not hard to implement on top of the existing [spec text](https://tc39.github.io/proposal-module-attributes/). 
+This would allow module attributes to scale to support a variety of metadata. It is currently unclear if the generalized constant form will be pursued in this proposal or in a follow up. In either case the addition of the generalized constant form is not hard to design, specify and implement on top of the existing [spec text outline](https://tc39.github.io/proposal-module-attributes/). 
 
 ## FAQ
 
