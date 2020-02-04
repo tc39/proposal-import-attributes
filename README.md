@@ -112,8 +112,6 @@ While an in band solution is more verbose, it is also more straightforward for d
 
 The [import-maps proposal][] is a great example of an out of band manifest that could be created at installation time, but its focus is on modules and at this time all necessary information to generate an application's import map could be found in the package.json of its dependencies.
 
-While there very well could be a future where an out of band manifest could be used for the purpose of identifying module type, the amount of infrastructure necessary for ecosystem adoption is significantly higher than the in band solution proposed here.
-
 ### Are there cross-environment concerns?
 
 Absolutely. This proposal is not attempting to standardize the specific `type`s a host will be allowed to support. It will be up to each runtime to decide which `type`s to support, as well as how to handle the the case of an unsupported module `type` being imported.
