@@ -108,7 +108,7 @@ This would allow module attributes to scale to support a variety of metadata. It
 
 Why not both? The champions of this proposal think that exploring both an in- and out of band solutions to this problem are desirable. Depending on the environment in which JavaScript is being executed in either approach could be seen as desirable.
 
-While an in band solution is more verbose, it is also more straightforward for developers to adopt. For large project with many dependencies developers will not have to worry about creating a large manifest by compiling the meta data of all of their dependencies. Module authors will also not have to worry about shipping manifest in order for consumers to be able to run their modules.
+While an in band solution is more verbose, it is also more straightforward for developers to adopt. For large project with many dependencies developers will not have to worry about creating a large manifest by compiling the metadata of all of their dependencies. Module authors will also not have to worry about shipping a manifest in order for consumers to be able to run their modules.
 
 The [import-maps proposal][] is a great example of an out of band manifest that could be created at installation time, but its focus is on modules and at this time all necessary information to generate an application's import map could be found in the package.json of its dependencies.
 
