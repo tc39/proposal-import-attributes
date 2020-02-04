@@ -122,6 +122,8 @@ Module specifiers are an example of prior art for this type of decision making. 
 
 Independent of the potential cross-environment concerns it is not a problem that is specific to an in band solution. An out of band solution would also suffer from the risk of inconsistent implementation or support across runtimes.
 
+The topic of attribute divergence is further discussed in  [#34](https://github.com/tc39/proposal-module-attributes/issues/34).
+
 ### Should the generalized constant form be supported in the first iteration?
 
 This proposal was initially created to serve a very specific purpose, unblocking security concerns raised about importing alternative module types (JSON, CSS, HTML). While there is no debate that the generalized constant form would be useful, it does pose the risk of increasing cross-environment concerns mentioned above.
