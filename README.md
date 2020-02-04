@@ -134,7 +134,6 @@ At the moment there is nothing in the specification text that refers to caching.
 
 ## Specification
 
-* [Ecmarkup source](./spec.html)
 * [HTML Version](https://tc39.github.io/proposal-module-attributes/)
 
 [import-maps proposal]: https://github.com/WICG/import-maps
