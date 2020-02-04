@@ -122,11 +122,11 @@ Module specifiers are an example of prior art for this type of decision making. 
 
 Independent of the potential cross-environment concerns it is not a problem that is specific to an in band solution. An out of band solution would also suffer from the risk of inconsistent implementation or support across runtimes.
 
-### Why not pursue the generalized constant form today?
+### Should the generalized constant form be supported in the first iteration?
 
 This proposal was initially created to serve a very specific purpose, unblocking security concerns raised about importing alternative module types (JSON, CSS, HTML). While there is no debate that the generalized constant form would be useful, it does pose the risk of increasing cross-environment concerns mentioned above.
 
-The champion group is very much in support of pursuing the generalized constant form, but think that it would be prudent to focus the proposal to a single string initially.
+The champion group is very much in support of pursuing the generalized constant form in the long term, but would like to discuss with committee if it should be supported in the first iteration or not.
 
 ### How would this proposal work with caching?
 
