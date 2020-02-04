@@ -110,7 +110,7 @@ Why not both? The champions of this proposal think that exploring both an in- an
 
 While an in band solution is more verbose, it is also more straightforward for developers to adopt. For large project with many dependencies developers will not have to worry about creating a large manifest by compiling the meta data of all of their dependencies. Module authors will also not have to worry about shipping manifest in order for consumers to be able to run their modules.
 
-The [import-maps proposal][] is a great example of an out of band manifest that could be created at installation time, but it's focus is on modules and at this time all necessary information to generate an applications import map could be found in the package.json of it's dependencies.
+The [import-maps proposal][] is a great example of an out of band manifest that could be created at installation time, but its focus is on modules and at this time all necessary information to generate an application's import map could be found in the package.json of its dependencies.
 
 While there very well could be a future where an out of band manifest could be used for the purpose of identifying module type, the amount of infrastructure necessary for ecosystem adoption is significantly higher than the in band solution proposed here.
 
