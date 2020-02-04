@@ -130,7 +130,9 @@ The champion group is very much in support of pursuing the generalized constant 
 
 ### How would this proposal work with caching?
 
-At the moment there is nothing in the specification text that refers to caching. While a caching strategy would likely be dependent on the type of metadata included, for the generalized constant form, this proposal would defer to the policy of environments to decide how and what to cache.
+Currently in [the ECMA262 spec](https://tc39.es/ecma262/#sec-hostresolveimportedmodule) passing the same module specifier and referrer there is guaranteed to get the same module. This proposal aims to have a similar guarantee; if a developer passes the same module specifier, referrer, and attributes there would be a guarantee of receiving the same module.
+
+It is possible that hosts will explore additional caching and coalescing beyond this.
 
 ## Specification
 
