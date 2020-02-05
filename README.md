@@ -132,7 +132,7 @@ The champion group is very much in support of pursuing the generalized constant 
 
 Currently in [the ECMA262 spec](https://tc39.es/ecma262/#sec-hostresolveimportedmodule) passing the same module specifier and referrer there is guaranteed to get the same module. This proposal aims to have a similar guarantee; if a developer passes the same module specifier, referrer, and attributes there would be a guarantee of receiving the same module.
 
-It is possible that hosts will explore additional caching and coalescing beyond this.
+We expect that hosts will cache/coalesce further than this. For example, on the Web and similar environments, when providing a type module attribute, the module type would not form part of the cache key, where modules are always cached by the resolved URL. Instead, the type attribute is used simply for a check, which would cause the module graph to fail to load in the event of a mismatch
 
 ## Specification
 
