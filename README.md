@@ -114,11 +114,11 @@ The [import-maps proposal](https://github.com/WICG/import-maps) is a great examp
 
 ### Are there cross-environment concerns?
 
-Absolutely. This proposal is not attempting to standardize the specific `type`s a host will be allowed to support. It will be up to each runtime to decide which `type`s to support, as well as how to handle the the case of an unsupported module `type` being imported.
+Absolutely. This proposal is not attempting to standardize the specific `type`s a host will be allowed to support. It will be up to each host environment to decide which `type`s to support, as well as how to handle the the case of an unsupported module `type` being imported.
 
 Module specifiers are an example of prior art for this type of decision making. It is left up to the host how to resolve a module specifier into a URL that will eventually be loaded.
 
-Independent of the potential cross-environment concerns it is not a problem that is specific to an in band solution. An out of band solution would also suffer from the risk of inconsistent implementation or support across runtimes.
+Independent of the potential cross-environment concerns it is not a problem that is specific to an in band solution. An out of band solution would also suffer from the risk of inconsistent implementation or support across host environments.
 
 The topic of attribute divergence is further discussed in  [#34](https://github.com/tc39/proposal-module-attributes/issues/34).
 
