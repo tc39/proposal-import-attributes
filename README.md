@@ -126,7 +126,7 @@ The topic of attribute divergence is further discussed in  [#34](https://github.
 
 This proposal was inspired by a single use case, to unblock other module types (JSON, CSS, HTML) from a security concern on environments like the Web where modules may be remotely loaded. It's unclear whether there is a sufficiently motivating use case to add the generalized constant form in the first iteration of the proposal. The generalized constant form adds some complexity, including in the surface area of cross-environment concerns.
 
-The champion group is very much in support of pursuing the generalized constant form in the long term, but would like to discuss with committee if it should be supported in the first iteration or not.
+The champion group is interested in investigating the generalized constant form, and considering it for inclusion in either this proposal or a follow-on, weighing the expressiveness against the costs listed above, in consultation with TC39.
 
 ### How would this proposal work with caching?
 
