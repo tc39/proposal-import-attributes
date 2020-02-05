@@ -124,7 +124,7 @@ The topic of attribute divergence is further discussed in  [#34](https://github.
 
 ### Should the generalized constant form be supported in the first iteration?
 
-This proposal was initially created to serve a very specific purpose, unblocking security concerns raised about importing alternative module types (JSON, CSS, HTML). While there is no debate that the generalized constant form would be useful, it does pose the risk of increasing cross-environment concerns mentioned above.
+This proposal was inspired by a single use case, to unblock other module types (JSON, CSS, HTML) from a security concern on environments like the Web where modules may be remotely loaded. It's unclear whether there is a sufficiently motivating use case to add the generalized constant form in the first iteration of the proposal. The generalized constant form adds some complexity, including in the surface area of cross-environment concerns.
 
 The champion group is very much in support of pursuing the generalized constant form in the long term, but would like to discuss with committee if it should be supported in the first iteration or not.
 
