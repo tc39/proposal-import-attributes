@@ -57,7 +57,7 @@ The host environment would determine the interpretation of `"json"`. In the Web 
 The `import()` pseudo-function would allow the string as its second argument.
 
 ```js
-import("foo.json", "json")
+import("foo.json", { as: "json" })
 ```
 
 ### Integration of modules into environments
@@ -97,7 +97,7 @@ Please leave any feedback you have in the [issues](http://github.com/littledan/p
 We can extend the concept of the `as` syntax by generalizing the right hand side value. A constant value, an array or an object containing only constant values. For example:
 
 ```js
-import value from "module" as {key1: "value1", key2: [1, 2, 3]};
+import value from "module" as { key1: "value1", key2: [1, 2, 3] };
 ```
 
 This would allow module attributes to scale to support a variety of metadata. It is currently unclear if the generalized constant form will be pursued in this proposal or in a follow up. In either case the addition of the generalized constant form is not hard to design, specify and implement on top of the existing [spec text outline](https://tc39.github.io/proposal-module-attributes/). 
