@@ -2,6 +2,8 @@
 
 A central goal of this proposal is to have consistent behavior across environments, to the maximum extent possible. See [README.md](./README.md) for more context. This document attempts to be the basis for a registry where attribute names and semantics can be standardized across environments.
 
+NOTE: The idea of a registry like this is a very early idea for discussion; it doesn't have consensus yet, and we'd be open discussing alternatives.
+
 This registry is intended to be inclusive of all JavaScript environments and tooling, coordinating among the whole ecosystem. The current draft includes things in this proposal and proposals for HTML, but the Web is not intended to be treated specially. For example, we may decide on coordinating on an attribute which is useful across multiple tools.
 
 ## Attribute names

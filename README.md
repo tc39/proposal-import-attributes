@@ -108,6 +108,8 @@ Hosts would all be required to give a common interpretation to `"json"`, defined
 
 Further attributes and module types beyond `json` modules could be added in future TC39 proposals as well as in hosts. All module attributes and type values are required to be registered in the [module attributes registry](./REGISTRY.md). HTML and CSS modules are also under consideration, and these may use similar explicit `type` syntax when imported--these proposals are tracked in [REGISTRY.md](./REGISTRY.md).
 
+NOTE: The idea of a registry like this is a very early idea for discussion; it doesn't have consensus yet, and we'd be open discussing alternatives.
+
 JavaScript implementations *must* reject attributes and type values which are not tracked, and *should* reject attributes which are not implemented in their environment (rather than ignoring them). This is to allow for maximal flexibility in the design space in the future--in particular, it enables new module attributes to be defined which change the interpretation of a module, without breaking backwards-compatibility.
 
 Note that all environments are required to support JSON modules with this explicit syntax, but *may* support modules without it. For example, on the Web, JSON modules would only be supported with the explicit type, but Node.js *may* decide to also support JSON modules without this declaration. However, all environments *must* support the explicitly `type`-declared JSON modules.

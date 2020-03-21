@@ -23,11 +23,15 @@
     ImportDeclaration :
       `import` ImportClause FromClause `;`
       `import` ModuleSpecifier `;`
-      <ins>`import` ImportClause FromClause AsClause `;`</ins>
-      <ins>`import` ModuleSpecifier AsClause `;`</ins>
+      <ins>`import` ImportClause FromClause WithClause `;`</ins>
+      <ins>`import` ModuleSpecifier WithClause `;`</ins>
 
-    AsClause :
-      <ins>[no LineTerminator here] `as` StringLiteral</ins>
+    WithClause :
+      <ins>`with` WithList</ins>
+
+    WithList :
+      <ins>IdentifierName `:` StringLiteral</ins>
+      <ins>IdentifierName `:` StringLiteral `,` WithList</ins>
 
     ImportCall[Yield, Await] :
       `import` `(` AssignmentExpression[+In, ?Yield, ?Await] `,`? `)`
@@ -38,7 +42,7 @@
 <emu-clause id="sec-semantics">
   <h1>Semantics</h1>
 
-  <emu-note type="editor"><p>Many productions operating on grammar are the same whether or not an |AsClause|/second |ImportCall| parameter is included; the new parameter is ignored. In this section, only the semantically significant changes are included, and the PR to merge into the main specification would fill in the straightforward details.</p></emu-note>
+  <emu-note type="editor"><p>Many productions operating on grammar are the same whether or not an |WithClause|/second |ImportCall| parameter is included; the new parameter is ignored. In this section, only the semantically significant changes are included, and the PR to merge into the main specification would fill in the straightforward details.</p></emu-note>
 
     <emu-clause id="sec-import-calls">
       <h1>Import Calls</h1>
@@ -80,12 +84,12 @@
 
   <h1>TODO</h1>
   <ul>
-    <li>RequestedModules becomes a List of Records of the form { [[Specifier]]: String, [[Attribute]]: String }.</li>
+    <li>There's a parse-time algorithm which converts WithClause into a List of Attribute Records of the form { [[AttributeKey]]: String, [[AttributeValue]]: String }, and similarly, a runtime algorithm for dynamically created attributes passed through `import()`.</li>
+    <li>RequestedModules becomes a List of Records of the form { [[Specifier]]: String, [[Attributes]]: List of Attribute Records }.</li>
     <li>Update the RequestedModules algorithm to calculate it correctly.</li>
-    <li>Update InnerModuleLinking and InnerModuleEvaluation to pass both the specifier and attribute from [[RequestedModules]] records up to HostResolveImportedModule.</li>
-    <li>Update most other callsites of HostResolveImportedModule, where the attribute is not so readily available, to search through [[RequestedModules]] to find the attribute value (or, to pass up a don't-care-sentinel).</li>
-    <li>Add an early error for non-identical attributes for a single module specifier within a module. (This might be relaxed in a follow-on proposal. We could leave it up to the host environment to ensure consistency across the whole module graph, or we could add a link-time error for this as well, but in HTML, the host would notice before we would have the chance to.)</li>
-    <li>Update HostResolveImportedModule and HostImportModuleDynamically descriptions to explain the attribute and what invariants it has.</li>
+    <li>Update InnerModuleLinking and InnerModuleEvaluation to pass both the specifier and attributes from [[RequestedModules]] records up to HostResolveImportedModule.</li>
+    <li>Update most other callsites of HostResolveImportedModule, where the attributes are not so readily available, to search through [[RequestedModules]] to find the attribute value (or, to pass up a don't-care-sentinel).</li>
+    <li>Update HostResolveImportedModule and HostImportModuleDynamically descriptions to explain the attributes and what invariants it has.</li>
   </ul>
 </emu-clause>
 
