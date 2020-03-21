@@ -1,16 +1,20 @@
-# ES Module Attributes
+# ES Module Attributes and JSON modules
 
 Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), Myles Borins ([@MylesBorins](https://github.com/MylesBorins)), and Dan Clark ([@dandclark](https://github.com/dandclark))
 
-Status: Stage 1
+Status: Stage 1.
+
+Please leave any feedback you have in the [issues](http://github.com/littledan/proposal-module-attributes/issues)!
 
 ## Synopsis
 
-The ES Module Attributes proposal is an investigation into providing inline syntax for module import statements to pass on more information alongside the module specifier, with an initial aim to support non-JS ESM module types.
+The ES Module Attributes and JSON modules proposal adds:
+- An inline syntax for module import statements to pass on more information alongside the module specifier
+- An initial application for such attributes in supporting JSON modules in a common way across JavaScript environments
 
 ## Motivation
 
-As one example of an application: standards-track JSON ESM modules were [proposed](https://github.com/w3c/webcomponents/issues/770) to allow JavaScript modules to easily import JSON data files, similarly to how they are supported in many nonstandard JavaScript module systems. This idea quickly got broad support from web developers and browsers, and was merged into HTML, with an implementation created by Microsoft.
+Standards-track JSON ES modules were [proposed](https://github.com/w3c/webcomponents/issues/770) to allow JavaScript modules to easily import JSON data files, similarly to how they are supported in many nonstandard JavaScript module systems. This idea quickly got broad support from web developers and browsers, and was merged into HTML, with an implementation for V8/Chromium created by Microsoft.
 
 However, in [an issue](https://github.com/w3c/webcomponents/issues/839), Ryosuke Niwa (Apple) and Anne van Kesteren (Mozilla) proposed that security would be improved if some syntactic marker were required when importing JSON modules and similar module types which cannot execute code, to prevent a scenario where the responding server unexpectedly provides a different MIME type, causing code to be unexpectedly executed. The solution was to somehow indicate that a module was JSON, or in general, not to be executed, somewhere in addition to the MIME type.
 
@@ -24,41 +28,41 @@ Proposed ES module types that are blocked by this security concern, in addition 
 
 There are three places where this data could be provided:
 - As part of the module specifier (e.g., as a pseudo-scheme)
-  - Challenges: Adds complexity to URLs or other module specifier syntaxes, and risks being confusing to developers (further discussion: [#11](https://github.com/littledan/proposal-module-attributes/issues/11))
+    - Challenges: Adds complexity to URLs or other module specifier syntaxes, and risks being confusing to developers (further discussion: [#11](https://github.com/littledan/proposal-module-attributes/issues/11))
+    - webpack supports this sort of construct ([docs](https://webpack.js.org/concepts/loaders/#inline)).
+        - Demand from users for similar behavior in Parcel, with pushback from some maintainers ([#3477](https://github.com/parcel-bundler/parcel/issues/3477))
 - Separately, out of band (e.g., a separate resource file)
-  - Challenges: How to load that resource file; what should the format be; unergonomic to have to jump between files during development (further discussion: [#13](https://github.com/littledan/proposal-module-attributes/issues/13))
+    - Challenges: How to load that resource file; what should the format be; unergonomic to have to jump between files during development (further discussion: [#13](https://github.com/littledan/proposal-module-attributes/issues/13))
 - In the JavaScript source text
-  - Challenges: Requires a change at the JavaScript language level (this proposal)
+    - Challenges: Requires a change at the JavaScript language level (this proposal)
 
 This proposal pursues the third option, as we expect it to lead to the best developer experience, and are hopeful that language design/standardization issues can be resolved.
 
-## Early draft syntax
+## Proposed syntax
 
 Module attributes have to be made available in several different contexts. This section contains one possible syntax, but there are other options, discussed in [#6](https://github.com/littledan/proposal-module-attributes/issues/6).
 
-Here, a single string is permitted to describe a single module attribute, as discussed in [#12](https://github.com/littledan/proposal-module-attributes/issues/12).
-
-Although unspecified in the module attributes proposal, this intention of the proposal champions is that this string would be interpreted as the module type, as shown in the following examples.
-
-The JavaScript standard would basically be responsible for passing the string up to the host environment, which could then decide how to interpret it. Issues [#24](https://github.com/littledan/proposal-module-attributes/issues/24) and [#25](https://github.com/littledan/proposal-module-attributes/issues/25) discuss the Web and Node.js feature and semantic requirements respectively, and issue [#10](https://github.com/littledan/proposal-module-attributes/issues/10) discusses how to allow different JavaScript environments to have interoperability.
+Here, a key-value syntax is used, with the key `type` used as an example indicating the module type. Such key-value syntax can be used in various different contexts.
 
 ### import statements
 
-The ImportDeclaration would allow a string provided at the end of an import statement with the `as` keyword.
+The ImportDeclaration would allow any arbitrary attributes after the `with` keyword.
 
-```js
-import json from "./foo.json" as "json";
+For example, the `type` attribute indicates a module type, and can be used to load JSON modules with the following syntax.
+
+```mjs
+import json from "./foo.json" with type: "json";
 ```
-
-The host environment would determine the interpretation of `"json"`. In the Web and similar environments, `as "json"` would be required to load JSON modules, whereas no `as` syntax would be used for JavaScript modules.
 
 ### dynamic import()
 
-The `import()` pseudo-function would allow the string as its second argument.
+The `import()` pseudo-function would allow module attributes to be indicated in an options bag in the second argument.
 
 ```js
-import("foo.json", { as: "json" })
+import("foo.json", { with: { type: "json" } })
 ```
+
+The second parameter to `import()` is an options bag, with the only option currently defined to be `with`: the value here is an object containing the module attributes. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
 
 ### Integration of modules into environments
 
@@ -67,15 +71,17 @@ Host environments (e.g., the Web platform, Node.js) often provide various differ
 #### Worker instantiation
 
 ```js
-new Worker("foo.wasm", { as: "webassembly" });
+new Worker("foo.wasm", { type: "module", with: { type: "webassembly" } });
 ```
 
 Sidebar about WebAssembly module types and the web: it's still uncertain whether importing WebAssembly modules would need to be marked specially, or would be imported just like JavaScript. Further discussion in [#19](https://github.com/littledan/proposal-module-attributes/issues/19).
 
 #### HTML
 
+The idea here would be that each module attribute, preceded by `with`, becomes an HTML attribute which could be used in script tags.
+
 ```html
-<script src="foo.wasm" type="webassembly"></script>
+<script src="foo.wasm" type="module" withtype="webassembly"></script>
 ```
 
 (See the caveat about WebAssembly above.)
@@ -84,53 +90,141 @@ Sidebar about WebAssembly module types and the web: it's still uncertain whether
 
 In the context of the [WebAssembly/ESM integration proposal](https://github.com/webassembly/esm-integration): For imports of other module types from within a WebAssembly module, this proposal would introduce a new custom section (named `importattributes`) that will annotate with attributes each imported module (which is listed in the import section).
 
-## Status and plan for standardization
+## Proposed semantics and interoperability
 
-This proposal is at Stage 1.
+### JSON modules
 
-Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/tc39/proposal-module-attributes/issues/10), [#24](https://github.com/tc39/proposal-module-attributes/issues/24) and [#25](https://github.com/tc39/proposal-module-attributes/issues/25)).
+JSON modules are required to be supported when invoked using the `with type: "json"` syntax, with common semantics in all JavaScript implementations for this syntax.
 
-Please leave any feedback you have in the [issues](http://github.com/littledan/proposal-module-attributes/issues)!
+JSON modules' semantics are those of a single default export which is the entire parsed JSON document.
 
-### Generalized constant form (richer `as` values)
+Each JavaScript host is expected to provide a secondary way of checking whether a module is a JSON module. For example, on the Web, the MIME type would be checked to be a JSON MIME type. In "local" desktop/server/embedded environments, the file extension may be checked (possibly after symlinks are followed). The `type: "json"` is indicated at the import site, rather than *only* through that other mechanism in order to prevent the privilege escalation issue noted in the opening section.
 
-We can extend the concept of the `as` syntax by generalizing the right hand side value. A constant value, an array or an object containing only constant values. For example:
+Nevertheless, the interpretation of module loads with no attributes remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `with type: "json"`. It's just that `with type: "json"` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether module attributes are required or optional for JSON modules.
 
-```js
-import value from "module" as { key1: "value1", key2: [1, 2, 3] };
-```
+### Module attributes
 
-This would allow module attributes to scale to support a variety of metadata. It is currently unclear if the generalized constant form will be pursued in this proposal or in a follow up. In either case the addition of the generalized constant form is not hard to design, specify and implement on top of the existing [spec text outline](https://tc39.github.io/proposal-module-attributes/). 
+Hosts would all be required to give a common interpretation to `"json"`, defined in the JavaScript specification, that `json` is the parsed JSON document (no named exports).
+
+Further attributes and module types beyond `json` modules could be added in future TC39 proposals as well as in hosts. All module attributes and type values are required to be registered in the [module attributes registry](./REGISTRY.md). HTML and CSS modules are also under consideration, and these may use similar explicit `type` syntax when imported--these proposals are tracked in [REGISTRY.md](./REGISTRY.md).
+
+JavaScript implementations *must* reject attributes and type values which are not tracked, and *should* reject attributes which are not implemented in their environment (rather than ignoring them). This is to allow for maximal flexibility in the design space in the future--in particular, it enables new module attributes to be defined which change the interpretation of a module, without breaking backwards-compatibility.
+
+Note that all environments are required to support JSON modules with this explicit syntax, but *may* support modules without it. For example, on the Web, JSON modules would only be supported with the explicit type, but Node.js *may* decide to also support JSON modules without this declaration. However, all environments *must* support the explicitly `type`-declared JSON modules.
+
+The `type` does not form part of the cache key for modules, as it is just a redundant check. However, other module attributes may form part of the cache key, if they affect the interpretation of the module. For example, a future proposal could add a module attribute which controls details of how the JSON module is parsed--this would be part of the cache key, as it could result in a different parse of the same module.
+
+Plumbing-wise, the JavaScript standard would basically be responsible for passing the string up to the host environment, which would then decide how to interpret it, within the requirements listed above. Issues [#24](https://github.com/littledan/proposal-module-attributes/issues/24) and [#25](https://github.com/littledan/proposal-module-attributes/issues/25) discuss the Web and Node.js feature and semantic requirements respectively, and issue [#10](https://github.com/littledan/proposal-module-attributes/issues/10) discusses how to allow different JavaScript environments to have interoperability.
 
 ## FAQ
 
 ### Why not out of band?
 
-Why not both? The champions of this proposal think that exploring both an in- and out of band solutions to this problem are desirable. Depending on the environment in which JavaScript is being executed in either approach could be seen as desirable.
+Why not both? The champions of this proposal think that exploring both an in- and out of band solutions to various kinds of metadata. While we prefer in-band metadata for module types, we are happy to see the development of various out-of-band manifests of modules being proposed and implemented in certain JS environments:
+- [import maps](https://github.com/WICG/import-maps) to map module specifiers to URLs/paths
+- [Node.js policy files](https://nodejs.org/api/policy.html), e.g., to perform integrity checks on modules
 
-While an in band solution is more verbose, it is also more straightforward for developers to adopt. For smaller projects developers do not need to create an extra file by hand. For large project with many dependencies developers will not have to worry about creating a large manifest by compiling the metadata of all of their dependencies. Module authors will also not have to worry about shipping a manifest in order for consumers to be able to run their modules.
+This proposal does not exclude out-of-band metadata being used for module types. And it definitely doesn't argue that all metadata should be in-band. For example, integrity hashes simply don't work in-band, both because module circularities make them impossible to calculate, and because of the need for a "cascading" update when a deep dependency changes.
 
-### Are there cross-environment concerns?
+Out-of-band solutions face certain downsides; these are not necessarily fatal, but are interesting to take into account when considering the solution space and making tradeoffs:
+- **By-hand authoring experience**: While an in-band solution is somewhat verbose, it is also more straightforward for developers to adopt when writing code without much tooling. For smaller projects developers do not need to create an extra file by hand.
+- **Tooling complexity for large projects**: For large project with many dependencies, developers will not have to worry about creating a large manifest by compiling the metadata of all of their dependencies. Module authors will also not have to worry about shipping a manifest in order for consumers to be able to run their modules.
+- **Performance tradeoffs**: The experience in Node.js's experimental, out-of-band policy files is that they can carry significant startup cost, due to certain aspects of loading and parsing.
 
-Absolutely. This proposal is not attempting to standardize the specific `type`s a host will be allowed to support. It will be up to each host environment to decide which `type`s to support, as well as how to handle the the case of an unsupported module `type` being imported.
+### How is common behavior ensured across JavaScript environments?
 
-Module specifiers are an example of prior art for this type of decision making. It is left up to the host how to resolve a module specifier into a URL that will eventually be loaded.
+A central goal of this proposal is to share as much syntax and behavior across JavaScript environments as possible. To that end, JSON modules are standardized as much as possible (omitting just the contents of the redundant type check, which necessarily differs between environments, in addition to the pre-existing host-defined parts such as interpreting the module specifier and fetching the module). Module attributes are required to be coordinated across environments in [REGISTRY.md](./REGISTRY.md).
 
-Independent of the potential cross-environment concerns it is not a problem that is specific to an in band solution. An out of band solution would also suffer from the risk of inconsistent implementation or support across host environments.
+However, at the same time, behavior of modules in general, and the set of module types specifically, is expected to differ across JavaScript environments. For example, WebAssembly, HTML and CSS modules may not make sense in certain minimal embedded JavaScript environments. To this end, the registry may contain some `type` values and even attribute keys which are supported in one environment but not others. The hope is that, by encouraging cooperation in the registry, cross-environment differences will be minimized.
+
+We see the management of compatibility issues across environments as similar, independent of whether metadata is held in-band or out-of-band. An out of band solution would also suffer from the risk of inconsistent implementation or support across host environments if some kind of coordination does not occur.
 
 The topic of attribute divergence is further discussed in  [#34](https://github.com/tc39/proposal-module-attributes/issues/34).
 
-### Should the generalized constant form be supported in the first iteration?
-
-This proposal was inspired by a single use case, to unblock other module types (JSON, CSS, HTML) from a security concern on environments like the Web where modules may be remotely loaded. It's unclear whether there is a sufficiently motivating use case to add the generalized constant form in the first iteration of the proposal. The generalized constant form adds some complexity, including in the surface area of cross-environment concerns.
-
-The champion group is interested in investigating the generalized constant form, and considering it for inclusion in either this proposal or a follow-on, weighing the expressiveness against the costs listed above, in consultation with TC39.
-
 ### How would this proposal work with caching?
 
-Currently in [the ECMA262 spec](https://tc39.es/ecma262/#sec-hostresolveimportedmodule) passing the same module specifier and referrer there is guaranteed to get the same module. This proposal aims to have a similar guarantee; if a developer passes the same module specifier, referrer, and attributes there would be a guarantee of receiving the same module.
+Currently in [the ECMA262 spec](https://tc39.es/ecma262/#sec-hostresolveimportedmodule) passing the same module specifier and referrer there is guaranteed to get the same module. In this proposal, certain module attributes could would be taken into account for this invariant, whereas others are not. For example, implementations are required to return the same module, or an error, regardless of the value of the `type` attribute.
 
-We expect that hosts will cache/coalesce further than this. For example, on the Web and similar environments, when providing a type module attribute, the module type would not form part of the cache key, where modules are always cached by the resolved URL. Instead, the type attribute is used simply for a check, which would cause the module graph to fail to load in the event of a mismatch
+However, other attributes which affect the interpretation of a module (and not simply checking) may result in a different module being returned. Therefore, in general, the invariant here is that non-assertion module attributes may be thought of as the "cache key" and are not required to return the same module when differing.
+
+### Why don't JSON modules support named exports?
+
+"Named exports" for each top-level property of the parsed JSON value were [considered](https://github.com/whatwg/html/issues/4315#issuecomment-456838848) in earlier HTML efforts towards JSON modules. On one hand, named exports are implemented by certain JavaScript tooling, and some developers find them to be more ergonomic/friendly to certain forms of tree shaking. However, they are not selected in this proposal because:
+- They are not fully general: not all JSON documents are objects, and not all object property keys are JavaScript identifiers that can be bound as named imports.
+- It makes sense to think of a JSON document as conceptually ["a single thing"](https://github.com/whatwg/html/issues/4315#issuecomment-456838848) rather than several things that happen to be side-by-side in a file.
+
+### Why not use more terse syntax to indicate module types, like `import json from "./foo.json" as "json"`?
+
+Another option considered and not selected has been to use a single string as the attribute, indicating the type. This option is not selected due to its implication that any particular attribute is special; even though this proposal only specifies the `type` attribute, the intention is to be open to more attributes in the future. (discussion in [#12](https://github.com/littledan/proposal-module-attributes/issues/12)).
+
+### Should more than just strings be supported as attribute values?
+
+We could permit module attributes to have more complex values than simply strings, for example:
+
+```js
+import value from "module" with attr: { key1: "value1", key2: [1, 2, 3] };
+```
+
+This would allow module attributes to scale to support a larger variety of metadata.
+
+We propose to omit this generalization in the initial proposal, as a key/value list of strings already affords significant flexibility to start, but we're open to a follow-on proposal providing this kind of generalization.
+
+### What are you open to changing? When do we have to settle down on the details?
+
+We are planning to make descisions and reach consensus during specific stages of this proposal. Here's our plan.
+
+#### Before stage 2
+
+We want to on core questions of this proposal as a Stage 2 prerequisite, including:
+
+- The attribute form; key-value or single string ([#12](https://github.com/tc39/proposal-module-attributes/issues/12))
+
+```mjs
+// Not selected
+import value from "module" as "json";
+
+// Current proposal, to settle on before Stage 2
+import value from "module" with type: "json";
+```
+
+- The general approach that the semantics of module attributes would be made compatible across environments using a registry, as described at [REGISTRY.md](./REGISTRY.md) ([#34](https://github.com/tc39/proposal-module-attributes/issues/34)).
+
+
+#### Before stage 3
+
+After Stage 2 and before Stage 3, we're open to settling on some less core details, such as:
+
+- Decide on the exact syntax of the module import attributes
+
+Whether there are curly brackets around module attributes, like an object literal ([#5](https://github.com/tc39/proposal-module-attributes/issues/5))
+```mjs
+import value from "module" with { type: "json" };
+```
+
+Considering alternatives for the `with` keyword ([#3](https://github.com/tc39/proposal-module-attributes/issues/3))
+
+```mjs
+import value from "module" when type: 'json';
+import value from "module" given type: 'json';
+```
+
+- How dynamic import would accept module attributes: e.g., with or without an extra level of nesting
+
+```mjs
+import("foo.wasm", { with: { type: "webassembly" } });
+import("foo.wasm", { type: "webassembly" });  // an alternative
+```
+
+#### Before Stage 4
+
+- The integration of module attributes into various host environments.
+    - For example, in the Web Platform, how module attributes would be enabled when launching a worker (if that is supported in the initial version to be shipped on the Web) or included in a `<script>` tag.
+
+```mjs
+new Worker("foo.wasm", { type: "module", with: { type: "webassembly" } });
+```
+
+Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/tc39/proposal-module-attributes/issues/10), [#24](https://github.com/tc39/proposal-module-attributes/issues/24) and [#25](https://github.com/tc39/proposal-module-attributes/issues/25)).
 
 ## Specification
 
