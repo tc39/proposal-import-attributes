@@ -104,13 +104,9 @@ Nevertheless, the interpretation of module loads with no attributes remains host
 
 ### Module attributes
 
-Hosts would all be required to give a common interpretation to `"json"`, defined in the JavaScript specification, that `json` is the parsed JSON document (no named exports).
+Hosts would all be required to give a common interpretation to `"json"`, defined in the JavaScript specification, that `json` is the parsed JSON document (no named exports). Further attributes and module types beyond `json` modules could be added in future TC39 proposals as well as by hosts. HTML and CSS modules are also under consideration, and these may use similar explicit `type` syntax when imported.
 
-Further attributes and module types beyond `json` modules could be added in future TC39 proposals as well as in hosts. All module attributes and type values are required to be registered in the [module attributes registry](./REGISTRY.md). HTML and CSS modules are also under consideration, and these may use similar explicit `type` syntax when imported--these proposals are tracked in [REGISTRY.md](./REGISTRY.md).
-
-NOTE: The idea of a registry like this is a very early idea for discussion; it doesn't have consensus yet, and we'd be open discussing alternatives.
-
-JavaScript implementations *must* reject attributes and type values which are not tracked, and *should* reject attributes which are not implemented in their environment (rather than ignoring them). This is to allow for maximal flexibility in the design space in the future--in particular, it enables new module attributes to be defined which change the interpretation of a module, without breaking backwards-compatibility.
+JavaScript implementations are encouraged to reject attributes and type values which are not implemented in their environment (rather than ignoring them). This is to allow for maximal flexibility in the design space in the future--in particular, it enables new module attributes to be defined which change the interpretation of a module, without breaking backwards-compatibility.
 
 Note that all environments are required to support JSON modules with this explicit syntax, but *may* support modules without it. For example, on the Web, JSON modules would only be supported with the explicit type, but Node.js *may* decide to also support JSON modules without this declaration. However, all environments *must* support the explicitly `type`-declared JSON modules.
 
@@ -135,9 +131,9 @@ Out-of-band solutions face certain downsides; these are not necessarily fatal, b
 
 ### How is common behavior ensured across JavaScript environments?
 
-A central goal of this proposal is to share as much syntax and behavior across JavaScript environments as possible. To that end, JSON modules are standardized as much as possible (omitting just the contents of the redundant type check, which necessarily differs between environments, in addition to the pre-existing host-defined parts such as interpreting the module specifier and fetching the module). Module attributes are required to be coordinated across environments in [REGISTRY.md](./REGISTRY.md).
+A central goal of this proposal is to share as much syntax and behavior across JavaScript environments as possible. To that end, JSON modules are standardized as much as possible (omitting just the contents of the redundant type check, which necessarily differs between environments, in addition to the pre-existing host-defined parts such as interpreting the module specifier and fetching the module).
 
-However, at the same time, behavior of modules in general, and the set of module types specifically, is expected to differ across JavaScript environments. For example, WebAssembly, HTML and CSS modules may not make sense in certain minimal embedded JavaScript environments. To this end, the registry may contain some `type` values and even attribute keys which are supported in one environment but not others. The hope is that, by encouraging cooperation in the registry, cross-environment differences will be minimized.
+However, at the same time, behavior of modules in general, and the set of module types specifically, is expected to differ across JavaScript environments. For example, WebAssembly, HTML and CSS modules may not make sense in certain minimal embedded JavaScript environments. We hope that environments can experiment and collaborate where it makes sense for them.
 
 We see the management of compatibility issues across environments as similar, independent of whether metadata is held in-band or out-of-band. An out of band solution would also suffer from the risk of inconsistent implementation or support across host environments if some kind of coordination does not occur.
 
@@ -188,9 +184,6 @@ import value from "module" as "json";
 // Current proposal, to settle on before Stage 2
 import value from "module" with type: "json";
 ```
-
-- The general approach that the semantics of module attributes would be made compatible across environments using a registry, as described at [REGISTRY.md](./REGISTRY.md) ([#34](https://github.com/tc39/proposal-module-attributes/issues/34)).
-
 
 #### Before stage 3
 
