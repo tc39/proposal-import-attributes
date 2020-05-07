@@ -75,7 +75,7 @@
           1. <ins>If Type(_attr_) is not String,</ins>
             1. <ins>Call(_promiseCapability.[[Reject]], *undefined*, a new TypeError exception).</ins>
           1. <ins>Otherwise,</ins>
-            1. Perform ! HostImportModuleDynamically(_referencingScriptOrModule_, _specifierString_, <ins>_attr_</ins> _promiseCapability_).
+            1. Perform ! HostImportModuleDynamically(_referencingScriptOrModule_, _specifierString_, <ins>_attr_,</ins> _promiseCapability_).
           1. Return _promiseCapability_.[[Promise]].
         </emu-alg>
         <emu-note type="editor">An exception is thrown for non-String values rather than calling ToString to allow later expansion to other values.</emu-note>
