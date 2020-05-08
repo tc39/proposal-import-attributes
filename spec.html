@@ -354,14 +354,16 @@
   <p>In the Web embedding, the following changes would be made to the HTML specification for module attributes:</p>
 
   <ul>
-    <li>The <a href="https://html.spec.whatwg.org/#module-script">module script</a> would have an additional item, which would be the module type, as a string (e.g., "json" or "javascript").</li>
-    <li>HostResolveImportedModule and HostImportModuleDynamically would take an extra "attribute" parameter, which would be passed down through several abstract operations to reach the <a href="https://html.spec.whatwg.org/#fetch-a-single-module-script">fetch a single module script</a> algorithm. Somewhere near the entrypoint, *undefined* is replaced by "javascript" (or, alternatively, "executing", if JavaScript and WebAssembly are given a common name).</li>
+    <li>The <a href="https://html.spec.whatwg.org/#module-script">module script</a> would have an additional item, which would be the module type, as a string (e.g., *"json"*), or *undefined* for a JavaScript module.</li>
+    <li>HostResolveImportedModule and HostImportModuleDynamically would take an extra _attributes_ parameter, which would be passed down through several abstract operations to reach the <a href="https://html.spec.whatwg.org/#fetch-a-single-module-script">fetch a single module script</a> algorithm. Somewhere near the entrypoint, if _attributes_ is not *undefined*, then let _type_ be ? Get(_attributes_, *"type"*); otherwise let _type_ be *undefined*. If the type is invalid, then an exception is thrown and module loading fails. Otherwise, this will equal the module type, if the module can be successfully fetched with a matching MIME type.</li>
     <li>In the <a href="https://html.spec.whatwg.org/#fetch-the-descendants-of-a-module-script">fetch the descendents of a module script</a> algorithm, when iterating over [[RequestedModules]], the attribute is saved in parallel with module URLs, and passed on to the internal module script graph fetching procedure (which sends it to "fetch a single module script". Other usage sites of [[RequestedModules]] ignore the attribute.</li>
     <li>"Fetch a single module script" would check the attribute in two places:
       <ul>
-        <li>If the module is found in the module map, then the attribute is checked against he module script's type field.</li>
-        <li>When a new module is fetched, before writing it into the module map, the MIME type is checked against attribute value. The attribute value is written into the module script as the type.</li>
+        <li>If the module is found in the module map, then _type_ is checked against he module script's type field. If they differ, then an exception is thrown and module loading fails.</li>
+        <li>When a new module is fetched, before writing it into the module map, the MIME type is checked to ensure that it matches _type_. (Note that the interpretation of the module is still driven by the MIME type, but once the MIME type is established, this is checked against the _type_.) If they differ, then an exception is thrown and module loading fails. The _type_ is written into the module script as the type.</li>
       </ul>
     </li>
   </ul>
+
+  <p>Note that the module map remains keyed by the absolute URL; the _type_ is not part of the module map key, and initially, no other module attributes are supported, so they are also not present.</p>
 </emu-annex>
