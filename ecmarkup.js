@@ -336,7 +336,7 @@ function findActiveClause(root, path) {
 
   while ($clause = clauses.nextNode()) {
     var rect = $clause.getBoundingClientRect();
-    var $header = $clause.children[0];
+    var $header = $clause.querySelector("h1");
     var marginTop = parseInt(getComputedStyle($header)["margin-top"]);
 
     if ((rect.top - marginTop) <= 0 && rect.bottom > 0) {
