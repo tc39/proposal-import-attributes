@@ -141,7 +141,7 @@
         <p>The implementation of HostImportModuleDynamically must conform to the following requirements:</p>
 
         <ul>
-          <li>`
+          <li>
             The abstract operation must always complete normally with *undefined*. Success or failure must instead be signaled as discussed below.
           </li>
           <li>
@@ -362,20 +362,20 @@
     <h1>Runtime Semantics: WithClauseToAttributes</h1>
     <emu-grammar>WithClause : `with` WithEntries</emu-grammar>
     <emu-alg>
-      1. Let _attributes_ WithEntriesToAttributes of |WithEntries|.
+      1. Let _attributes_ be WithEntriesToAttributes of |WithEntries|.
       1. Sort _attributes_ by the code point order of the [[Key]] of each entry.  NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among attributes by the order they occur in.
       1. Return _attributes_.
     </emu-alg>
 
     <emu-grammar> WithEntries : IdentifierName `:` StringLiteral </emu-grammar>
     <emu-alg>
-      1. Let _entry_ be a Record { [[Key]]: StringValue of |IdentifierName|, [[Value]]: StringValue of |StringLiteral|.
+      1. Let _entry_ be a Record { [[Key]]: StringValue of |IdentifierName|, [[Value]]: StringValue of |StringLiteral| }.
       1. Return a new List containing the single element, _entry_.
     </emu-alg>
 
     <emu-grammar> WithEntries : IdentifierName `:` StringLiteral `,` WithEntries </emu-grammar>
     <emu-alg>
-      1. Let _entry_ be a Record { [[Key]]: StringValue of |IdentifierName|, [[Value]]: StringValue of |StringLiteral|.
+      1. Let _entry_ be a Record { [[Key]]: StringValue of |IdentifierName|, [[Value]]: StringValue of |StringLiteral| }.
       1. Let _rest_ be WithEntriesToAttributes of |WithEntries|.
       1. Return a new List containing _entry_ followed by the entries of _rest_.
     </emu-alg>
@@ -564,7 +564,7 @@
         <emu-alg>
           1. <del>Return ModuleRequests of |FromClause|.</del>
           1. <ins>Let _specifier_ be StringValue of the |StringLiteral| contained in |FromClause|.</ins>
-          1. <ins>Return a ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: an emptyList }.</ins>
+          1. <ins>Return a ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: an empty List }.</ins>
         </emu-alg>
         <emu-grammar>ImportDeclaration : `import` ImportClause FromClause WithClause `;`</emu-grammar>
         <emu-alg>
@@ -598,7 +598,7 @@
         <emu-alg>
           1. <del>Return ModuleRequests of |FromClause|.</del>
           1. <ins>Let _specifier_ be StringValue of the |StringLiteral| contained in |FromClause|.</ins>
-          1. <ins>Return a ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: an emptyList }.</ins>
+          1. <ins>Return a ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: an empty List }.</ins>
         </emu-alg>
         <emu-grammar>
           ExportDeclaration : `export` ExportFromClause FromClause WithClause `;`
