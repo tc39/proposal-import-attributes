@@ -501,7 +501,6 @@
             </tbody>
           </table>
         </emu-table>
-      </emu-clause>
 
         <p>An <dfn id="importentry-record">ImportEntry Record</dfn> is a Record that digests information about a single declarative import. Each ImportEntry Record has the fields defined in <emu-xref href="#table-39"></emu-xref>:</p>
         <emu-table id="table-39" caption="ImportEntry Record Fields">
@@ -621,13 +620,6 @@
           1. Return a new empty List.
         </emu-alg>
       </emu-clause>
-
-  <h1>TODO</h1>
-  <ul>
-    <li>Update the RequestedModules algorithm to calculate it correctly.</li>
-    <li>Update InnerModuleLinking and InnerModuleEvaluation to pass both the specifier and attributes from [[RequestedModules]] records up to HostResolveImportedModule.</li>
-    <li>Update most other callsites of HostResolveImportedModule, where the attributes are not so readily available, to search through [[RequestedModules]] to find the attribute value (or, to pass up a don't-care-sentinel).</li>
-  </ul>
 </emu-clause>
 
 <emu-annex id="sec-host-integration">
