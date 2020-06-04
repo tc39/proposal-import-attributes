@@ -135,7 +135,7 @@
           <ul>
             <li><strong>Race</strong> and use the attribute that was requested by the first import. This seems broken--the second usage is ignored.</li>
             <li><strong>Reject</strong> the module graph and don't load if attributes differ. This seems bad for composition--using two unrelated packages together could break, if they load the same module with disagreeing attributes.</li>
-            <li><strong>Clone</strong> and make two copies of the module, for the different ways it's transformed. In this case, the attributes would have to be part of the cache key. These semantics would run counter to the intuition that there is just one copy of the module.</li>
+            <li><strong>Clone</strong> and make two copies of the module, for the different ways it's transformed. In this case, the attributes would have to be part of the cache key. These semantics would run counter to the intuition that there is just one copy of a module.</li>
           </ul>
           <p>It's possible that one of these three options may make sense for a module load, on a case-by-case basis by attribute, but it's worth careful thought before making this choice.</p>
         </emu-note>
