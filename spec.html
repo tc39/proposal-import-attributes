@@ -116,7 +116,7 @@
             Each time this operation is called with a specific _referencingScriptOrModule_, <del>_specifier_,</del> <ins>_moduleRequest_.[[Specifier]]</ins> pair as arguments it must return the same Module Record instance if it completes normally.
           </li>
           <li>
-            <ins>_moduleRequest_.[[Attributes]] must not influence the interpretation of the module; instead, it may be used to determine whether the algorithm completes normally or with an abrupt completion.</ins>
+            <ins>_moduleRequest_.[[Attributes]] must not influence the interpretation of the module or the module specifier; instead, it may be used to determine whether the algorithm completes normally or with an abrupt completion.</ins>
           </li>
           <li>
             <ins>
