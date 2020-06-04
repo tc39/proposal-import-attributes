@@ -1,4 +1,4 @@
-# ES Module Attributes and JSON modules
+# ES Import Attributes and JSON modules
 
 Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), Myles Borins ([@MylesBorins](https://github.com/MylesBorins)), and Dan Clark ([@dandclark](https://github.com/dandclark))
 
@@ -8,7 +8,7 @@ Please leave any feedback you have in the [issues](http://github.com/littledan/p
 
 ## Synopsis
 
-The ES Module Attributes and JSON modules proposal adds:
+The ES Import Attributes and JSON modules proposal adds:
 - An inline syntax for module import statements to pass on more information alongside the module specifier
 - An initial application for such attributes in supporting JSON modules in a common way across JavaScript environments
 
@@ -40,7 +40,7 @@ This proposal pursues the third option, as we expect it to lead to the best deve
 
 ## Proposed syntax
 
-Module attributes have to be made available in several different contexts. This section contains one possible syntax, but there are other options, discussed in [#6](https://github.com/littledan/proposal-module-attributes/issues/6).
+Import attributes have to be made available in several different contexts. This section contains one possible syntax, but there are other options, discussed in [#6](https://github.com/littledan/proposal-module-attributes/issues/6).
 
 Here, a key-value syntax is used, with the key `type` used as an example indicating the module type. Such key-value syntax can be used in various different contexts.
 
@@ -56,13 +56,13 @@ import json from "./foo.json" with type: "json";
 
 ### dynamic import()
 
-The `import()` pseudo-function would allow module attributes to be indicated in an options bag in the second argument.
+The `import()` pseudo-function would allow import attributes to be indicated in an options bag in the second argument.
 
 ```js
 import("foo.json", { with: { type: "json" } })
 ```
 
-The second parameter to `import()` is an options bag, with the only option currently defined to be `with`: the value here is an object containing the module attributes. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
+The second parameter to `import()` is an options bag, with the only option currently defined to be `with`: the value here is an object containing the import attributes. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
 
 ### Integration of modules into environments
 
@@ -78,7 +78,7 @@ Sidebar about WebAssembly module types and the web: it's still uncertain whether
 
 #### HTML
 
-The idea here would be that each module attribute, preceded by `with`, becomes an HTML attribute which could be used in script tags.
+The idea here would be that each import attribute, preceded by `with`, becomes an HTML attribute which could be used in script tags.
 
 ```html
 <script src="foo.wasm" type="module" withtype="webassembly"></script>
@@ -100,17 +100,17 @@ JSON modules' semantics are those of a single default export which is the entire
 
 Each JavaScript host is expected to provide a secondary way of checking whether a module is a JSON module. For example, on the Web, the MIME type would be checked to be a JSON MIME type. In "local" desktop/server/embedded environments, the file extension may be checked (possibly after symlinks are followed). The `type: "json"` is indicated at the import site, rather than *only* through that other mechanism in order to prevent the privilege escalation issue noted in the opening section.
 
-Nevertheless, the interpretation of module loads with no attributes remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `with type: "json"`. It's just that `with type: "json"` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether module attributes are required or optional for JSON modules.
+Nevertheless, the interpretation of module loads with no attributes remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `with type: "json"`. It's just that `with type: "json"` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import attributes are required or optional for JSON modules.
 
-### Module attributes
+### Import attributes
 
 Hosts would all be required to give a common interpretation to `"json"`, defined in the JavaScript specification, that `json` is the parsed JSON document (no named exports). Further attributes and module types beyond `json` modules could be added in future TC39 proposals as well as by hosts. HTML and CSS modules are also under consideration, and these may use similar explicit `type` syntax when imported.
 
-JavaScript implementations are encouraged to reject attributes and type values which are not implemented in their environment (rather than ignoring them). This is to allow for maximal flexibility in the design space in the future--in particular, it enables new module attributes to be defined which change the interpretation of a module, without breaking backwards-compatibility.
+JavaScript implementations are encouraged to reject attributes and type values which are not implemented in their environment (rather than ignoring them). This is to allow for maximal flexibility in the design space in the future--in particular, it enables new import attributes to be defined which change the interpretation of a module, without breaking backwards-compatibility.
 
 Note that all environments are required to support JSON modules with this explicit syntax, but *may* support modules without it. For example, on the Web, JSON modules would only be supported with the explicit type, but Node.js *may* decide to also support JSON modules without this declaration. However, all environments *must* support the explicitly `type`-declared JSON modules.
 
-The `type` does not form part of the cache key for modules, as it is just a redundant check. However, other module attributes may form part of the cache key, if they affect the interpretation of the module. For example, a future proposal could add a module attribute which controls details of how the JSON module is parsed--this would be part of the cache key, as it could result in a different parse of the same module.
+The `type` does not form part of the cache key for modules, as it is just a redundant check. However, other import attributes may form part of the cache key, if they affect the interpretation of the module. For example, a future proposal could add a import attribute which controls details of how the JSON module is parsed--this would be part of the cache key, as it could result in a different parse of the same module.
 
 Plumbing-wise, the JavaScript standard would basically be responsible for passing the string up to the host environment, which would then decide how to interpret it, within the requirements listed above. Issues [#24](https://github.com/littledan/proposal-module-attributes/issues/24) and [#25](https://github.com/littledan/proposal-module-attributes/issues/25) discuss the Web and Node.js feature and semantic requirements respectively, and issue [#10](https://github.com/littledan/proposal-module-attributes/issues/10) discusses how to allow different JavaScript environments to have interoperability.
 
@@ -141,9 +141,9 @@ The topic of attribute divergence is further discussed in  [#34](https://github.
 
 ### How would this proposal work with caching?
 
-Currently in [the ECMA262 spec](https://tc39.es/ecma262/#sec-hostresolveimportedmodule) passing the same module specifier and referrer there is guaranteed to get the same module. In this proposal, certain module attributes could would be taken into account for this invariant, whereas others are not. For example, implementations are required to return the same module, or an error, regardless of the value of the `type` attribute.
+Currently in [the ECMA262 spec](https://tc39.es/ecma262/#sec-hostresolveimportedmodule) passing the same module specifier and referrer there is guaranteed to get the same module. In this proposal, certain import attributes could would be taken into account for this invariant, whereas others are not. For example, implementations are required to return the same module, or an error, regardless of the value of the `type` attribute.
 
-However, other attributes which affect the interpretation of a module (and not simply checking) may result in a different module being returned. Therefore, in general, the invariant here is that non-assertion module attributes may be thought of as the "cache key" and are not required to return the same module when differing.
+However, other attributes which affect the interpretation of a module (and not simply checking) may result in a different module being returned. Therefore, in general, the invariant here is that non-assertion import attributes may be thought of as the "cache key" and are not required to return the same module when differing.
 
 ### Why don't JSON modules support named exports?
 
@@ -157,13 +157,13 @@ Another option considered and not selected has been to use a single string as th
 
 ### Should more than just strings be supported as attribute values?
 
-We could permit module attributes to have more complex values than simply strings, for example:
+We could permit import attributes to have more complex values than simply strings, for example:
 
 ```js
 import value from "module" with attr: { key1: "value1", key2: [1, 2, 3] };
 ```
 
-This would allow module attributes to scale to support a larger variety of metadata.
+This would allow import attributes to scale to support a larger variety of metadata.
 
 We propose to omit this generalization in the initial proposal, as a key/value list of strings already affords significant flexibility to start, but we're open to a follow-on proposal providing this kind of generalization.
 
@@ -191,7 +191,7 @@ After Stage 2 and before Stage 3, we're open to settling on some less core detai
 
 - Decide on the exact syntax of the module import attributes
 
-Whether there are curly brackets around module attributes, like an object literal ([#5](https://github.com/tc39/proposal-module-attributes/issues/5))
+Whether there are curly brackets around import attributes, like an object literal ([#5](https://github.com/tc39/proposal-module-attributes/issues/5))
 ```mjs
 import value from "module" with { type: "json" };
 ```
@@ -203,7 +203,7 @@ import value from "module" when type: 'json';
 import value from "module" given type: 'json';
 ```
 
-- How dynamic import would accept module attributes: e.g., with or without an extra level of nesting
+- How dynamic import would accept import attributes: e.g., with or without an extra level of nesting
 
 ```mjs
 import("foo.wasm", { with: { type: "webassembly" } });
@@ -212,8 +212,8 @@ import("foo.wasm", { type: "webassembly" });  // an alternative
 
 #### Before Stage 4
 
-- The integration of module attributes into various host environments.
-    - For example, in the Web Platform, how module attributes would be enabled when launching a worker (if that is supported in the initial version to be shipped on the Web) or included in a `<script>` tag.
+- The integration of import attributes into various host environments.
+    - For example, in the Web Platform, how import attributes would be enabled when launching a worker (if that is supported in the initial version to be shipped on the Web) or included in a `<script>` tag.
 
 ```mjs
 new Worker("foo.wasm", { type: "module", with: { type: "webassembly" } });
