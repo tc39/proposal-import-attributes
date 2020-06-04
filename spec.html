@@ -116,6 +116,9 @@
             Each time this operation is called with a specific _referencingScriptOrModule_, <del>_specifier_,</del> <ins>_moduleRequest_.[[Specifier]]</ins> pair as arguments it must return the same Module Record instance if it completes normally.
           </li>
           <li>
+            <ins>_moduleRequest_.[[Attributes]] must not influence the interpretation of the module; instead, it may be used to determine whether the algorithm completes normally or with an abrupt completion.</ins>
+          </li>
+          <li>
             <ins>
               If _attributes_ has an entry _entry_ such that _entry_.[[Key]] is *"type"*, let _type_ be _entry_.[[Value]]. The following requirements apply:
               <ul>
@@ -128,7 +131,7 @@
 
         <emu-note type=editor>
           <p>The above text implies that, if a module is imported multiple times with different _moduleRequest_.[[Attributes]] values, then there can be just one possible "successful" value (possibly as a result of multiple different attributes), but that it can also fail with an exception thrown; this exception from one import does not rule out success with a different attribute list.</p>
-          <p>The restriction of of attributes to not affect the contents of the module or be part of the cache key is sometimes referred to as permitting only "check attributes" and not "evaluator attributes", where the latter would change the contents of the module. Future versions of this specification may relax this restriction, and it's understood that some hosts may be tempted to willfully violate this restriction, but the module attributes champion group advises caution with such a move. There are three possible ways to handle multiple imports of the same module with different attributes, if the attributes cause a change in the interpretation of the module:</p>
+          <p>The restriction of attributes to not affect the contents of the module or be part of the cache key is sometimes referred to as permitting only "check attributes" and not "evaluator attributes", where the latter would change the contents of the module. Future versions of this specification may relax this restriction, and it's understood that some hosts may be tempted to willfully violate this restriction, but the module attributes champion group advises caution with such a move. There are three possible ways to handle multiple imports of the same module with different attributes, if the attributes cause a change in the interpretation of the module:</p>
           <ul>
             <li><strong>Race</strong> and use the attribute that was requested by the first import. This seems broken--the second usage is ignored.</li>
             <li><strong>Reject</strong> the module graph and don't load if attributes differ. This seems bad for composition--using two unrelated packages together could break, if they load the same module with disagreeing attributes.</li>
