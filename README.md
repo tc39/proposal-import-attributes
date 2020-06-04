@@ -2,7 +2,7 @@
 
 Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), Myles Borins ([@MylesBorins](https://github.com/MylesBorins)), and Dan Clark ([@dandclark](https://github.com/dandclark))
 
-Status: Stage 1.
+Status: Stage 2.
 
 Please leave any feedback you have in the [issues](http://github.com/littledan/proposal-module-attributes/issues)!
 
