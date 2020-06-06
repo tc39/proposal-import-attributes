@@ -110,7 +110,9 @@ JavaScript implementations are encouraged to reject attributes and type values w
 
 Note that all environments are required to support JSON modules with this explicit syntax, but *may* support modules without it. For example, on the Web, JSON modules would only be supported with the explicit type, but Node.js *may* decide to also support JSON modules without this declaration. However, all environments *must* support the explicitly `type`-declared JSON modules.
 
-The `type` does not form part of the cache key for modules, as it is just a redundant check. However, other import attributes may form part of the cache key, if they affect the interpretation of the module. For example, a future proposal could add a import attribute which controls details of how the JSON module is parsed--this would be part of the cache key, as it could result in a different parse of the same module.
+The restriction of attributes to not affect the contents of the module or be part of the cache key is sometimes referred to as permitting only "check attributes" and not "evaluator attributes", where the latter would change the contents of the module. Future versions of this specification may relax this restriction, and it's understood that some hosts may be tempted to willfully violate this restriction, but the module attributes champion group advises caution with such a move
+
+The above text implies that the `type` attribute does not form part of the cache key for modules, as it is just a redundant check.
 
 Plumbing-wise, the JavaScript standard would basically be responsible for passing the string up to the host environment, which would then decide how to interpret it, within the requirements listed above. Issues [#24](https://github.com/littledan/proposal-module-attributes/issues/24) and [#25](https://github.com/littledan/proposal-module-attributes/issues/25) discuss the Web and Node.js feature and semantic requirements respectively, and issue [#10](https://github.com/littledan/proposal-module-attributes/issues/10) discusses how to allow different JavaScript environments to have interoperability.
 
