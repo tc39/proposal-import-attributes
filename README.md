@@ -44,6 +44,13 @@ Import attributes have to be made available in several different contexts. This 
 
 Here, a key-value syntax is used, with the key `type` used as an example indicating the module type. Such key-value syntax can be used in various different contexts.
 
+The `with` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-attributes/issues/5)):
+- JavaScript developers are already used to the Object literal syntax and since it allows a trailing comma copy/pasting attributes will be easy.
+- Follow-up proposals might specifying new types of import attributes (see [Restriction to "check attributes"](https://github.com/tc39/proposal-import-attributes#restriction-to-check-attributes)) and we will be able to group attributes with different keywords, for instance:
+```js
+import json from "./foo.json" if { type: "json" } with { transformA: "value" };
+```
+
 ### import statements
 
 The ImportDeclaration would allow any arbitrary attributes after the `with` keyword.
@@ -51,7 +58,7 @@ The ImportDeclaration would allow any arbitrary attributes after the `with` keyw
 For example, the `type` attribute indicates a module type, and can be used to load JSON modules with the following syntax.
 
 ```mjs
-import json from "./foo.json" with type: "json";
+import json from "./foo.json" with { type: "json" };
 ```
 
 ### dynamic import()
@@ -94,13 +101,13 @@ In the context of the [WebAssembly/ESM integration proposal](https://github.com/
 
 ### JSON modules
 
-JSON modules are required to be supported when invoked using the `with type: "json"` syntax, with common semantics in all JavaScript implementations for this syntax.
+JSON modules are required to be supported when invoked using the `with { type: "json" }` syntax, with common semantics in all JavaScript implementations for this syntax.
 
 JSON modules' semantics are those of a single default export which is the entire parsed JSON document.
 
 Each JavaScript host is expected to provide a secondary way of checking whether a module is a JSON module. For example, on the Web, the MIME type would be checked to be a JSON MIME type. In "local" desktop/server/embedded environments, the file extension may be checked (possibly after symlinks are followed). The `type: "json"` is indicated at the import site, rather than *only* through that other mechanism in order to prevent the privilege escalation issue noted in the opening section.
 
-Nevertheless, the interpretation of module loads with no attributes remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `with type: "json"`. It's just that `with type: "json"` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import attributes are required or optional for JSON modules.
+Nevertheless, the interpretation of module loads with no attributes remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `with { type: "json" }`. It's just that `with { type: "json" }` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import attributes are required or optional for JSON modules.
 
 ### Import attributes
 
@@ -190,26 +197,22 @@ We want to on core questions of this proposal as a Stage 2 prerequisite, includi
 // Not selected
 import value from "module" as "json";
 
-// Current proposal, to settle on before Stage 2
+// Not selected
 import value from "module" with type: "json";
+
+// Current proposal, to settle on before Stage 3
+import value from "module" with { type: "json" };
 ```
 
 #### Before stage 3
 
 After Stage 2 and before Stage 3, we're open to settling on some less core details, such as:
 
-- Decide on the exact syntax of the module import attributes
-
-Whether there are curly brackets around import attributes, like an object literal ([#5](https://github.com/tc39/proposal-module-attributes/issues/5))
-```mjs
-import value from "module" with { type: "json" };
-```
-
-Considering alternatives for the `with` keyword ([#3](https://github.com/tc39/proposal-module-attributes/issues/3))
+- Considering alternatives for the `with` keyword ([#3](https://github.com/tc39/proposal-module-attributes/issues/3))
 
 ```mjs
-import value from "module" when type: 'json';
-import value from "module" given type: 'json';
+import value from "module" when { type: 'json' };
+import value from "module" given { type: 'json' };
 ```
 
 - How dynamic import would accept import attributes: e.g., with or without an extra level of nesting
