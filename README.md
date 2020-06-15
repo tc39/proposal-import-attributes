@@ -44,21 +44,23 @@ Import attributes have to be made available in several different contexts. This 
 
 Here, a key-value syntax is used, with the key `type` used as an example indicating the module type. Such key-value syntax can be used in various different contexts.
 
-The `with` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-attributes/issues/5)):
+The `if` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-attributes/issues/5)):
 - JavaScript developers are already used to the Object literal syntax and since it allows a trailing comma copy/pasting attributes will be easy.
-- Follow-up proposals might specifying new types of import attributes (see [Restriction to "check attributes"](https://github.com/tc39/proposal-import-attributes#restriction-to-check-attributes)) and we will be able to group attributes with different keywords, for instance:
+- Follow-up proposals might specify new types of import attributes (see [Restriction to "check attributes"](https://github.com/tc39/proposal-import-attributes#restriction-to-check-attributes)) and we will be able to group attributes with different keywords, for instance:
 ```js
 import json from "./foo.json" if { type: "json" } with { transformA: "value" };
 ```
 
+The `if` keyword is designed to match the check-only semantics. As shown by the example above, one could imagine a new follow-up proposal that uses `with` for "evaluator" attributes.
+
 ### import statements
 
-The ImportDeclaration would allow any arbitrary attributes after the `with` keyword.
+The ImportDeclaration would allow any arbitrary attributes after the `if` keyword.
 
 For example, the `type` attribute indicates a module type, and can be used to load JSON modules with the following syntax.
 
 ```mjs
-import json from "./foo.json" with { type: "json" };
+import json from "./foo.json" if { type: "json" };
 ```
 
 ### dynamic import()
@@ -66,10 +68,10 @@ import json from "./foo.json" with { type: "json" };
 The `import()` pseudo-function would allow import attributes to be indicated in an options bag in the second argument.
 
 ```js
-import("foo.json", { with: { type: "json" } })
+import("foo.json", { if: { type: "json" } })
 ```
 
-The second parameter to `import()` is an options bag, with the only option currently defined to be `with`: the value here is an object containing the import attributes. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
+The second parameter to `import()` is an options bag, with the only option currently defined to be `if`: the value here is an object containing the import attributes. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
 
 ### Integration of modules into environments
 
@@ -78,17 +80,17 @@ Host environments (e.g., the Web platform, Node.js) often provide various differ
 #### Worker instantiation
 
 ```js
-new Worker("foo.wasm", { type: "module", with: { type: "webassembly" } });
+new Worker("foo.wasm", { type: "module", if: { type: "webassembly" } });
 ```
 
 Sidebar about WebAssembly module types and the web: it's still uncertain whether importing WebAssembly modules would need to be marked specially, or would be imported just like JavaScript. Further discussion in [#19](https://github.com/littledan/proposal-module-attributes/issues/19).
 
 #### HTML
 
-The idea here would be that each import attribute, preceded by `with`, becomes an HTML attribute which could be used in script tags.
+Although changes to HTML won't be specified by TC39, an idea here would be that each import attribute, preceded by `if`, becomes an HTML attribute which could be used in script tags.
 
 ```html
-<script src="foo.wasm" type="module" withtype="webassembly"></script>
+<script src="foo.wasm" type="module" iftype="webassembly"></script>
 ```
 
 (See the caveat about WebAssembly above.)
@@ -101,13 +103,13 @@ In the context of the [WebAssembly/ESM integration proposal](https://github.com/
 
 ### JSON modules
 
-JSON modules are required to be supported when invoked using the `with { type: "json" }` syntax, with common semantics in all JavaScript implementations for this syntax.
+JSON modules are required to be supported when invoked using the `if { type: "json" }` syntax, with common semantics in all JavaScript implementations for this syntax.
 
 JSON modules' semantics are those of a single default export which is the entire parsed JSON document.
 
 Each JavaScript host is expected to provide a secondary way of checking whether a module is a JSON module. For example, on the Web, the MIME type would be checked to be a JSON MIME type. In "local" desktop/server/embedded environments, the file extension may be checked (possibly after symlinks are followed). The `type: "json"` is indicated at the import site, rather than *only* through that other mechanism in order to prevent the privilege escalation issue noted in the opening section.
 
-Nevertheless, the interpretation of module loads with no attributes remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `with { type: "json" }`. It's just that `with { type: "json" }` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import attributes are required or optional for JSON modules.
+Nevertheless, the interpretation of module loads with no attributes remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `if { type: "json" }`. It's just that `if { type: "json" }` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import attributes are required or optional for JSON modules.
 
 ### Import attributes
 
@@ -176,7 +178,7 @@ Another option considered and not selected has been to use a single string as th
 We could permit import attributes to have more complex values than simply strings, for example:
 
 ```js
-import value from "module" with attr: { key1: "value1", key2: [1, 2, 3] };
+import value from "module" if attr: { key1: "value1", key2: [1, 2, 3] };
 ```
 
 This would allow import attributes to scale to support a larger variety of metadata.
@@ -201,14 +203,14 @@ import value from "module" as "json";
 import value from "module" with type: "json";
 
 // Current proposal, to settle on before Stage 3
-import value from "module" with { type: "json" };
+import value from "module" if { type: "json" };
 ```
 
 #### Before stage 3
 
 After Stage 2 and before Stage 3, we're open to settling on some less core details, such as:
 
-- Considering alternatives for the `with` keyword ([#3](https://github.com/tc39/proposal-module-attributes/issues/3))
+- Considering alternatives for the `with`/`if` keywords ([#3](https://github.com/tc39/proposal-module-attributes/issues/3))
 
 ```mjs
 import value from "module" when { type: 'json' };
@@ -218,7 +220,7 @@ import value from "module" given { type: 'json' };
 - How dynamic import would accept import attributes: e.g., with or without an extra level of nesting
 
 ```mjs
-import("foo.wasm", { with: { type: "webassembly" } });
+import("foo.wasm", { if: { type: "webassembly" } });
 import("foo.wasm", { type: "webassembly" });  // an alternative
 ```
 
@@ -228,7 +230,7 @@ import("foo.wasm", { type: "webassembly" });  // an alternative
     - For example, in the Web Platform, how import attributes would be enabled when launching a worker (if that is supported in the initial version to be shipped on the Web) or included in a `<script>` tag.
 
 ```mjs
-new Worker("foo.wasm", { type: "module", with: { type: "webassembly" } });
+new Worker("foo.wasm", { type: "module", if: { type: "webassembly" } });
 ```
 
 Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/tc39/proposal-module-attributes/issues/10), [#24](https://github.com/tc39/proposal-module-attributes/issues/24) and [#25](https://github.com/tc39/proposal-module-attributes/issues/25)).
