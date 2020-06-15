@@ -110,6 +110,8 @@ JavaScript implementations are encouraged to reject attributes and type values w
 
 Note that all environments are required to support JSON modules with this explicit syntax, but *may* support modules without it. For example, on the Web, JSON modules would only be supported with the explicit type, but Node.js *may* decide to also support JSON modules without this declaration. However, all environments *must* support the explicitly `type`-declared JSON modules.
 
+### Restriction to "check attributes"
+
 The restriction of attributes to not affect the contents of the module or be part of the cache key is sometimes referred to as permitting only "check attributes" and not "evaluator attributes", where the latter would change the contents of the module. Future versions of this specification may relax this restriction, and it's understood that some hosts may be tempted to willfully violate this restriction, but the module attributes champion group advises caution with such a move. There are three possible ways to handle multiple imports of the same module with different attributes, if the attributes cause a change in the interpretation of the module:
 - **Race** and use the attribute that was requested by the first import. This seems broken--the second usage is ignored.
 - **Reject** the module graph and don't load if attributes differ. This seems bad for composition--using two unrelated packages together could break, if they load the same module with disagreeing attributes.
