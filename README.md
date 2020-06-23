@@ -107,6 +107,8 @@ JSON modules are required to be supported when invoked using the `if { type: "js
 
 JSON modules' semantics are those of a single default export which is the entire parsed JSON document.
 
+All of the import statements in the module graph that address the same JSON module will evaluate to the same mutable object as discussed in [#54](https://github.com/tc39/proposal-import-attributes/issues/54).
+
 Each JavaScript host is expected to provide a secondary way of checking whether a module is a JSON module. For example, on the Web, the MIME type would be checked to be a JSON MIME type. In "local" desktop/server/embedded environments, the file extension may be checked (possibly after symlinks are followed). The `type: "json"` is indicated at the import site, rather than *only* through that other mechanism in order to prevent the privilege escalation issue noted in the opening section.
 
 Nevertheless, the interpretation of module loads with no conditions remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `if { type: "json" }`. It's just that `if { type: "json" }` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import conditions are required or optional for JSON modules.
