@@ -238,3 +238,4 @@ Standardization here would consist of building consensus not just in TC39 but al
 ## Specification
 
 * [Specification Outline](https://tc39.es/proposal-import-attributes/)
+* [Pull Request for HTML spec integration](https://github.com/whatwg/html/pull/5658)
