@@ -4,7 +4,7 @@ For Node.js or tooling we can make the association between the type of a file an
 For example, it might sound obvious that a file ending with `.js` would correspond to a `application/javascript` file.
 
 Interestingly, Node.js or webpack does allow to arbitrarily redirect module resolution.
-Our previous assumption is already not guaranteed. See [#4](https://github.com/littledan/proposal-module-attributes/issues/4).
+Our previous assumption is already not guaranteed. See [#4](https://github.com/tc39/proposal-import-conditions/issues/4).
 
 Moreover, on the web the server needs to send a `Content-Type` header to the client, so that
 the client can know how to interpret the ressource being transfered.

@@ -1,16 +1,16 @@
-# ES Import Attributes and JSON modules
+# Import Conditions and JSON modules
 
 Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), Myles Borins ([@MylesBorins](https://github.com/MylesBorins)), and Dan Clark ([@dandclark](https://github.com/dandclark))
 
 Status: Stage 2.
 
-Please leave any feedback you have in the [issues](http://github.com/littledan/proposal-module-attributes/issues)!
+Please leave any feedback you have in the [issues](http://github.com/tc39/proposal-import-conditions/issues)!
 
 ## Synopsis
 
-The ES Import Attributes and JSON modules proposal adds:
+The Import Conditions and JSON modules proposal adds:
 - An inline syntax for module import statements to pass on more information alongside the module specifier
-- An initial application for such attributes in supporting JSON modules in a common way across JavaScript environments
+- An initial application for such conditions in supporting JSON modules in a common way across JavaScript environments
 
 ## Motivation
 
@@ -20,7 +20,7 @@ However, in [an issue](https://github.com/w3c/webcomponents/issues/839), Ryosuke
 
 Some developers have the intuition that the file extension could be used to determine the module type, as it is in many existing non-standard module systems. However, it's a deep web architectural principle that the suffix of the URL (which you might think of as the "file extension" outside of the web) does not lead to semantics of how the page is interpreted. In practice, on the web, there is a widespread [mismatch between file extension and the HTTP Content Type header](content-type-vs-file-extension.md). All of this sums up to it being infeasible to depend on file extensions/suffixes included in the module specifier to be the basis for this checking.
 
-There are other possible pieces of metadata which could be associated with modules, see [#8](https://github.com/tc39/proposal-module-attributes/issues/8) for further discussion.
+There are other possible pieces of metadata which could be associated with modules, see [#8](https://github.com/tc39/proposal-import-conditions/issues/8) for further discussion.
 
 Proposed ES module types that are blocked by this security concern, in addition to JSON modules, include [CSS modules](https://github.com/whatwg/html/pull/4898) and potentially [HTML modules](https://github.com/whatwg/html/pull/4505) if the HTML module  proposal is restricted to [not allow script](https://github.com/w3c/webcomponents/issues/805).
 
@@ -28,11 +28,11 @@ Proposed ES module types that are blocked by this security concern, in addition 
 
 There are three places where this data could be provided:
 - As part of the module specifier (e.g., as a pseudo-scheme)
-    - Challenges: Adds complexity to URLs or other module specifier syntaxes, and risks being confusing to developers (further discussion: [#11](https://github.com/littledan/proposal-module-attributes/issues/11))
+    - Challenges: Adds complexity to URLs or other module specifier syntaxes, and risks being confusing to developers (further discussion: [#11](https://github.com/tc39/proposal-import-conditions/issues/11))
     - webpack supports this sort of construct ([docs](https://webpack.js.org/concepts/loaders/#inline)).
         - Demand from users for similar behavior in Parcel, with pushback from some maintainers ([#3477](https://github.com/parcel-bundler/parcel/issues/3477))
 - Separately, out of band (e.g., a separate resource file)
-    - Challenges: How to load that resource file; what should the format be; unergonomic to have to jump between files during development (further discussion: [#13](https://github.com/littledan/proposal-module-attributes/issues/13))
+    - Challenges: How to load that resource file; what should the format be; unergonomic to have to jump between files during development (further discussion: [#13](https://github.com/tc39/proposal-import-conditions/issues/13))
 - In the JavaScript source text
     - Challenges: Requires a change at the JavaScript language level (this proposal)
 
@@ -40,22 +40,22 @@ This proposal pursues the third option, as we expect it to lead to the best deve
 
 ## Proposed syntax
 
-Import attributes have to be made available in several different contexts. This section contains one possible syntax, but there are other options, discussed in [#6](https://github.com/littledan/proposal-module-attributes/issues/6).
+Import conditions have to be made available in several different contexts. This section contains one possible syntax, but there are other options, discussed in [#6](https://github.com/tc39/proposal-import-conditions/issues/6).
 
 Here, a key-value syntax is used, with the key `type` used as an example indicating the module type. Such key-value syntax can be used in various different contexts.
 
-The `if` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-attributes/issues/5)):
-- JavaScript developers are already used to the Object literal syntax and since it allows a trailing comma copy/pasting attributes will be easy.
-- Follow-up proposals might specify new types of import attributes (see [Restriction to "check attributes"](https://github.com/tc39/proposal-import-attributes#restriction-to-check-attributes)) and we will be able to group attributes with different keywords, for instance:
+The `if` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-conditions/issues/5)):
+- JavaScript developers are already used to the Object literal syntax and since it allows a trailing comma copy/pasting conditions will be easy.
+- Follow-up proposals might specify new types of import conditions (see [Restriction to condition attributes](https://github.com/tc39/proposal-import-conditions#restriction-to-condition-attributes)) and we will be able to group conditions with different keywords, for instance:
 ```js
 import json from "./foo.json" if { type: "json" } with { transformA: "value" };
 ```
 
-The `if` keyword is designed to match the check-only semantics. As shown by the example above, one could imagine a new follow-up proposal that uses `with` for "evaluator" attributes.
+The `if` keyword is designed to match the check-only semantics. As shown by the example above, one could imagine a new follow-up proposal that uses `with` for transformations.
 
 ### import statements
 
-The ImportDeclaration would allow any arbitrary attributes after the `if` keyword.
+The ImportDeclaration would allow any arbitrary conditions after the `if` keyword.
 
 For example, the `type` attribute indicates a module type, and can be used to load JSON modules with the following syntax.
 
@@ -65,13 +65,13 @@ import json from "./foo.json" if { type: "json" };
 
 ### dynamic import()
 
-The `import()` pseudo-function would allow import attributes to be indicated in an options bag in the second argument.
+The `import()` pseudo-function would allow import conditions to be indicated in an options bag in the second argument.
 
 ```js
 import("foo.json", { if: { type: "json" } })
 ```
 
-The second parameter to `import()` is an options bag, with the only option currently defined to be `if`: the value here is an object containing the import attributes. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
+The second parameter to `import()` is an options bag, with the only option currently defined to be `if`: the value here is an object containing the import conditions. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
 
 ### Integration of modules into environments
 
@@ -83,7 +83,7 @@ Host environments (e.g., the Web platform, Node.js) often provide various differ
 new Worker("foo.wasm", { type: "module", if: { type: "webassembly" } });
 ```
 
-Sidebar about WebAssembly module types and the web: it's still uncertain whether importing WebAssembly modules would need to be marked specially, or would be imported just like JavaScript. Further discussion in [#19](https://github.com/littledan/proposal-module-attributes/issues/19).
+Sidebar about WebAssembly module types and the web: it's still uncertain whether importing WebAssembly modules would need to be marked specially, or would be imported just like JavaScript. Further discussion in [#19](https://github.com/tc39/proposal-import-conditions/issues/19).
 
 #### HTML
 
@@ -97,7 +97,7 @@ Although changes to HTML won't be specified by TC39, an idea here would be that 
 
 #### WebAssembly
 
-In the context of the [WebAssembly/ESM integration proposal](https://github.com/webassembly/esm-integration): For imports of other module types from within a WebAssembly module, this proposal would introduce a new custom section (named `importattributes`) that will annotate with attributes each imported module (which is listed in the import section).
+In the context of the [WebAssembly/ESM integration proposal](https://github.com/webassembly/esm-integration): For imports of other module types from within a WebAssembly module, this proposal would introduce a new custom section (named `importconditions`) that will annotate with conditions each imported module (which is listed in the import section).
 
 ## Proposed semantics and interoperability
 
@@ -109,28 +109,29 @@ JSON modules' semantics are those of a single default export which is the entire
 
 Each JavaScript host is expected to provide a secondary way of checking whether a module is a JSON module. For example, on the Web, the MIME type would be checked to be a JSON MIME type. In "local" desktop/server/embedded environments, the file extension may be checked (possibly after symlinks are followed). The `type: "json"` is indicated at the import site, rather than *only* through that other mechanism in order to prevent the privilege escalation issue noted in the opening section.
 
-Nevertheless, the interpretation of module loads with no attributes remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `if { type: "json" }`. It's just that `if { type: "json" }` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import attributes are required or optional for JSON modules.
+Nevertheless, the interpretation of module loads with no conditions remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `if { type: "json" }`. It's just that `if { type: "json" }` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import conditions are required or optional for JSON modules.
 
-### Import attributes
+### Import conditions
 
-Hosts would all be required to give a common interpretation to `"json"`, defined in the JavaScript specification, that `json` is the parsed JSON document (no named exports). Further attributes and module types beyond `json` modules could be added in future TC39 proposals as well as by hosts. HTML and CSS modules are also under consideration, and these may use similar explicit `type` syntax when imported.
+Hosts would all be required to give a common interpretation to `"json"`, defined in the JavaScript specification, that `json` is the parsed JSON document (no named exports). Further conditions and module types beyond `json` modules could be added in future TC39 proposals as well as by hosts. HTML and CSS modules are also under consideration, and these may use similar explicit `type` syntax when imported.
 
-JavaScript implementations are encouraged to reject attributes and type values which are not implemented in their environment (rather than ignoring them). This is to allow for maximal flexibility in the design space in the future--in particular, it enables new import attributes to be defined which change the interpretation of a module, without breaking backwards-compatibility.
+JavaScript implementations are encouraged to reject conditions and type values which are not implemented in their environment (rather than ignoring them). This is to allow for maximal flexibility in the design space in the future--in particular, it enables new import conditions to be defined which change the interpretation of a module, without breaking backwards-compatibility.
 
 Note that all environments are required to support JSON modules with this explicit syntax, but *may* support modules without it. For example, on the Web, JSON modules would only be supported with the explicit type, but Node.js *may* decide to also support JSON modules without this declaration. However, all environments *must* support the explicitly `type`-declared JSON modules.
 
-### Restriction to "check attributes"
+### Follow-up proposal "evaluator attributes"
 
-The restriction of attributes to not affect the contents of the module or be part of the cache key is sometimes referred to as permitting only "check attributes" and not "evaluator attributes", where the latter would change the contents of the module. Future versions of this specification may relax this restriction, and it's understood that some hosts may be tempted to willfully violate this restriction, but the module attributes champion group advises caution with such a move. There are three possible ways to handle multiple imports of the same module with different attributes, if the attributes cause a change in the interpretation of the module:
+Conditions do not affect the contents of the module or form part of the cache key.
+Future follow-up proposals may relax this restriction with "evaluator attributes" that would change the contents of the module.
+
+There are three possible ways to handle multiple imports of the same module with "evaluator attributes":
 - **Race** and use the attribute that was requested by the first import. This seems broken--the second usage is ignored.
 - **Reject** the module graph and don't load if attributes differ. This seems bad for composition--using two unrelated packages together could break, if they load the same module with disagreeing attributes.
 - **Clone** and make two copies of the module, for the different ways it's transformed. In this case, the attributes would have to be part of the cache key. These semantics would run counter to the intuition that there is just one copy of a module.
 
 It's possible that one of these three options may make sense for a module load, on a case-by-case basis by attribute, but it's worth careful thought before making this choice.
 
-The above text implies that the `type` attribute does not form part of the cache key for modules, as it is just a redundant check.
-
-Plumbing-wise, the JavaScript standard would basically be responsible for passing the string up to the host environment, which would then decide how to interpret it, within the requirements listed above. Issues [#24](https://github.com/littledan/proposal-module-attributes/issues/24) and [#25](https://github.com/littledan/proposal-module-attributes/issues/25) discuss the Web and Node.js feature and semantic requirements respectively, and issue [#10](https://github.com/littledan/proposal-module-attributes/issues/10) discusses how to allow different JavaScript environments to have interoperability.
+Plumbing-wise, the JavaScript standard would basically be responsible for passing the attributes up to the host environment, which would then decide how to interpret it, within the requirements listed above. Issues [#24](https://github.com/tc39/proposal-import-conditions/issues/24) and [#25](https://github.com/tc39/proposal-import-conditions/issues/25) discuss the Web and Node.js feature and semantic requirements respectively, and issue [#10](https://github.com/tc39/proposal-import-conditions/issues/10) discusses how to allow different JavaScript environments to have interoperability.
 
 ## FAQ
 
@@ -155,13 +156,11 @@ However, at the same time, behavior of modules in general, and the set of module
 
 We see the management of compatibility issues across environments as similar, independent of whether metadata is held in-band or out-of-band. An out of band solution would also suffer from the risk of inconsistent implementation or support across host environments if some kind of coordination does not occur.
 
-The topic of attribute divergence is further discussed in  [#34](https://github.com/tc39/proposal-module-attributes/issues/34).
+The topic of attribute divergence is further discussed in  [#34](https://github.com/tc39/proposal-import-conditions/issues/34).
 
 ### How would this proposal work with caching?
 
-Currently in [the ECMA262 spec](https://tc39.es/ecma262/#sec-hostresolveimportedmodule) passing the same module specifier and referrer there is guaranteed to get the same module. In this proposal, certain import attributes could would be taken into account for this invariant, whereas others are not. For example, implementations are required to return the same module, or an error, regardless of the value of the `type` attribute.
-
-However, other attributes which affect the interpretation of a module (and not simply checking) may result in a different module being returned. Therefore, in general, the invariant here is that non-assertion import attributes may be thought of as the "cache key" and are not required to return the same module when differing.
+Conditions are not part of the module cache key. Implementations are required to return the same module, or an error, regardless of the conditions.
 
 ### Why don't JSON modules support named exports?
 
@@ -171,17 +170,17 @@ However, other attributes which affect the interpretation of a module (and not s
 
 ### Why not use more terse syntax to indicate module types, like `import json from "./foo.json" as "json"`?
 
-Another option considered and not selected has been to use a single string as the attribute, indicating the type. This option is not selected due to its implication that any particular attribute is special; even though this proposal only specifies the `type` attribute, the intention is to be open to more attributes in the future. (discussion in [#12](https://github.com/littledan/proposal-module-attributes/issues/12)).
+Another option considered and not selected has been to use a single string as the attribute, indicating the type. This option is not selected due to its implication that any particular attribute is special; even though this proposal only specifies the `type` attribute, the intention is to be open to more conditions in the future. (discussion in [#12](https://github.com/tc39/proposal-import-conditions/issues/12)).
 
 ### Should more than just strings be supported as attribute values?
 
-We could permit import attributes to have more complex values than simply strings, for example:
+We could permit import conditions to have more complex values than simply strings, for example:
 
 ```js
 import value from "module" if attr: { key1: "value1", key2: [1, 2, 3] };
 ```
 
-This would allow import attributes to scale to support a larger variety of metadata.
+This would allow import conditions to scale to support a larger variety of metadata.
 
 We propose to omit this generalization in the initial proposal, as a key/value list of strings already affords significant flexibility to start, but we're open to a follow-on proposal providing this kind of generalization.
 
@@ -191,9 +190,9 @@ We are planning to make descisions and reach consensus during specific stages of
 
 #### Before stage 2
 
-We want to on core questions of this proposal as a Stage 2 prerequisite, including:
+We have achieved consensus on the following core decisions as part of Stage 2, including:
 
-- The attribute form; key-value or single string ([#12](https://github.com/tc39/proposal-module-attributes/issues/12))
+- The attribute form; key-value or single string ([#12](https://github.com/tc39/proposal-import-conditions/issues/12))
 
 ```mjs
 // Not selected
@@ -210,32 +209,39 @@ import value from "module" if { type: "json" };
 
 After Stage 2 and before Stage 3, we're open to settling on some less core details, such as:
 
-- Considering alternatives for the `with`/`if` keywords ([#3](https://github.com/tc39/proposal-module-attributes/issues/3))
+- Considering alternatives for the `with`/`if` keywords ([#3](https://github.com/tc39/proposal-import-conditions/issues/3))
 
 ```mjs
 import value from "module" when { type: 'json' };
 import value from "module" given { type: 'json' };
 ```
 
-- How dynamic import would accept import attributes: e.g., with or without an extra level of nesting
-
+- How dynamic import would accept import conditions:
 ```mjs
 import("foo.wasm", { if: { type: "webassembly" } });
-import("foo.wasm", { type: "webassembly" });  // an alternative
 ```
+
+For consistency the `if` key is used for both dynamic and static imports.
+
+An alternative would be to remove the `if` nesting in the object:
+```mjs
+import("foo.wasm", { type: "webassembly" });
+```
+
+However, that's not possible with the `Worker` API since it already uses an object with a `type` key as the second parameter. Which would make the APIs inconsistent.
 
 #### Before Stage 4
 
-- The integration of import attributes into various host environments.
-    - For example, in the Web Platform, how import attributes would be enabled when launching a worker (if that is supported in the initial version to be shipped on the Web) or included in a `<script>` tag.
+- The integration of import conditions into various host environments.
+    - For example, in the Web Platform, how import conditions would be enabled when launching a worker (if that is supported in the initial version to be shipped on the Web) or included in a `<script>` tag.
 
 ```mjs
 new Worker("foo.wasm", { type: "module", if: { type: "webassembly" } });
 ```
 
-Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/tc39/proposal-module-attributes/issues/10), [#24](https://github.com/tc39/proposal-module-attributes/issues/24) and [#25](https://github.com/tc39/proposal-module-attributes/issues/25)).
+Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/tc39/proposal-import-conditions/issues/10), [#24](https://github.com/tc39/proposal-import-conditions/issues/24) and [#25](https://github.com/tc39/proposal-import-conditions/issues/25)).
 
 ## Specification
 
-* [Specification Outline](https://tc39.es/proposal-import-attributes/)
+* [Specification Outline](https://tc39.es/proposal-import-conditions/)
 * [Pull Request for HTML spec integration](https://github.com/whatwg/html/pull/5658)
