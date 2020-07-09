@@ -27,7 +27,7 @@ No.
 
 ## 2.6. What information from the underlying platform, e.g. configuration data, is exposed by this specification to an origin?
 
-Regardless of the conclusion of 2.1 about exposing the type to the origin; if a host implements this proposal, JSON module must be supported.
+Regardless of the conclusion of 2.1 about exposing the type to the origin; if a host implements this proposal, JSON modules must be supported.
 
 ## 2.7. Does this specification allow an origin access to sensors on a user’s device
 
@@ -51,7 +51,7 @@ No.
 
 No.
 
-## 2.12. What temporary identifiers might this this specification create or expose to the web?
+## 2.12. What temporary identifiers might this specification create or expose to the web?
 
 No identifiers.
 
