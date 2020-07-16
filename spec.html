@@ -23,12 +23,12 @@
     ImportDeclaration :
       `import` ImportClause FromClause `;`
       `import` ModuleSpecifier `;`
-      <ins>`import` ImportClause FromClause AssertClause `;`</ins>
-      <ins>`import` ModuleSpecifier AssertClause `;`</ins>
+      <ins>`import` ImportClause FromClause [no LineTerminator here] AssertClause `;`</ins>
+      <ins>`import` ModuleSpecifier [no LineTerminator here] AssertClause `;`</ins>
 
     ExportDeclaration :
       `export` ExportFromClause FromClause `;`
-      <ins>`export` ExportFromClause FromClause AssertClause `;`</ins>
+      <ins>`export` ExportFromClause FromClause [no LineTerminator here] AssertClause `;`</ins>
       `export` NamedExports `;`
       `export` VariableStatement[~Yield, ~Await]
       `export` Declaration[~Yield, ~Await]
