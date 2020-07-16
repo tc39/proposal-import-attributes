@@ -383,7 +383,7 @@
     </ul>
   </emu-clause>
 
-  <emu-clause id="sec-if-clause-to-object" aoid="IfClauseToConditions">
+  <emu-clause id="sec-if-clause-to-conditions" aoid="IfClauseToConditions">
     <h1>Runtime Semantics: IfClauseToConditions</h1>
     <emu-grammar>IfClause : `if` `{` ConditionEntries `,`? `}`</emu-grammar>
     <emu-alg>
@@ -629,7 +629,7 @@
         </emu-grammar>
         <emu-alg>
           1. <ins>Let _specifier_ be StringValue of the |StringLiteral| contained in |FromClause|.</ins>
-          1. <ins>Let _conditions_ be IfClauseToObject of |IfClause|.</ins>
+          1. <ins>Let _conditions_ be IfClauseToConditions of |IfClause|.</ins>
           1. <ins>Return a ModuleRequest Record { [[Specifer]]: _specifier_, [[Conditions]]: _conditions_ }.</ins>
         </emu-alg>
         <emu-grammar>
