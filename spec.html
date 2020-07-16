@@ -25,7 +25,16 @@
       `import` ModuleSpecifier `;`
       <ins>`import` ImportClause FromClause IfClause `;`</ins>
       <ins>`import` ModuleSpecifier IfClause `;`</ins>
+
+    ExportDeclaration :
+      `export` ExportFromClause FromClause `;`
       <ins>`export` ExportFromClause FromClause IfClause `;`</ins>
+      `export` NamedExports `;`
+      `export` VariableStatement[~Yield, ~Await]
+      `export` Declaration[~Yield, ~Await]
+      `export` `default` HoistableDeclaration[~Yield, ~Await, +Default]
+      `export` `default` ClassDeclaration[~Yield, ~Await, +Default]
+      `export` `default` [lookahead &lt;! {`function`, `async` [no |LineTerminator| here] `function`, `class`}] AssignmentExpression[+In, ~Yield, ~Await] `;`
 
     IfClause :
       <ins>`if` `{` ConditionEntries `,`? `}`</ins>
