@@ -143,6 +143,10 @@
         <emu-note type=editor>
           <p>The above text implies that hosts *must* support JSON modules imported with `type: "json"` (if it completes normally), but it doesn't prohibit hosts from supporting JSON modules imported with no type specified. Some environments (for example, web browsers) are expected to require `if { type: "json" }`, and environments which want to restrict themselves to a compatible subset would do so as well.</p>
         </emu-note>
+
+        <emu-note type=editor>
+          <p>All of the import statements in the module graph that address the same JSON module will evaluate to the same mutable object.</p>
+        </emu-note>
       </emu-clause>
 
       <emu-clause id="sec-hostimportmoduledynamically" aoid="HostImportModuleDynamically">
