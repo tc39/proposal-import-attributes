@@ -12,6 +12,12 @@ The Import Conditions and JSON modules proposal adds:
 - An inline syntax for module import statements to pass on more information alongside the module specifier
 - An initial application for such conditions in supporting JSON modules in a common way across JavaScript environments
 
+Developers will then be able to import a JSON module as follows:
+```js
+import json from "./foo.json" if { type: "json" };
+import("foo.json", { if: { type: "json" } })
+```
+
 ## Motivation
 
 Standards-track JSON ES modules were [proposed](https://github.com/w3c/webcomponents/issues/770) to allow JavaScript modules to easily import JSON data files, similarly to how they are supported in many nonstandard JavaScript module systems. This idea quickly got broad support from web developers and browsers, and was merged into HTML, with an implementation for V8/Chromium created by Microsoft.
@@ -44,15 +50,6 @@ Import conditions have to be made available in several different contexts. This 
 
 Here, a key-value syntax is used, with the key `type` used as an example indicating the module type. Such key-value syntax can be used in various different contexts.
 
-The `if` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-conditions/issues/5)):
-- JavaScript developers are already used to the Object literal syntax and since it allows a trailing comma copy/pasting conditions will be easy.
-- Follow-up proposals might specify new types of import conditions (see [Restriction to condition attributes](https://github.com/tc39/proposal-import-conditions#restriction-to-condition-attributes)) and we will be able to group conditions with different keywords, for instance:
-```js
-import json from "./foo.json" if { type: "json" } with { transformA: "value" };
-```
-
-The `if` keyword is designed to match the check-only semantics. As shown by the example above, one could imagine a new follow-up proposal that uses `with` for transformations.
-
 ### import statements
 
 The ImportDeclaration would allow any arbitrary conditions after the `if` keyword.
@@ -62,6 +59,15 @@ For example, the `type` attribute indicates a module type, and can be used to lo
 ```mjs
 import json from "./foo.json" if { type: "json" };
 ```
+
+The `if` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-conditions/issues/5)):
+- JavaScript developers are already used to the Object literal syntax and since it allows a trailing comma copy/pasting conditions will be easy.
+- Follow-up proposals might specify new types of import conditions (see [Restriction to condition attributes](https://github.com/tc39/proposal-import-conditions#restriction-to-condition-attributes)) and we will be able to group conditions with different keywords, for instance:
+```js
+import json from "./foo.json" if { type: "json" } with { transformA: "value" };
+```
+
+The `if` keyword is designed to match the check-only semantics. As shown by the example above, one could imagine a new follow-up proposal that uses `with` for transformations.
 
 ### dynamic import()
 
