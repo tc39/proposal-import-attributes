@@ -40,8 +40,12 @@
       <ins>`assert` `{` ConditionEntries `,`? `}`</ins>
 
     ConditionEntries :
-      <ins>IdentifierName `:` StringLiteral</ins>
-      <ins>IdentifierName `:` StringLiteral `,` ConditionEntries</ins>
+      <ins>ConditionKey `:` StringLiteral</ins>
+      <ins>ConditionKey `:` StringLiteral `,` ConditionEntries</ins>
+
+    ConditionKey:
+      <ins>IdentifierName</ins>
+      <ins>StringLiteral</ins>
 
     ImportCall[Yield, Await] :
       `import` `(` AssignmentExpression[+In, ?Yield, ?Await] <ins>`,`?</ins> `)`
@@ -392,17 +396,27 @@
       1. Return _conditions_.
     </emu-alg>
 
-    <emu-grammar> ConditionEntries : IdentifierName `:` StringLiteral </emu-grammar>
+    <emu-grammar> ConditionEntries : ConditionKey `:` StringLiteral </emu-grammar>
     <emu-alg>
-      1. Let _entry_ be a Record { [[Key]]: StringValue of |IdentifierName|, [[Value]]: StringValue of |StringLiteral| }.
+      1. Let _entry_ be a Record { [[Key]]: AssertClauseToConditions of |ConditionKey|, [[Value]]: StringValue of |StringLiteral| }.
       1. Return a new List containing the single element, _entry_.
     </emu-alg>
 
-    <emu-grammar> ConditionEntries : IdentifierName `:` StringLiteral `,` ConditionEntries </emu-grammar>
+    <emu-grammar> ConditionEntries : ConditionKey `:` StringLiteral `,` ConditionEntries </emu-grammar>
     <emu-alg>
-      1. Let _entry_ be a Record { [[Key]]: StringValue of |IdentifierName|, [[Value]]: StringValue of |StringLiteral| }.
+      1. Let _entry_ be a Record { [[Key]]: AssertClauseToConditions of |ConditionKey|, [[Value]]: StringValue of |StringLiteral| }.
       1. Let _rest_ be AssertClauseToConditions of |ConditionEntries|.
       1. Return a new List containing _entry_ followed by the entries of _rest_.
+    </emu-alg>
+
+    <emu-grammar> ConditionKey : IdentifierName </emu-grammar>
+    <emu-alg>
+      1. Return the StringValue of |IdentifierName|.
+    </emu-alg>
+
+    <emu-grammar> ConditionKey : StringLiteral </emu-grammar>
+    <emu-alg>
+      1. Return the StringValue of |StringLiteral|.
     </emu-alg>
   </emu-clause>
 
