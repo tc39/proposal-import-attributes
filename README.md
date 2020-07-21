@@ -14,8 +14,8 @@ The Import Conditions and JSON modules proposal adds:
 
 Developers will then be able to import a JSON module as follows:
 ```js
-import json from "./foo.json" if { type: "json" };
-import("foo.json", { if: { type: "json" } })
+import json from "./foo.json" assert { type: "json" };
+import("foo.json", { assert: { type: "json" } })
 ```
 
 ## Motivation
@@ -52,32 +52,32 @@ Here, a key-value syntax is used, with the key `type` used as an example indicat
 
 ### import statements
 
-The ImportDeclaration would allow any arbitrary conditions after the `if` keyword.
+The ImportDeclaration would allow any arbitrary conditions after the `assert` keyword.
 
 For example, the `type` attribute indicates a module type, and can be used to load JSON modules with the following syntax.
 
 ```mjs
-import json from "./foo.json" if { type: "json" };
+import json from "./foo.json" assert { type: "json" };
 ```
 
-The `if` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-conditions/issues/5)):
+The `assert` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-conditions/issues/5)):
 - JavaScript developers are already used to the Object literal syntax and since it allows a trailing comma copy/pasting conditions will be easy.
 - Follow-up proposals might specify new types of import conditions (see [Restriction to condition attributes](https://github.com/tc39/proposal-import-conditions#restriction-to-condition-attributes)) and we will be able to group conditions with different keywords, for instance:
 ```js
-import json from "./foo.json" if { type: "json" } with { transformA: "value" };
+import json from "./foo.json" assert { type: "json" } with { transformA: "value" };
 ```
 
-The `if` keyword is designed to match the check-only semantics. As shown by the example above, one could imagine a new follow-up proposal that uses `with` for transformations.
+The `assert` keyword is designed to match the check-only semantics. As shown by the example above, one could imagine a new follow-up proposal that uses `with` for transformations.
 
 ### dynamic import()
 
 The `import()` pseudo-function would allow import conditions to be indicated in an options bag in the second argument.
 
 ```js
-import("foo.json", { if: { type: "json" } })
+import("foo.json", { assert: { type: "json" } })
 ```
 
-The second parameter to `import()` is an options bag, with the only option currently defined to be `if`: the value here is an object containing the import conditions. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
+The second parameter to `import()` is an options bag, with the only option currently defined to be `assert`: the value here is an object containing the import conditions. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
 
 ### Integration of modules into environments
 
@@ -86,17 +86,17 @@ Host environments (e.g., the Web platform, Node.js) often provide various differ
 #### Worker instantiation
 
 ```js
-new Worker("foo.wasm", { type: "module", if: { type: "webassembly" } });
+new Worker("foo.wasm", { type: "module", assert: { type: "webassembly" } });
 ```
 
 Sidebar about WebAssembly module types and the web: it's still uncertain whether importing WebAssembly modules would need to be marked specially, or would be imported just like JavaScript. Further discussion in [#19](https://github.com/tc39/proposal-import-conditions/issues/19).
 
 #### HTML
 
-Although changes to HTML won't be specified by TC39, an idea here would be that each import attribute, preceded by `if`, becomes an HTML attribute which could be used in script tags.
+Although changes to HTML won't be specified by TC39, an idea here would be that each import attribute, preceded by `assert`, becomes an HTML attribute which could be used in script tags.
 
 ```html
-<script src="foo.wasm" type="module" iftype="webassembly"></script>
+<script src="foo.wasm" type="module" asserttype="webassembly"></script>
 ```
 
 (See the caveat about WebAssembly above.)
@@ -109,7 +109,7 @@ In the context of the [WebAssembly/ESM integration proposal](https://github.com/
 
 ### JSON modules
 
-JSON modules are required to be supported when invoked using the `if { type: "json" }` syntax, with common semantics in all JavaScript implementations for this syntax.
+JSON modules are required to be supported when invoked using the `assert { type: "json" }` syntax, with common semantics in all JavaScript implementations for this syntax.
 
 JSON modules' semantics are those of a single default export which is the entire parsed JSON document.
 
@@ -117,7 +117,7 @@ All of the import statements in the module graph that address the same JSON modu
 
 Each JavaScript host is expected to provide a secondary way of checking whether a module is a JSON module. For example, on the Web, the MIME type would be checked to be a JSON MIME type. In "local" desktop/server/embedded environments, the file extension may be checked (possibly after symlinks are followed). The `type: "json"` is indicated at the import site, rather than *only* through that other mechanism in order to prevent the privilege escalation issue noted in the opening section.
 
-Nevertheless, the interpretation of module loads with no conditions remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `if { type: "json" }`. It's just that `if { type: "json" }` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import conditions are required or optional for JSON modules.
+Nevertheless, the interpretation of module loads with no conditions remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `assert { type: "json" }`. It's just that `assert { type: "json" }` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import conditions are required or optional for JSON modules.
 
 ### Import conditions
 
@@ -185,7 +185,7 @@ Another option considered and not selected has been to use a single string as th
 We could permit import conditions to have more complex values than simply strings, for example:
 
 ```js
-import value from "module" if attr: { key1: "value1", key2: [1, 2, 3] };
+import value from "module" assert attr: { key1: "value1", key2: [1, 2, 3] };
 ```
 
 This would allow import conditions to scale to support a larger variety of metadata.
@@ -210,14 +210,14 @@ import value from "module" as "json";
 import value from "module" with type: "json";
 
 // Current proposal, to settle on before Stage 3
-import value from "module" if { type: "json" };
+import value from "module" assert { type: "json" };
 ```
 
 #### Before stage 3
 
 After Stage 2 and before Stage 3, we're open to settling on some less core details, such as:
 
-- Considering alternatives for the `with`/`if` keywords ([#3](https://github.com/tc39/proposal-import-conditions/issues/3))
+- Considering alternatives for the `with`/`if`/`assert` keywords ([#3](https://github.com/tc39/proposal-import-conditions/issues/3))
 
 ```mjs
 import value from "module" when { type: 'json' };
@@ -226,12 +226,12 @@ import value from "module" given { type: 'json' };
 
 - How dynamic import would accept import conditions:
 ```mjs
-import("foo.wasm", { if: { type: "webassembly" } });
+import("foo.wasm", { assert: { type: "webassembly" } });
 ```
 
-For consistency the `if` key is used for both dynamic and static imports.
+For consistency the `assert` key is used for both dynamic and static imports.
 
-An alternative would be to remove the `if` nesting in the object:
+An alternative would be to remove the `assert` nesting in the object:
 ```mjs
 import("foo.wasm", { type: "webassembly" });
 ```
@@ -244,7 +244,7 @@ However, that's not possible with the `Worker` API since it already uses an obje
     - For example, in the Web Platform, how import conditions would be enabled when launching a worker (if that is supported in the initial version to be shipped on the Web) or included in a `<script>` tag.
 
 ```mjs
-new Worker("foo.wasm", { type: "module", if: { type: "webassembly" } });
+new Worker("foo.wasm", { type: "module", assert: { type: "webassembly" } });
 ```
 
 Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/tc39/proposal-import-conditions/issues/10), [#24](https://github.com/tc39/proposal-import-conditions/issues/24) and [#25](https://github.com/tc39/proposal-import-conditions/issues/25)).
