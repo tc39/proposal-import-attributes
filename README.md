@@ -4,7 +4,7 @@ Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@
 
 Status: Stage 2.
 
-Please leave any feedback you have in the [issues](http://github.com/tc39/proposal-import-conditions/issues)!
+Please leave any feedback you have in the [issues](http://github.com/tc39/proposal-import-assertions/issues)!
 
 ## Synopsis
 
@@ -26,7 +26,7 @@ However, in [an issue](https://github.com/w3c/webcomponents/issues/839), Ryosuke
 
 Some developers have the intuition that the file extension could be used to determine the module type, as it is in many existing non-standard module systems. However, it's a deep web architectural principle that the suffix of the URL (which you might think of as the "file extension" outside of the web) does not lead to semantics of how the page is interpreted. In practice, on the web, there is a widespread [mismatch between file extension and the HTTP Content Type header](content-type-vs-file-extension.md). All of this sums up to it being infeasible to depend on file extensions/suffixes included in the module specifier to be the basis for this checking.
 
-There are other possible pieces of metadata which could be associated with modules, see [#8](https://github.com/tc39/proposal-import-conditions/issues/8) for further discussion.
+There are other possible pieces of metadata which could be associated with modules, see [#8](https://github.com/tc39/proposal-import-assertions/issues/8) for further discussion.
 
 Proposed ES module types that are blocked by this security concern, in addition to JSON modules, include [CSS modules](https://github.com/whatwg/html/pull/4898) and potentially [HTML modules](https://github.com/whatwg/html/pull/4505) if the HTML module  proposal is restricted to [not allow script](https://github.com/w3c/webcomponents/issues/805).
 
@@ -34,11 +34,11 @@ Proposed ES module types that are blocked by this security concern, in addition 
 
 There are three places where this data could be provided:
 - As part of the module specifier (e.g., as a pseudo-scheme)
-    - Challenges: Adds complexity to URLs or other module specifier syntaxes, and risks being confusing to developers (further discussion: [#11](https://github.com/tc39/proposal-import-conditions/issues/11))
+    - Challenges: Adds complexity to URLs or other module specifier syntaxes, and risks being confusing to developers (further discussion: [#11](https://github.com/tc39/proposal-import-assertions/issues/11))
     - webpack supports this sort of construct ([docs](https://webpack.js.org/concepts/loaders/#inline)).
         - Demand from users for similar behavior in Parcel, with pushback from some maintainers ([#3477](https://github.com/parcel-bundler/parcel/issues/3477))
 - Separately, out of band (e.g., a separate resource file)
-    - Challenges: How to load that resource file; what should the format be; unergonomic to have to jump between files during development (further discussion: [#13](https://github.com/tc39/proposal-import-conditions/issues/13))
+    - Challenges: How to load that resource file; what should the format be; unergonomic to have to jump between files during development (further discussion: [#13](https://github.com/tc39/proposal-import-assertions/issues/13))
 - In the JavaScript source text
     - Challenges: Requires a change at the JavaScript language level (this proposal)
 
@@ -46,7 +46,7 @@ This proposal pursues the third option, as we expect it to lead to the best deve
 
 ## Proposed syntax
 
-Import assertions have to be made available in several different contexts. This section contains one possible syntax, but there are other options, discussed in [#6](https://github.com/tc39/proposal-import-conditions/issues/6).
+Import assertions have to be made available in several different contexts. This section contains one possible syntax, but there are other options, discussed in [#6](https://github.com/tc39/proposal-import-assertions/issues/6).
 
 Here, a key-value syntax is used, with the key `type` used as an example indicating the module type. Such key-value syntax can be used in various different contexts.
 
@@ -60,9 +60,9 @@ For example, the `type` assertion indicates a module type, and can be used to lo
 import json from "./foo.json" assert { type: "json" };
 ```
 
-The `assert` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-conditions/issues/5)):
+The `assert` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-assertions/issues/5)):
 - JavaScript developers are already used to the Object literal syntax and since it allows a trailing comma copy/pasting assertions will be easy.
-- Follow-up proposals might specify new types of import attributes (see [Follow-up proposal "evaluator attributes"](https://github.com/tc39/proposal-import-conditions#follow-up-proposal-evaluator-attributes)) and we will be able to group attributes with different keywords, for instance:
+- Follow-up proposals might specify new types of import attributes (see [Follow-up proposal "evaluator attributes"](https://github.com/tc39/proposal-import-assertions#follow-up-proposal-evaluator-attributes)) and we will be able to group attributes with different keywords, for instance:
 ```js
 import json from "./foo.json" assert { type: "json" } with { transformA: "value" };
 ```
@@ -89,7 +89,7 @@ Host environments (e.g., the Web platform, Node.js) often provide various differ
 new Worker("foo.wasm", { type: "module", assert: { type: "webassembly" } });
 ```
 
-Sidebar about WebAssembly module types and the web: it's still uncertain whether importing WebAssembly modules would need to be marked specially, or would be imported just like JavaScript. Further discussion in [#19](https://github.com/tc39/proposal-import-conditions/issues/19).
+Sidebar about WebAssembly module types and the web: it's still uncertain whether importing WebAssembly modules would need to be marked specially, or would be imported just like JavaScript. Further discussion in [#19](https://github.com/tc39/proposal-import-assertions/issues/19).
 
 #### HTML
 
@@ -139,7 +139,7 @@ There are three possible ways to handle multiple imports of the same module with
 
 It's possible that one of these three options may make sense for a module load, on a case-by-case basis by attribute, but it's worth careful thought before making this choice.
 
-Plumbing-wise, the JavaScript standard would basically be responsible for passing the attributes up to the host environment, which would then decide how to interpret it, within the requirements listed above. Issues [#24](https://github.com/tc39/proposal-import-conditions/issues/24) and [#25](https://github.com/tc39/proposal-import-conditions/issues/25) discuss the Web and Node.js feature and semantic requirements respectively, and issue [#10](https://github.com/tc39/proposal-import-conditions/issues/10) discusses how to allow different JavaScript environments to have interoperability.
+Plumbing-wise, the JavaScript standard would basically be responsible for passing the attributes up to the host environment, which would then decide how to interpret it, within the requirements listed above. Issues [#24](https://github.com/tc39/proposal-import-assertions/issues/24) and [#25](https://github.com/tc39/proposal-import-assertions/issues/25) discuss the Web and Node.js feature and semantic requirements respectively, and issue [#10](https://github.com/tc39/proposal-import-assertions/issues/10) discusses how to allow different JavaScript environments to have interoperability.
 
 ## FAQ
 
@@ -164,7 +164,7 @@ However, at the same time, behavior of modules in general, and the set of module
 
 We see the management of compatibility issues across environments as similar, independent of whether metadata is held in-band or out-of-band. An out of band solution would also suffer from the risk of inconsistent implementation or support across host environments if some kind of coordination does not occur.
 
-The topic of attribute divergence is further discussed in  [#34](https://github.com/tc39/proposal-import-conditions/issues/34).
+The topic of attribute divergence is further discussed in  [#34](https://github.com/tc39/proposal-import-assertions/issues/34).
 
 ### How would this proposal work with caching?
 
@@ -178,7 +178,7 @@ Assertions are not part of the module cache key. Implementations are required to
 
 ### Why not use more terse syntax to indicate module types, like `import json from "./foo.json" as "json"`?
 
-Another option considered and not selected has been to use a single string as the attribute, indicating the type. This option is not selected due to its implication that any particular attribute is special; even though this proposal only specifies the `type` attribute, the intention is to be open to more assertions in the future. (discussion in [#12](https://github.com/tc39/proposal-import-conditions/issues/12)).
+Another option considered and not selected has been to use a single string as the attribute, indicating the type. This option is not selected due to its implication that any particular attribute is special; even though this proposal only specifies the `type` attribute, the intention is to be open to more assertions in the future. (discussion in [#12](https://github.com/tc39/proposal-import-assertions/issues/12)).
 
 ### Should more than just strings be supported as attribute values?
 
@@ -200,7 +200,7 @@ We are planning to make descisions and reach consensus during specific stages of
 
 We have achieved consensus on the following core decisions as part of Stage 2, including:
 
-- The attribute form; key-value or single string ([#12](https://github.com/tc39/proposal-import-conditions/issues/12))
+- The attribute form; key-value or single string ([#12](https://github.com/tc39/proposal-import-assertions/issues/12))
 
 ```mjs
 // Not selected
@@ -217,7 +217,7 @@ import value from "module" assert { type: "json" };
 
 After Stage 2 and before Stage 3, we're open to settling on some less core details, such as:
 
-- Considering alternatives for the `with`/`if`/`assert` keywords ([#3](https://github.com/tc39/proposal-import-conditions/issues/3))
+- Considering alternatives for the `with`/`if`/`assert` keywords ([#3](https://github.com/tc39/proposal-import-assertions/issues/3))
 
 ```mjs
 import value from "module" when { type: 'json' };
@@ -247,9 +247,9 @@ However, that's not possible with the `Worker` API since it already uses an obje
 new Worker("foo.wasm", { type: "module", assert: { type: "webassembly" } });
 ```
 
-Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/tc39/proposal-import-conditions/issues/10), [#24](https://github.com/tc39/proposal-import-conditions/issues/24) and [#25](https://github.com/tc39/proposal-import-conditions/issues/25)).
+Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/tc39/proposal-import-assertions/issues/10), [#24](https://github.com/tc39/proposal-import-assertions/issues/24) and [#25](https://github.com/tc39/proposal-import-assertions/issues/25)).
 
 ## Specification
 
-* [Specification Outline](https://tc39.es/proposal-import-conditions/)
+* [Specification Outline](https://tc39.es/proposal-import-assertions/)
 * [Pull Request for HTML spec integration](https://github.com/whatwg/html/pull/5658)
