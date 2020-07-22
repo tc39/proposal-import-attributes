@@ -1,4 +1,4 @@
-# Import Conditions and JSON modules
+# Import Assertions and JSON modules
 
 Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), Myles Borins ([@MylesBorins](https://github.com/MylesBorins)), and Dan Clark ([@dandclark](https://github.com/dandclark))
 
@@ -8,9 +8,9 @@ Please leave any feedback you have in the [issues](http://github.com/tc39/propos
 
 ## Synopsis
 
-The Import Conditions and JSON modules proposal adds:
+The Import Assertions and JSON modules proposal adds:
 - An inline syntax for module import statements to pass on more information alongside the module specifier
-- An initial application for such conditions in supporting JSON modules in a common way across JavaScript environments
+- An initial application for such assertions in supporting JSON modules in a common way across JavaScript environments
 
 Developers will then be able to import a JSON module as follows:
 ```js
@@ -46,23 +46,23 @@ This proposal pursues the third option, as we expect it to lead to the best deve
 
 ## Proposed syntax
 
-Import conditions have to be made available in several different contexts. This section contains one possible syntax, but there are other options, discussed in [#6](https://github.com/tc39/proposal-import-conditions/issues/6).
+Import assertions have to be made available in several different contexts. This section contains one possible syntax, but there are other options, discussed in [#6](https://github.com/tc39/proposal-import-conditions/issues/6).
 
 Here, a key-value syntax is used, with the key `type` used as an example indicating the module type. Such key-value syntax can be used in various different contexts.
 
 ### import statements
 
-The ImportDeclaration would allow any arbitrary conditions after the `assert` keyword.
+The ImportDeclaration would allow any arbitrary assertions after the `assert` keyword.
 
-For example, the `type` attribute indicates a module type, and can be used to load JSON modules with the following syntax.
+For example, the `type` assertion indicates a module type, and can be used to load JSON modules with the following syntax.
 
 ```mjs
 import json from "./foo.json" assert { type: "json" };
 ```
 
 The `assert` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-conditions/issues/5)):
-- JavaScript developers are already used to the Object literal syntax and since it allows a trailing comma copy/pasting conditions will be easy.
-- Follow-up proposals might specify new types of import conditions (see [Restriction to condition attributes](https://github.com/tc39/proposal-import-conditions#restriction-to-condition-attributes)) and we will be able to group conditions with different keywords, for instance:
+- JavaScript developers are already used to the Object literal syntax and since it allows a trailing comma copy/pasting assertions will be easy.
+- Follow-up proposals might specify new types of import attributes (see [Follow-up proposal "evaluator attributes"](https://github.com/tc39/proposal-import-conditions#follow-up-proposal-evaluator-attributes)) and we will be able to group attributes with different keywords, for instance:
 ```js
 import json from "./foo.json" assert { type: "json" } with { transformA: "value" };
 ```
@@ -71,13 +71,13 @@ The `assert` keyword is designed to match the check-only semantics. As shown by 
 
 ### dynamic import()
 
-The `import()` pseudo-function would allow import conditions to be indicated in an options bag in the second argument.
+The `import()` pseudo-function would allow import assertions to be indicated in an options bag in the second argument.
 
 ```js
 import("foo.json", { assert: { type: "json" } })
 ```
 
-The second parameter to `import()` is an options bag, with the only option currently defined to be `assert`: the value here is an object containing the import conditions. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
+The second parameter to `import()` is an options bag, with the only option currently defined to be `assert`: the value here is an object containing the import assertions. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
 
 ### Integration of modules into environments
 
@@ -103,7 +103,7 @@ Although changes to HTML won't be specified by TC39, an idea here would be that 
 
 #### WebAssembly
 
-In the context of the [WebAssembly/ESM integration proposal](https://github.com/webassembly/esm-integration): For imports of other module types from within a WebAssembly module, this proposal would introduce a new custom section (named `importconditions`) that will annotate with conditions each imported module (which is listed in the import section).
+In the context of the [WebAssembly/ESM integration proposal](https://github.com/webassembly/esm-integration): For imports of other module types from within a WebAssembly module, this proposal would introduce a new custom section (named `importassertions`) that will annotate with assertions each imported module (which is listed in the import section).
 
 ## Proposed semantics and interoperability
 
@@ -117,19 +117,19 @@ All of the import statements in the module graph that address the same JSON modu
 
 Each JavaScript host is expected to provide a secondary way of checking whether a module is a JSON module. For example, on the Web, the MIME type would be checked to be a JSON MIME type. In "local" desktop/server/embedded environments, the file extension may be checked (possibly after symlinks are followed). The `type: "json"` is indicated at the import site, rather than *only* through that other mechanism in order to prevent the privilege escalation issue noted in the opening section.
 
-Nevertheless, the interpretation of module loads with no conditions remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `assert { type: "json" }`. It's just that `assert { type: "json" }` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import conditions are required or optional for JSON modules.
+Nevertheless, the interpretation of module loads with no assertions remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `assert { type: "json" }`. It's just that `assert { type: "json" }` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import assertions are required or optional for JSON modules.
 
-### Import conditions
+### Import assertions
 
-Hosts would all be required to give a common interpretation to `"json"`, defined in the JavaScript specification, that `json` is the parsed JSON document (no named exports). Further conditions and module types beyond `json` modules could be added in future TC39 proposals as well as by hosts. HTML and CSS modules are also under consideration, and these may use similar explicit `type` syntax when imported.
+Hosts would all be required to give a common interpretation to `"json"`, defined in the JavaScript specification, that `json` is the parsed JSON document (no named exports). Further assertions and module types beyond `json` modules could be added in future TC39 proposals as well as by hosts. HTML and CSS modules are also under consideration, and these may use similar explicit `type` syntax when imported.
 
-JavaScript implementations are encouraged to reject conditions and type values which are not implemented in their environment (rather than ignoring them). This is to allow for maximal flexibility in the design space in the future--in particular, it enables new import conditions to be defined which change the interpretation of a module, without breaking backwards-compatibility.
+JavaScript implementations are encouraged to reject assertions and type values which are not implemented in their environment (rather than ignoring them). This is to allow for maximal flexibility in the design space in the future--in particular, it enables new import assertions to be defined which change the interpretation of a module, without breaking backwards-compatibility.
 
 Note that all environments are required to support JSON modules with this explicit syntax, but *may* support modules without it. For example, on the Web, JSON modules would only be supported with the explicit type, but Node.js *may* decide to also support JSON modules without this declaration. However, all environments *must* support the explicitly `type`-declared JSON modules.
 
 ### Follow-up proposal "evaluator attributes"
 
-Conditions do not affect the contents of the module or form part of the cache key.
+Assertions do not affect the contents of the module or form part of the cache key.
 Future follow-up proposals may relax this restriction with "evaluator attributes" that would change the contents of the module.
 
 There are three possible ways to handle multiple imports of the same module with "evaluator attributes":
@@ -168,7 +168,7 @@ The topic of attribute divergence is further discussed in  [#34](https://github.
 
 ### How would this proposal work with caching?
 
-Conditions are not part of the module cache key. Implementations are required to return the same module, or an error, regardless of the conditions.
+Assertions are not part of the module cache key. Implementations are required to return the same module, or an error, regardless of the assertions.
 
 ### Why don't JSON modules support named exports?
 
@@ -178,17 +178,17 @@ Conditions are not part of the module cache key. Implementations are required to
 
 ### Why not use more terse syntax to indicate module types, like `import json from "./foo.json" as "json"`?
 
-Another option considered and not selected has been to use a single string as the attribute, indicating the type. This option is not selected due to its implication that any particular attribute is special; even though this proposal only specifies the `type` attribute, the intention is to be open to more conditions in the future. (discussion in [#12](https://github.com/tc39/proposal-import-conditions/issues/12)).
+Another option considered and not selected has been to use a single string as the attribute, indicating the type. This option is not selected due to its implication that any particular attribute is special; even though this proposal only specifies the `type` attribute, the intention is to be open to more assertions in the future. (discussion in [#12](https://github.com/tc39/proposal-import-conditions/issues/12)).
 
 ### Should more than just strings be supported as attribute values?
 
-We could permit import conditions to have more complex values than simply strings, for example:
+We could permit import assertions to have more complex values than simply strings, for example:
 
 ```js
 import value from "module" assert attr: { key1: "value1", key2: [1, 2, 3] };
 ```
 
-This would allow import conditions to scale to support a larger variety of metadata.
+This would allow import assertions to scale to support a larger variety of metadata.
 
 We propose to omit this generalization in the initial proposal, as a key/value list of strings already affords significant flexibility to start, but we're open to a follow-on proposal providing this kind of generalization.
 
@@ -224,7 +224,7 @@ import value from "module" when { type: 'json' };
 import value from "module" given { type: 'json' };
 ```
 
-- How dynamic import would accept import conditions:
+- How dynamic import would accept import assertions:
 ```mjs
 import("foo.wasm", { assert: { type: "webassembly" } });
 ```
@@ -240,8 +240,8 @@ However, that's not possible with the `Worker` API since it already uses an obje
 
 #### Before Stage 4
 
-- The integration of import conditions into various host environments.
-    - For example, in the Web Platform, how import conditions would be enabled when launching a worker (if that is supported in the initial version to be shipped on the Web) or included in a `<script>` tag.
+- The integration of import assertions into various host environments.
+    - For example, in the Web Platform, how import assertions would be enabled when launching a worker (if that is supported in the initial version to be shipped on the Web) or included in a `<script>` tag.
 
 ```mjs
 new Worker("foo.wasm", { type: "module", assert: { type: "webassembly" } });
