@@ -1,4 +1,4 @@
-# Import Assertions and JSON modules
+# Import Assertions
 
 Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), Myles Borins ([@MylesBorins](https://github.com/MylesBorins)), and Dan Clark ([@dandclark](https://github.com/dandclark))
 
@@ -8,15 +8,15 @@ Please leave any feedback you have in the [issues](http://github.com/tc39/propos
 
 ## Synopsis
 
-The Import Assertions and JSON modules proposal adds:
-- An inline syntax for module import statements to pass on more information alongside the module specifier
-- An initial application for such assertions in supporting JSON modules in a common way across JavaScript environments
+The Import Assertions proposal adds an inline syntax for module import statements to pass on more information alongside the module specifier.  The initial application for such assertions will be to support additional types of modules in a common way across JavaScript environments, starting with [JSON modules](http://github.com/tc39/proposal-json-modules).
 
-Developers will then be able to import a JSON module as follows:
+The syntax will be as follows (shown here is the proposed method for importing a JSON module):
 ```js
 import json from "./foo.json" assert { type: "json" };
-import("foo.json", { assert: { type: "json" } })
+import("foo.json", { assert: { type: "json" } });
 ```
+
+The specification of JSON modules was originally part of this proposal, but it was [resolved](https://github.com/tc39/notes/blob/master/meetings/2020-07/july-21.md#import-conditions-for-stage-3) during the July 2020 meeting to split JSON modules out into a [separate Stage 2 proposal](http://github.com/tc39/proposal-json-modules).
 
 ## Motivation
 
@@ -54,7 +54,7 @@ Here, a key-value syntax is used, with the key `type` used as an example indicat
 
 The ImportDeclaration would allow any arbitrary assertions after the `assert` keyword.
 
-For example, the `type` assertion indicates a module type, and can be used to load JSON modules with the following syntax.
+For example, the `type` assertion could be used to indicate a module type, for example importing a JSON module with the following syntax.
 
 ```mjs
 import json from "./foo.json" assert { type: "json" };
@@ -107,30 +107,15 @@ In the context of the [WebAssembly/ESM integration proposal](https://github.com/
 
 ## Proposed semantics and interoperability
 
-### JSON modules
+This proposal does not specify behavior for any particular assertion key or value.  The [JSON modules proposal](https://github.com/tc39/proposal-json-modules) will specify that `type: "json"` must be interpreted as a JSON module, and will specify common semantics for doing so.  It is expected the `type` attribute will be leveraged to support additional module types in future TC39 proposals as well as by hosts.  HTML and CSS modules are under consideration, and these may use similar explicit `type` syntax when imported.
 
-JSON modules are required to be supported when invoked using the `assert { type: "json" }` syntax, with common semantics in all JavaScript implementations for this syntax.
-
-JSON modules' semantics are those of a single default export which is the entire parsed JSON document.
-
-All of the import statements in the module graph that address the same JSON module will evaluate to the same mutable object as discussed in [#54](https://github.com/tc39/proposal-import-attributes/issues/54).
-
-Each JavaScript host is expected to provide a secondary way of checking whether a module is a JSON module. For example, on the Web, the MIME type would be checked to be a JSON MIME type. In "local" desktop/server/embedded environments, the file extension may be checked (possibly after symlinks are followed). The `type: "json"` is indicated at the import site, rather than *only* through that other mechanism in order to prevent the privilege escalation issue noted in the opening section.
-
-Nevertheless, the interpretation of module loads with no assertions remains host/implementation-defined, so it is valid to implement JSON modules without *requiring* `assert { type: "json" }`. It's just that `assert { type: "json" }` must be supported everywhere. For example, it will be up to Node.js, not TC39, to decide whether import assertions are required or optional for JSON modules.
-
-### Import assertions
-
-Hosts would all be required to give a common interpretation to `"json"`, defined in the JavaScript specification, that `json` is the parsed JSON document (no named exports). Further assertions and module types beyond `json` modules could be added in future TC39 proposals as well as by hosts. HTML and CSS modules are also under consideration, and these may use similar explicit `type` syntax when imported.
+Assertions in addition  than `type` may also be introduced for purposes not yet foreseen.
 
 JavaScript implementations are encouraged to reject assertions and type values which are not implemented in their environment (rather than ignoring them). This is to allow for maximal flexibility in the design space in the future--in particular, it enables new import assertions to be defined which change the interpretation of a module, without breaking backwards-compatibility.
 
-Note that all environments are required to support JSON modules with this explicit syntax, but *may* support modules without it. For example, on the Web, JSON modules would only be supported with the explicit type, but Node.js *may* decide to also support JSON modules without this declaration. However, all environments *must* support the explicitly `type`-declared JSON modules.
+## Follow-up proposal "evaluator attributes"
 
-### Follow-up proposal "evaluator attributes"
-
-Assertions do not affect the contents of the module or form part of the cache key.
-Future follow-up proposals may relax this restriction with "evaluator attributes" that would change the contents of the module.
+Implementations are not permitted to interpret a module differently at multiple import sites if the only difference between the sites is the set of import assertions.  Future follow-up proposals may relax this restriction with "evaluator attributes" that would change the contents of the module.
 
 There are three possible ways to handle multiple imports of the same module with "evaluator attributes":
 - **Race** and use the attribute that was requested by the first import. This seems broken--the second usage is ignored.
@@ -158,7 +143,7 @@ Out-of-band solutions face certain downsides; these are not necessarily fatal, b
 
 ### How is common behavior ensured across JavaScript environments?
 
-A central goal of this proposal is to share as much syntax and behavior across JavaScript environments as possible. To that end, JSON modules are standardized as much as possible (omitting just the contents of the redundant type check, which necessarily differs between environments, in addition to the pre-existing host-defined parts such as interpreting the module specifier and fetching the module).
+A central goal of this proposal is to share as much syntax and behavior across JavaScript environments as possible. To the same end, we also [propose](https://github.com/tc39/proposal-json-modules) a standardization of JSON modules to the extent that this is possible (omitting just the contents of the redundant type check, which necessarily differs between environments, in addition to the pre-existing host-defined parts such as interpreting the module specifier and fetching the module).
 
 However, at the same time, behavior of modules in general, and the set of module types specifically, is expected to differ across JavaScript environments. For example, WebAssembly, HTML and CSS modules may not make sense in certain minimal embedded JavaScript environments. We hope that environments can experiment and collaborate where it makes sense for them.
 
@@ -169,12 +154,6 @@ The topic of attribute divergence is further discussed in  [#34](https://github.
 ### How would this proposal work with caching?
 
 Assertions are not part of the module cache key. Implementations are required to return the same module, or an error, regardless of the assertions.
-
-### Why don't JSON modules support named exports?
-
-"Named exports" for each top-level property of the parsed JSON value were [considered](https://github.com/whatwg/html/issues/4315#issuecomment-456838848) in earlier HTML efforts towards JSON modules. On one hand, named exports are implemented by certain JavaScript tooling, and some developers find them to be more ergonomic/friendly to certain forms of tree shaking. However, they are not selected in this proposal because:
-- They are not fully general: not all JSON documents are objects, and not all object property keys are JavaScript identifiers that can be bound as named imports.
-- It makes sense to think of a JSON document as conceptually ["a single thing"](https://github.com/whatwg/html/issues/4315#issuecomment-456838848) rather than several things that happen to be side-by-side in a file.
 
 ### Why not use more terse syntax to indicate module types, like `import json from "./foo.json" as "json"`?
 
