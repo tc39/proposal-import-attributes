@@ -13,7 +13,7 @@ Yes.
 
 ## 2.3. How does this specification deal with personal information or personally-identifiable information or information derived thereof?
 
-HTML imports modules by performing fetches from the URL indicated in the module specifier. JavaScript code may construct a URL exposing personally identifying information which is implicitly communicated by importing a particular kind of JSON module, but this is already possible with JS modules.
+HTML imports modules by performing fetches from the URL indicated in the module specifier. JavaScript code may construct a URL exposing personally identifying information which is implicitly communicated by importing a module with that URL, but this is already possible with JS modules.
 
 No new identifying information is communicated by this proposal.
 
@@ -27,7 +27,7 @@ No.
 
 ## 2.6. What information from the underlying platform, e.g. configuration data, is exposed by this specification to an origin?
 
-Regardless of the conclusion of 2.1 about exposing the type to the origin; if a host implements this proposal, JSON modules must be supported.
+None.
 
 ## 2.7. Does this specification allow an origin access to sensors on a user’s device
 
@@ -41,7 +41,7 @@ No data.
 
 This proposal will enable future module types on the web, first JSON module and then HTML, CSS, ...
 
-The type attribute is designed to let the importer specify whether the imported module has the capability to execute code: some module types are able to execute code, while others are not.
+This will be done via the `type` attribute, which is designed to let the importer specify whether the imported module has the capability to execute code: some module types are able to execute code, while others are not.
 
 ## 2.10. Does this specification allow an origin to access other devices?
 
@@ -57,7 +57,7 @@ No identifiers.
 
 ## 2.13. How does this specification distinguish between behavior in first-party and third-party contexts?
 
-This specification allows importing more kinds of cross-origin subresources (initially, JSON documents) as modules, analogous to how ES modules work. The imported subresource is not distinguished and generally treated as "first-party", but the explicit use of type avoids giving this subresource unnecessary capabilities (including both executing code and accessing parsers).
+This specification allows importing more kinds of cross-origin subresources as modules, analogous to how ES modules work. The imported subresources are not distinguished and generally treated as "first-party", but each new subresource types will be importable only with the explicit use of a `type` assertion, which avoids giving the subresource unnecessary capabilities (including both executing code and accessing parsers).
 
 ## 2.14. How does this specification work in the context of a user agent’s Private Browsing or "incognito" mode?
 
