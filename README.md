@@ -69,6 +69,14 @@ import json from "./foo.json" assert { type: "json" } with { transformA: "value"
 
 The `assert` keyword is designed to match the check-only semantics. As shown by the example above, one could imagine a new follow-up proposal that uses `with` for transformations.
 
+### re-export statements
+
+Similar to import statements, the ExportDeclaration, when re-exporting from another module, would allow any arbitrary assertions after the `assert` keyword.
+
+```mjs
+export { val } from './foo.js' assert { type: "javascript" };
+```
+
 ### dynamic import()
 
 The `import()` pseudo-function would allow import assertions to be indicated in an options bag in the second argument.
