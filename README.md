@@ -164,7 +164,7 @@ Another option considered and not selected has been to use a single string as th
 We could permit import assertions to have more complex values than simply strings, for example:
 
 ```js
-import value from "module" assert attr: { key1: "value1", key2: [1, 2, 3] };
+import value from "module" assert { attr: { key1: "value1", key2: [1, 2, 3] } };
 ```
 
 This would allow import assertions to scale to support a larger variety of metadata.
