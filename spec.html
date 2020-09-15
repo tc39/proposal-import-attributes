@@ -37,6 +37,7 @@
       `export` `default` [lookahead &lt;! {`function`, `async` [no |LineTerminator| here] `function`, `class`}] AssignmentExpression[+In, ~Yield, ~Await] `;`
 
     AssertClause :
+      <ins>`assert` `{` `}`</ins>
       <ins>`assert` `{` AssertEntries `,`? `}`</ins>
 
     AssertEntries :
@@ -224,6 +225,11 @@
 
   <emu-clause id="sec-assert-clause-to-assertions" aoid="AssertClauseToAssertions">
     <h1>Runtime Semantics: AssertClauseToAssertions</h1>
+    <emu-grammar>AssertClause : `assert` `{` `}`</emu-grammar>
+    <emu-alg>
+      1. Return a new empty List.
+    </emu-alg>
+
     <emu-grammar>AssertClause : `assert` `{` AssertEntries `,`? `}`</emu-grammar>
     <emu-alg>
       1. Let _assertions_ be AssertClauseToAssertions of |AssertEntries|.
