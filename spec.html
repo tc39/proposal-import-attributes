@@ -239,7 +239,7 @@
 
     <emu-grammar> AssertEntries : AssertionKey `:` StringLiteral </emu-grammar>
     <emu-alg>
-      1. Let _entry_ be a Record { [[Key]]: AssertClauseToAssertions of |AssertionKey|, [[Value]]: StringValue of |StringLiteral| }.
+      1. Let _entry_ be a Record { [[Key]]: StringValue of |AssertionKey|, [[Value]]: StringValue of |StringLiteral| }.
       1. Return a new List containing the single element, _entry_.
     </emu-alg>
 
