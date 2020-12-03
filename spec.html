@@ -90,7 +90,7 @@
           1. <ins>Let _arg_ be ? GetValue(_argRef_).</ins>
           1. <ins>If _arg_ is *undefined*, let _assertions_ be an empty List.</ins>
           1. <ins>Otherwise,</ins>
-            1. <ins>Let _supportedAssertions_ ! HostGetSupportedAssertions().</ins>
+            1. <ins>Let _supportedAssertions_ ! HostGetSupportedImportAssertions().</ins>
             1. <ins>Let _assertionsObj_ be ? Get(_arg_, *"assert"*).</ins>
             1. <ins>Let _assertions_ be a new empty List.</ins>
             1. <ins>Let _keys_ be EnumerableOwnPropertyNames(_assertionsObj_, ~key~).</ins>
@@ -216,26 +216,26 @@
         </emu-alg>
       </emu-clause>
 
-  <emu-clause id="sec-hostgetsupportedassertions" aoid="HostGetSupportedAssertions">
-    <h1>Static Semantics: HostGetSupportedAssertions ()</h1>
+  <emu-clause id="sec-hostgetsupportedimportassertions" aoid="HostGetSupportedImportAssertions">
+    <h1>Static Semantics: HostGetSupportedImportAssertions ()</h1>
     <p>
-      HostGetSupportedAssertions is a host-defined abstract operation that allows host environments to specify which import assertions they support.
+      HostGetSupportedImportAssertions is a host-defined abstract operation that allows host environments to specify which import assertions they support.
       Only assertions with supported keys will be provided to the host.
     </p>
 
-    <p>The implementation of HostGetSupportedAssertions must conform to the following requrements:</p>
+    <p>The implementation of HostGetSupportedImportAssertions must conform to the following requrements:</p>
 
     <ul>
       <li>It must return a List whose values are all StringValues, each indicating a supported assertion.</li>
 
       <li>Each time this operation is called, it must return the same List instance with the same contents.</li>
 
-      <li>An implementation of HostGetSupportedAssertions must always complete normally (i.e., not return an abrupt completion).</li>
+      <li>An implementation of HostGetSupportedImportAssertions must always complete normally (i.e., not return an abrupt completion).</li>
     </ul>
 
-    <p>The default implementation of HostGetSupportedAssertions is to return an empty List.</p>
+    <p>The default implementation of HostGetSupportedImportAssertions is to return an empty List.</p>
 
-    <emu-note type=editor>The purpose of requiring the host to specify its supported assertions, rather than passing all assertions to the host and letting it then choose which ones it wants to handle, is to ensure that unsupported assertions are handled in a consistent way across different hosts.</emu-note>
+    <emu-note type=editor>The purpose of requiring the host to specify its supported import assertions, rather than passing all assertions to the host and letting it then choose which ones it wants to handle, is to ensure that unsupported assertions are handled in a consistent way across different hosts.</emu-note>
   </emu-clause>
 
   <emu-clause id="sec-assert-clause-early-errors">
@@ -262,7 +262,7 @@
 
     <emu-grammar> AssertEntries : AssertionKey `:` StringLiteral </emu-grammar>
     <emu-alg>
-      1. Let _supportedAssertions_ be !HostGetSupportedAssertions().
+      1. Let _supportedAssertions_ be !HostGetSupportedImportAssertions().
       1. Let _key_ be StringValue of |AssertionKey|.
       1. If _key_ is an entry of _supportedAssertions_,
         1. Let _entry_ be a Record { [[Key]]: _key_, [[Value]]: StringValue of |StringLiteral| }.
@@ -272,7 +272,7 @@
 
     <emu-grammar> AssertEntries : AssertionKey `:` StringLiteral `,` AssertEntries </emu-grammar>
     <emu-alg>
-      1. Let _supportedAssertions_ be !HostGetSupportedAssertions().
+      1. Let _supportedAssertions_ be !HostGetSupportedImportAssertions().
       1. Let _key_ be StringValue of |AssertionKey|.
       1. If _key_ is an entry of _supportedAssertions_,
         1. Let _entry_ be a Record { [[Key]]: _key_, [[Value]]: StringValue of |StringLiteral| }.
