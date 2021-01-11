@@ -98,7 +98,9 @@
             1. <ins>For each String _key_ of _keys_, if _key_ is an entry of _supportedAssertions_,</ins>
               1. <ins>Let _value_ be Get(_assertionsObj_, _key_).</ins>
               1. <ins>IfAbruptRejectPromise(_value_, _promiseCapability_).</ins>
-              1. <ins>Append { [[Key]]: _key_, [[Value]]: _value_ } to _assertions_.</ins>
+              1. <ins>Let _valueString_ be ToString(_value_).</ins>
+              1. <ins>IfAbruptRejectPromise(_valueString_, _promiseCapability_).</ins>
+              1. <ins>Append { [[Key]]: _key_, [[Value]]: _valueString_ } to _assertions_.</ins>
             1. <ins>Sort _assertions_ by the code point order of the [[Key]] of each entry.  NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.</ens>
           1. <ins>Let _moduleRequest_ be a new ModuleRequest Record { [[Specifier]]: _specifierString_, [[Assertions]]: _assertions_ }.</ins>
           1. Perform ! HostImportModuleDynamically(_referencingScriptOrModule_, <del>_specifierString_,</del> <ins>_moduleRequest_,</ins> _promiseCapability_).
