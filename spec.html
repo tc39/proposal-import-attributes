@@ -81,6 +81,9 @@
             1. IfAbruptRejectPromise(_specifierString_, _promiseCapability_).
             1. Let _assertions_ be a new empty List.
             1. If _options_ is not *undefined*, then
+              1. If Type(_options_) is not Object,
+                1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
+                1. Return _promiseCapability_.[[Promise]].
               1. Let _assertionsObj_ be Get(_options_, *"assert"*).
               1. IfAbruptRejectPromise(_assertionsObj_, _promiseCapability_).
               1. If _assertionsObj_ is not *undefined*,
