@@ -16,7 +16,7 @@ import json from "./foo.json" assert { type: "json" };
 import("foo.json", { assert: { type: "json" } });
 ```
 
-The specification of JSON modules was originally part of this proposal, but it was [resolved](https://github.com/tc39/notes/blob/master/meetings/2020-07/july-21.md#import-conditions-for-stage-3) during the July 2020 meeting to split JSON modules out into a [separate Stage 2 proposal](http://github.com/tc39/proposal-json-modules).
+The specification of JSON modules was originally part of this proposal, but it was [resolved](https://github.com/tc39/notes/blob/master/meetings/2020-07/july-21.md#import-conditions-for-stage-3) during the July 2020 meeting to split JSON modules out into a [separate Stage 3 proposal](http://github.com/tc39/proposal-json-modules).
 
 ## Motivation
 
