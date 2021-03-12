@@ -101,7 +101,7 @@
               1. <ins>If Type(_value_) is not String, then</ins>
                 1. <ins>Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).</ins>
                 1. <ins>Return _promiseCapability_.[[Promise]].</ins>
-              1. <ins>If _key_ is *"type"* and _value_ is not an entry of !HostGetSupportedExtraModuleScriptTypes(), then</ins>
+              1. <ins>If _key_ is *"type"* and ! HostGetSupportedExtraModuleScriptTypes() does not contain _value_, then</ins>
                 1. <ins>Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).</ins>
                 1. <ins>Return _promiseCapability_.[[Promise]].</ins>
               1. <ins>If _key_ is an entry of _supportedAssertions_, append { [[Key]]: _key_, [[Value]]: _value_ } to _assertions_.</ins>
