@@ -273,7 +273,7 @@
     <emu-grammar>AssertClause : `assert` `{` AssertEntries `,`? `}`</emu-grammar>
     <ul>
       <li>It is a Syntax Error if AssertClauseToAssertions of |AssertClause| has two entries _a_ and _b_ such that _a_.[[Key]] is _b_.[[Key]].</li>
-      <li>It is a Syntax Error if AssertClauseToAssertions of |AssertClause| has an entry _a_ such that _a_.[[Key]] is *"type"* and _a_.[[Value]] is not an entry of !HostGetSupportedExtraModuleScriptTypes().</li>
+      <li>It is a Syntax Error if AssertClauseToAssertions of |AssertClause| has an entry _a_ such that _a_.[[Key]] is *"type"* and ! HostGetSupportedExtraModuleScriptTypes() does not contain _a_.[[Value]].</li>
     </ul>
   </emu-clause>
 
