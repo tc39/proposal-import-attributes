@@ -101,6 +101,9 @@
               1. <ins>If Type(_value_) is not String, then</ins>
                 1. <ins>Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).</ins>
                 1. <ins>Return _promiseCapability_.[[Promise]].</ins>
+              1. <ins>If _key_ is *"type"* and _value_ is not an entry of !HostGetSupportedExtraModuleScriptTypes(), then</ins>
+                1. <ins>Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).</ins>
+                1. <ins>Return _promiseCapability_.[[Promise]].</ins>
               1. <ins>If _key_ is an entry of _supportedAssertions_, append { [[Key]]: _key_, [[Value]]: _value_ } to _assertions_.</ins>
             1. <ins>Sort _assertions_ by the code point order of the [[Key]] of each entry.  NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.</ens>
           1. <ins>Let _moduleRequest_ be a new ModuleRequest Record { [[Specifier]]: _specifierString_, [[Assertions]]: _assertions_ }.</ins>
@@ -241,11 +244,36 @@
     <emu-note type=editor>The purpose of requiring the host to specify its supported import assertions, rather than passing all assertions to the host and letting it then choose which ones it wants to handle, is to ensure that unsupported assertions are handled in a consistent way across different hosts.</emu-note>
   </emu-clause>
 
+  <emu-clause id="sec-hostgetsupportedextramodulescripttypes" aoid="HostGetSupportedExtraModuleScriptTypes">
+    <h1>Static Semantics: HostGetSupportedExtraModuleScriptTypes ()</h1>
+    <p>
+      HostGetSupportedExtraModuleScriptTypes is a host-defined abstract operation that allows host environments to specify which types of module scripts they support in addition to Source Text Module Record.
+      Module script type assertions with unsupported values will cause an error.
+    </p>
+
+    <p>The implementation of HostGetSupportedExtraModuleScriptTypes must conform to the following requrements:</p>
+
+    <ul>
+      <li>It must return a List whose values are all StringValues, each indicating a supported module script type.</li>
+
+      <li>None of the string values may be *"js"* or *"javascript"*.<emu-note type="editor">It is assumed that Source Text Module Record must be supported.</emu-note></li>
+
+      <li>Each time this operation is called, it must return the same List instance with the same contents.</li>
+
+      <li>An implementation of HostGetSupportedExtraModuleScriptTypes must always complete normally (i.e., not return an abrupt completion).</li>
+    </ul>
+
+    <p>The default implementation of HostGetSupportedExtraModuleScriptTypes is to return an empty List.</p>
+
+    <emu-note type="editor">The purpose of requiring the host to specify its supported module types, rather than passing all type assertion values to the host and letting it then choose which ones it wants to handle, is to ensure that unsupported module types are handled in a consistent way across different hosts.</emu-note>
+  </emu-clause>
+
   <emu-clause id="sec-assert-clause-early-errors">
     <h1>Static Semantics: Early Errors</h1>
     <emu-grammar>AssertClause : `assert` `{` AssertEntries `,`? `}`</emu-grammar>
     <ul>
       <li>It is a Syntax Error if AssertClauseToAssertions of |AssertClause| has two entries _a_ and _b_ such that _a_.[[Key]] is _b_.[[Key]].</li>
+      <li>It is a Syntax Error if AssertClauseToAssertions of |AssertClause| has an entry _a_ such that _a_.[[Key]] is *"type"* and _a_.[[Value]] is not an entry of !HostGetSupportedExtraModuleScriptTypes().</li>
     </ul>
   </emu-clause>
 
