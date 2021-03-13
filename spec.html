@@ -102,7 +102,7 @@
                 1. <ins>Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).</ins>
                 1. <ins>Return _promiseCapability_.[[Promise]].</ins>
               1. <ins>If _supportedAssertions_ contains _key_, append { [[Key]]: _key_, [[Value]]: _value_ } to _assertions_.</ins>
-            1. <ins>Sort _assertions_ by the code point order of the [[Key]] of each element.  NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.</ens>
+            1. <ins>Sort _assertions_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.</ens>
           1. <ins>Let _moduleRequest_ be a new ModuleRequest Record { [[Specifier]]: _specifierString_, [[Assertions]]: _assertions_ }.</ins>
           1. Perform ! HostImportModuleDynamically(_referencingScriptOrModule_, <del>_specifierString_,</del> <ins>_moduleRequest_,</ins> _promiseCapability_).
           1. Return _promiseCapability_.[[Promise]].
@@ -259,7 +259,7 @@
     <emu-grammar>AssertClause : `assert` `{` AssertEntries `,`? `}`</emu-grammar>
     <emu-alg>
       1. Let _assertions_ be AssertClauseToAssertions of |AssertEntries|.
-      1. Sort _assertions_ by the code point order of the [[Key]] of each element.  NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.
+      1. Sort _assertions_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.
       1. Return _assertions_.
     </emu-alg>
 
