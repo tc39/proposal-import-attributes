@@ -256,8 +256,6 @@
     <ul>
       <li>It must return a List whose values are all StringValues, each indicating a supported module script type.</li>
 
-      <li>None of the string values may be *"js"* or *"javascript"*.<emu-note type="editor">It is assumed that Source Text Module Record must be supported.</emu-note></li>
-
       <li>Each time this operation is called, it must return the same List instance with the same contents.</li>
 
       <li>An implementation of HostGetSupportedExtraModuleScriptTypes must always complete normally (i.e., not return an abrupt completion).</li>
@@ -265,7 +263,10 @@
 
     <p>The default implementation of HostGetSupportedExtraModuleScriptTypes is to return an empty List.</p>
 
-    <emu-note type="editor">The purpose of requiring the host to specify its supported module types, rather than passing all type assertion values to the host and letting it then choose which ones it wants to handle, is to ensure that unsupported module types are handled in a consistent way across different hosts.</emu-note>
+    <emu-note type="editor">
+      <p>The purpose of requiring the host to specify its supported module types, rather than passing all type assertion values to the host and letting it then choose which ones it wants to handle, is to ensure that unsupported module types are handled in a consistent way across different hosts.</p>
+      <p>It is assumed that Source Text Module Record must be supported, so hosts do not need to provide a value for these in the list.</p>
+    </emu-note>
   </emu-clause>
 
   <emu-clause id="sec-assert-clause-early-errors">
