@@ -104,8 +104,8 @@
               1. <ins>If _key_ is *"type"* and ! HostGetSupportedExtraModuleScriptTypes() does not contain _value_, then</ins>
                 1. <ins>Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).</ins>
                 1. <ins>Return _promiseCapability_.[[Promise]].</ins>
-              1. <ins>If _key_ is an entry of _supportedAssertions_, append { [[Key]]: _key_, [[Value]]: _value_ } to _assertions_.</ins>
-            1. <ins>Sort _assertions_ by the code point order of the [[Key]] of each entry.  NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.</ens>
+              1. <ins>If _supportedAssertions_ contains _key_, append { [[Key]]: _key_, [[Value]]: _value_ } to _assertions_.</ins>
+            1. <ins>Sort _assertions_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.</ens>
           1. <ins>Let _moduleRequest_ be a new ModuleRequest Record { [[Specifier]]: _specifierString_, [[Assertions]]: _assertions_ }.</ins>
           1. Perform ! HostImportModuleDynamically(_referencingScriptOrModule_, <del>_specifierString_,</del> <ins>_moduleRequest_,</ins> _promiseCapability_).
           1. Return _promiseCapability_.[[Promise]].
@@ -287,7 +287,7 @@
     <emu-grammar>AssertClause : `assert` `{` AssertEntries `,`? `}`</emu-grammar>
     <emu-alg>
       1. Let _assertions_ be AssertClauseToAssertions of |AssertEntries|.
-      1. Sort _assertions_ by the code point order of the [[Key]] of each entry.  NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.
+      1. Sort _assertions_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.
       1. Return _assertions_.
     </emu-alg>
 
@@ -295,7 +295,7 @@
     <emu-alg>
       1. Let _supportedAssertions_ be !HostGetSupportedImportAssertions().
       1. Let _key_ be StringValue of |AssertionKey|.
-      1. If _key_ is an entry of _supportedAssertions_,
+      1. If _supportedAssertions_ contains _key_,
         1. Let _entry_ be a Record { [[Key]]: _key_, [[Value]]: StringValue of |StringLiteral| }.
         1. Return a new List containing the single element, _entry_.
       1. Otherwise, return a new empty List.
@@ -305,10 +305,10 @@
     <emu-alg>
       1. Let _supportedAssertions_ be !HostGetSupportedImportAssertions().
       1. Let _key_ be StringValue of |AssertionKey|.
-      1. If _key_ is an entry of _supportedAssertions_,
+      1. If _supportedAssertions_ contains _key_,
         1. Let _entry_ be a Record { [[Key]]: _key_, [[Value]]: StringValue of |StringLiteral| }.
         1. Let _rest_ be AssertClauseToAssertions of |AssertEntries|.
-        1. Return a new List containing _entry_ followed by the entries of _rest_.
+        1. Return a new List containing _entry_ followed by the elements of _rest_.
       1. Otherwise, return AssertClauseToAssertions of |AssertEntries|.
     </emu-alg>
   </emu-clause>
@@ -576,7 +576,7 @@
 
   <ul>
     <li>The <a href="https://html.spec.whatwg.org/#module-script">module script</a> would have an additional item, which would be the module type, as a string (e.g., *"json"*), or *undefined* for a JavaScript module.</li>
-    <li>HostResolveImportedModule and HostImportModuleDynamically would take a ModuleRequest Record parameter in place of a specifier string, which would be passed down through several abstract operations to reach the <a href="https://html.spec.whatwg.org/#fetch-a-single-module-script">fetch a single module script</a> algorithm. Somewhere near the entrypoint, if the ModuleRequest Record's [[Assertions]] field has an entry _entry_ such that _entry_.[[Key]] is *"type"*, then let _type_ be _entry_.[[Value]]; otherwise let _type_ be *undefined*. If the type is invalid, then an exception is thrown and module loading fails. Otherwise, this will equal the module type, if the module can be successfully fetched with a matching MIME type.</li>
+    <li>HostResolveImportedModule and HostImportModuleDynamically would take a ModuleRequest Record parameter in place of a specifier string, which would be passed down through several abstract operations to reach the <a href="https://html.spec.whatwg.org/#fetch-a-single-module-script">fetch a single module script</a> algorithm. Somewhere near the entrypoint, if the ModuleRequest Record's [[Assertions]] field has an element _entry_ such that _entry_.[[Key]] is *"type"*, then let _type_ be _entry_.[[Value]]; otherwise let _type_ be *undefined*. If the type is invalid, then an exception is thrown and module loading fails. Otherwise, this will equal the module type, if the module can be successfully fetched with a matching MIME type.</li>
     <li>In the <a href="https://html.spec.whatwg.org/#fetch-the-descendants-of-a-module-script">fetch the descendents of a module script</a> algorithm, when iterating over [[RequestedModules]], the elements are ModuleRequest Records rather than just specifier strings; these Records is passed on to the internal module script graph fetching procedure (which sends it to "fetch a single module script". Other usage sites of [[RequestedModules]] ignore the assertion.</li>
     <li>"Fetch a single module script" would check the assertion in two places:
       <ul>
