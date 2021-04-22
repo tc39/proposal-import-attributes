@@ -65,47 +65,54 @@
       <emu-clause id="sec-import-call-runtime-semantics-evaluation">
         <h1>Runtime Semantics: Evaluation</h1>
 
+        <emu-clause id="sec-evaluate-import-call">
+          <h1>EvaluateImportCall ( _specifierExpression_ [ , _optionsExpression_ ] )</h1>
+          <emu-alg>
+            1. Let _referencingScriptOrModule_ be ! GetActiveScriptOrModule().
+            1. Let _specifierRef_ be the result of evaluating _specifierExpression_.
+            1. Let _specifier_ be ? GetValue(_specifierRef_).
+            1. If _optionsExpression_ is present, then
+              1. Let _optionsRef_ be the result of evaluating _optionsExpression_.
+              1. Let _options_ be ? GetValue(_optionsRef_).
+            1. Else,
+              1. Let _options_ be *undefined*.
+            1. Let _promiseCapability_ be ! NewPromiseCapability(%Promise%).
+            1. Let _specifierString_ be ToString(_specifier_).
+            1. IfAbruptRejectPromise(_specifierString_, _promiseCapability_).
+            1. Let _assertions_ be a new empty List.
+            1. If _options_ is not *undefined*, then
+              1. Let _assertionsObj_ be Get(_options_, *"assert"*).
+              1. IfAbruptRejectPromise(_assertionsObj_, _promiseCapability_).
+              1. If _assertionsObj_ is not *undefined*,
+                1. If Type(_assertionsObj_) is not Object,
+                  1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
+                  1. Return _promiseCapability_.[[Promise]].
+                1. Let _keys_ be EnumerableOwnPropertyNames(_assertionsObj_, ~key~).
+                1. IfAbruptRejectPromise(_keys_, _promiseCapability_).
+                1. Let _supportedAssertions_ be ! HostGetSupportedImportAssertions().
+                1. For each String _key_ of _keys_,
+                  1. Let _value_ be Get(_assertionsObj_, _key_).
+                  1. IfAbruptRejectPromise(_value_, _promiseCapability_).
+                  1. If Type(_value_) is not String, then
+                    1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
+                    1. Return _promiseCapability_.[[Promise]].
+                  1. If _supportedAssertions_ contains _key_, then
+                    1. Append { [[Key]]: _key_, [[Value]]: _value_ } to _assertions_.
+              1. Sort _assertions_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.
+            1. Let _moduleRequest_ be a new ModuleRequest Record { [[Specifier]]: _specifierString_, [[Assertions]]: _assertions_ }.
+            1. Perform ! HostImportModuleDynamically(_referencingScriptOrModule_, _moduleRequest_, _promiseCapability_).
+            1. Return _promiseCapability_.[[Promise]].
+          </emu-alg>
+        </emu-clause>
+
         <emu-grammar>ImportCall : `import` `(` AssignmentExpression `,`? `)`</emu-grammar>
         <emu-alg>
-          1. Let _referencingScriptOrModule_ be ! GetActiveScriptOrModule().
-          1. Let _argRef_ be the result of evaluating |AssignmentExpression|.
-          1. Let _specifier_ be ? GetValue(_argRef_).
-          1. Let _promiseCapability_ be ! NewPromiseCapability(%Promise%).
-          1. Let _specifierString_ be ToString(_specifier_).
-          1. IfAbruptRejectPromise(_specifierString_, _promiseCapability_).
-          1. <ins>Let _moduleRequest_ be a new ModuleRequest Record { [[Specifier]]: _specifierString_, [[Assertions]]: an empty List }.</ins>
-          1. Perform ! HostImportModuleDynamically(_referencingScriptOrModule_, <del>_specifierString_,</del> <ins>_moduleRequest_,</ins> _promiseCapability_).
-          1. Return _promiseCapability_.[[Promise]].
+          1. Return ? EvaluateImportCall(|AssignmentExpression|).
         </emu-alg>
 
         <ins><emu-grammar>ImportCall : `import` `(` AssignmentExpression `,` AssignmentExpression `,`? `)`</emu-grammar></ins>
         <emu-alg>
-          1. Let _referencingScriptOrModule_ be ! GetActiveScriptOrModule().
-          1. Let _argRef_ be the result of evaluating <ins>the first</ins> |AssignmentExpression|.
-          1. Let _specifier_ be ? GetValue(_argRef_).
-          1. Let _promiseCapability_ be ! NewPromiseCapability(%Promise%).
-          1. Let _specifierString_ be ToString(_specifier_).
-          1. IfAbruptRejectPromise(_specifierString_, _promiseCapability_).
-          1. <ins>Let _argRef_ be the result of evaluating the second |AssignmentExpression|.</ins>
-          1. <ins>Let _arg_ be ? GetValue(_argRef_).</ins>
-          1. <ins>If _arg_ is *undefined*, let _assertions_ be an empty List.</ins>
-          1. <ins>Otherwise,</ins>
-            1. <ins>Let _supportedAssertions_ ! HostGetSupportedImportAssertions().</ins>
-            1. <ins>Let _assertionsObj_ be ? Get(_arg_, *"assert"*).</ins>
-            1. <ins>Let _assertions_ be a new empty List.</ins>
-            1. <ins>Let _keys_ be EnumerableOwnPropertyNames(_assertionsObj_, ~key~).</ins>
-            1. <ins>IfAbruptRejectPromise(_keys_, _promiseCapability_).</ins>
-            1. <ins>For each String _key_ of _keys_,</ins>
-              1. <ins>Let _value_ be Get(_assertionsObj_, _key_).</ins>
-              1. <ins>IfAbruptRejectPromise(_value_, _promiseCapability_).</ins>
-              1. <ins>If Type(_value_) is not String, then</ins>
-                1. <ins>Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).</ins>
-                1. <ins>Return _promiseCapability_.[[Promise]].</ins>
-              1. <ins>If _supportedAssertions_ contains _key_, append { [[Key]]: _key_, [[Value]]: _value_ } to _assertions_.</ins>
-            1. <ins>Sort _assertions_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.</ens>
-          1. <ins>Let _moduleRequest_ be a new ModuleRequest Record { [[Specifier]]: _specifierString_, [[Assertions]]: _assertions_ }.</ins>
-          1. Perform ! HostImportModuleDynamically(_referencingScriptOrModule_, <del>_specifierString_,</del> <ins>_moduleRequest_,</ins> _promiseCapability_).
-          1. Return _promiseCapability_.[[Promise]].
+          1. Return ? EvaluateImportCall(the first |AssignmentExpression|, the second |AssignmentExpression|).
         </emu-alg>
       </emu-clause>
     </emu-clause>
