@@ -85,7 +85,7 @@ The `import()` pseudo-function would allow import assertions to be indicated in 
 import("foo.json", { assert: { type: "json" } })
 ```
 
-The second parameter to `import()` is an options bag, with the only option currently defined to be `assert`: the value here is an object containing the import assertions. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
+The second parameter to `import()` is an options bag, with the only option currently defined to be `assert`: the value here is an object containing the import assertions. The options bag can be extended by follow-up proposals, i.e. the [Import reflection](https://github.com/tc39/proposal-import-reflection) proposal defines a `reflect` option.
 
 ### Integration of modules into environments
 
