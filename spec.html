@@ -37,8 +37,8 @@
       `export` `default` [lookahead &lt;! {`function`, `async` [no |LineTerminator| here] `function`, `class`}] AssignmentExpression[+In, ~Yield, ~Await] `;`
 
     AttributesClause :
-      <ins>`assert` `{` `}`</ins>
-      <ins>`assert` `{` AttributeEntries `,`? `}`</ins>
+      <ins>`with` `{` `}`</ins>
+      <ins>`with` `{` AttributeEntries `,`? `}`</ins>
 
     AttributeEntries :
       <ins>AttributeKey `:` StringLiteral</ins>
@@ -84,7 +84,7 @@
               1. If Type(_options_) is not Object,
                 1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
                 1. Return _promiseCapability_.[[Promise]].
-              1. Let _attributesObj_ be Get(_options_, *"assert"*).
+              1. Let _attributesObj_ be Get(_options_, *"with"*).
               1. IfAbruptRejectPromise(_attributesObj_, _promiseCapability_).
               1. If _attributesObj_ is not *undefined*,
                 1. If Type(_attributesObj_) is not Object,
@@ -230,7 +230,7 @@
 
   <emu-clause id="sec-attribute-clause-early-errors">
     <h1>Static Semantics: Early Errors</h1>
-    <emu-grammar>AttributesClause : `assert` `{` AttributeEntries `,`? `}`</emu-grammar>
+    <emu-grammar>AttributesClause : `with` `{` AttributeEntries `,`? `}`</emu-grammar>
     <ul>
       <li>It is a Syntax Error if AttributesClauseToAttributes of |AttributesClause| has two entries _a_ and _b_ such that _a_.[[Key]] is _b_.[[Key]].</li>
     </ul>
@@ -238,12 +238,12 @@
 
   <emu-clause id="sec-attribute-clause-to-attributes" aoid="AttributesClauseToAttributes">
     <h1>Static Semantics: AttributesClauseToAttributes</h1>
-    <emu-grammar>AttributesClause : `assert` `{` `}`</emu-grammar>
+    <emu-grammar>AttributesClause : `with` `{` `}`</emu-grammar>
     <emu-alg>
       1. Return a new empty List.
     </emu-alg>
 
-    <emu-grammar>AttributesClause : `assert` `{` AttributeEntries `,`? `}`</emu-grammar>
+    <emu-grammar>AttributesClause : `with` `{` AttributeEntries `,`? `}`</emu-grammar>
     <emu-alg>
       1. Let _attributes_ be AttributesClauseToAttributes of |AttributeEntries|.
       1. Sort _attributes_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among attributes by the order they occur in.
