@@ -1,5 +1,3 @@
-dist
-
 # Installed npm modules
 package-lock.json
 node_modules

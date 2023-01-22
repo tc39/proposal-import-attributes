@@ -1,0 +1,384 @@
+<!doctype html>
+<head><meta charset="utf-8">
+<script src="ecmarkup.js"></script>
+<link rel="stylesheet" href="ecmarkup.css">
+<title>Import Attributes</title>
+<script type="application/json" id="menu-search-biblio">[{"type":"clause","id":"intro","aoid":null,"title":"Import Attributes","titleHTML":"Import Attributes","number":"","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","referencingIds":[],"key":"Import Attributes"},{"type":"production","id":"prod-ImportDeclaration","name":"ImportDeclaration","referencingIds":["_ref_57","_ref_58"],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"ImportDeclaration"},{"type":"production","id":"prod-ExportDeclaration","name":"ExportDeclaration","referencingIds":[],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"ExportDeclaration"},{"type":"production","id":"prod-AttributesClause","name":"AttributesClause","referencingIds":["_ref_41","_ref_42","_ref_43","_ref_49","_ref_59","_ref_60","_ref_67","_ref_68"],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"AttributesClause"},{"type":"production","id":"prod-AttributeEntries","name":"AttributeEntries","referencingIds":["_ref_44","_ref_46","_ref_51","_ref_53"],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"AttributeEntries"},{"type":"production","id":"prod-AttributeEntry","name":"AttributeEntry","referencingIds":["_ref_45","_ref_47","_ref_52","_ref_54"],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"AttributeEntry"},{"type":"production","id":"prod-AttributeKey","name":"AttributeKey","referencingIds":["_ref_48","_ref_55","_ref_56"],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"AttributeKey"},{"type":"production","id":"prod-ImportCall","name":"ImportCall","referencingIds":["_ref_50"],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"ImportCall"},{"type":"clause","id":"sec-syntax","aoid":null,"title":"Syntax","titleHTML":"Syntax","number":"1","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","referencingIds":[],"key":"Syntax"},{"type":"clause","id":"sec-evaluate-import-call","aoid":null,"title":"EvaluateImportCall ( specifierExpression [ , optionsExpression ] )","titleHTML":"EvaluateImportCall ( <var>specifierExpression</var> [ , <var>optionsExpression</var> ] )","number":"2.1.1.1","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","referencingIds":[],"key":"EvaluateImportCall ( specifierExpression [ , optionsExpression ] )"},{"type":"clause","id":"sec-import-call-runtime-semantics-evaluation","aoid":null,"title":"Runtime Semantics: Evaluation","titleHTML":"Runtime Semantics: Evaluation","number":"2.1.1","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","referencingIds":[],"key":"Runtime Semantics: Evaluation"},{"type":"clause","id":"sec-import-calls","aoid":null,"title":"Import Calls","titleHTML":"Import Calls","number":"2.1","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","referencingIds":["_ref_0"],"key":"Import Calls"},{"type":"op","aoid":"HostLoadImportedModule","refId":"sec-hostloadimportedmodule","location":"","referencingIds":[],"key":"HostLoadImportedModule"},{"type":"clause","id":"sec-hostloadimportedmodule","aoid":"HostLoadImportedModule","title":"HostLoadImportedModule ( referrer, specifiermoduleRequest, hostDefined, payload )","titleHTML":"HostLoadImportedModule ( <var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>hostDefined</var>, <var>payload</var> )","number":"2.2","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","referencingIds":["_ref_21","_ref_38"],"key":"HostLoadImportedModule ( referrer, specifiermoduleRequest, hostDefined, payload )"},{"type":"clause","id":"sec-FinishLoadingImportedModule","aoid":null,"title":"FinishLoadingImportedModule ( referrer, specifiermoduleRequest, payload, result )","titleHTML":"FinishLoadingImportedModule ( <var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>payload</var>, <var>result</var> )","number":"2.3","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","referencingIds":[],"key":"FinishLoadingImportedModule ( referrer, specifiermoduleRequest, payload, result )"},{"type":"op","aoid":"CollectImportAttributes","refId":"sec-collect-import-attributes","location":"","referencingIds":[],"key":"CollectImportAttributes"},{"type":"clause","id":"sec-collect-import-attributes","aoid":"CollectImportAttributes","title":"Static Semantics: CollectImportAttributes ( moduleRequest )","titleHTML":"Static Semantics: CollectImportAttributes ( <var>moduleRequest</var> )","number":"2.4","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","referencingIds":["_ref_24","_ref_25","_ref_34","_ref_37"],"key":"Static Semantics: CollectImportAttributes ( moduleRequest )"},{"type":"term","term":"ModuleRequest Record","refId":"sec-modulerequest-record","referencingIds":[],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"ModuleRequest Record"},{"type":"table","id":"table-modulerequest-fields","number":1,"caption":"Table 1: ModuleRequest Record fields","referencingIds":[],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"Table 1: ModuleRequest Record fields"},{"type":"clause","id":"sec-modulerequest-record","aoid":null,"title":"ModuleRequest Records","titleHTML":"ModuleRequest Records","number":"2.5","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","referencingIds":["_ref_8","_ref_22","_ref_23","_ref_26","_ref_27","_ref_30","_ref_31","_ref_32","_ref_33","_ref_35","_ref_36","_ref_39","_ref_40"],"key":"ModuleRequest Records"},{"type":"table","id":"table-cyclic-module-fields","number":2,"caption":"Table 2: Additional Fields of Cyclic Module Records","referencingIds":[],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"Table 2: Additional Fields of Cyclic Module Records"},{"type":"term","term":"ImportEntry Record","refId":"sec-semantics","referencingIds":["_ref_28","_ref_29"],"id":"importentry-record","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"ImportEntry Record"},{"type":"table","id":"table-39","number":3,"caption":"Table 3: ImportEntry Record Fields","referencingIds":["_ref_1"],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"Table 3: ImportEntry Record Fields"},{"type":"production","id":"prod-Module","name":"Module","referencingIds":[],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"Module"},{"type":"production","id":"prod-ModuleItemList","name":"ModuleItemList","referencingIds":["_ref_63","_ref_65"],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"ModuleItemList"},{"type":"production","id":"prod-ModuleItem","name":"ModuleItem","referencingIds":["_ref_61","_ref_62","_ref_64","_ref_66"],"namespace":"https://github.com/tc39/proposal-import-assertions","location":"","key":"ModuleItem"},{"type":"clause","id":"sec-static-semantics-modulerequests","aoid":null,"title":"Static Semantics: ModuleRequests","titleHTML":"Static Semantics: ModuleRequests","number":"2.6","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","referencingIds":[],"key":"Static Semantics: ModuleRequests"},{"type":"clause","id":"sec-semantics","aoid":null,"title":"Semantics","titleHTML":"Semantics","number":"2","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","referencingIds":[],"key":"Semantics"},{"type":"clause","id":"sec-host-integration","aoid":null,"title":"Sample host integration: The Web embedding","titleHTML":"Sample host integration: The Web embedding","number":"A","namespace":"https://github.com/tc39/proposal-import-assertions","location":"","referencingIds":[],"key":"Sample host integration: The Web embedding"}]</script></head><body><div id="menu-toggle">☰</div><div id="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle-none"></span><a href="#intro" title="Import Attributes">Import Attributes</a></li><li><span class="item-toggle-none"></span><a href="#sec-syntax" title="Syntax"><span class="secnum">1</span> Syntax</a></li><li><span class="item-toggle">◢</span><a href="#sec-semantics" title="Semantics"><span class="secnum">2</span> Semantics</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-import-calls" title="Import Calls"><span class="secnum">2.1</span> Import Calls</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-import-call-runtime-semantics-evaluation" title="Runtime Semantics: Evaluation"><span class="secnum">2.1.1</span> RS: Evaluation</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-evaluate-import-call" title="EvaluateImportCall ( specifierExpression [ , optionsExpression ] )"><span class="secnum">2.1.1.1</span> EvaluateImportCall ( <var>specifierExpression</var> [ , <var>optionsExpression</var> ] )</a></li></ol></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-hostloadimportedmodule" title="HostLoadImportedModule ( referrer, specifiermoduleRequest, hostDefined, payload )"><span class="secnum">2.2</span> HostLoadImportedModule ( <var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>hostDefined</var>, <var>payload</var> )</a></li><li><span class="item-toggle-none"></span><a href="#sec-FinishLoadingImportedModule" title="FinishLoadingImportedModule ( referrer, specifiermoduleRequest, payload, result )"><span class="secnum">2.3</span> FinishLoadingImportedModule ( <var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>payload</var>, <var>result</var> )</a></li><li><span class="item-toggle-none"></span><a href="#sec-collect-import-attributes" title="Static Semantics: CollectImportAttributes ( moduleRequest )"><span class="secnum">2.4</span> SS: CollectImportAttributes ( <var>moduleRequest</var> )</a></li><li><span class="item-toggle-none"></span><a href="#sec-modulerequest-record" title="ModuleRequest Records"><span class="secnum">2.5</span> ModuleRequest Records</a></li><li><span class="item-toggle-none"></span><a href="#sec-static-semantics-modulerequests" title="Static Semantics: ModuleRequests"><span class="secnum">2.6</span> SS: ModuleRequests</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-host-integration" title="Sample host integration: The Web embedding"><span class="secnum">A</span> Sample host integration: The Web embedding</a></li></ol></div></div><div id="spec-container"><h1 class="version first">Stage 3 Draft / January 22, 2023</h1>
+<emu-intro id="intro">
+  <h1>Import Attributes</h1>
+  <p>Import Attributes are an extension to the import syntax that allows specifying additional information to affect how the module is imported. This proposal, other than defining such syntax, also defines the first import attribtue: <code>type</code>, which is passed to the host to specify the expected type of the loaded module. See <a href="https://github.com/tc39/proposal-import-assertions/blob/master/README.md">the explainer</a> for more information.</p>
+  <p>
+    Possible future extensions include:
+    </p><ul>
+      <li>a <code>module</code> attribute, to import an object representing the dependency's <emu-xref href="#sec-abstract-module-records"><a href="https://tc39.es/ecma262/#sec-abstract-module-records">Module Record</a></emu-xref> instead of evaluating it;</li>
+      <li>a <code>defer</code> attribute, to import a module without evaluating it immediately.</li>
+    </ul>
+  <p></p>
+  <p>Not every import attribute needs to interact with host semantics, for example <code>module</code> and <code>defer</code> could be defined completely within ECMA-262.</p>
+</emu-intro>
+
+<emu-clause id="sec-syntax">
+  <h1><span class="secnum">1</span> Syntax</h1>
+
+  <emu-grammar><emu-production name="ImportDeclaration" id="prod-ImportDeclaration">
+    <emu-nt><a href="#prod-ImportDeclaration">ImportDeclaration</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="1a51d4c5"><emu-t>import</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-ImportClause">ImportClause</a></emu-nt><emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt><emu-t>;</emu-t></emu-rhs>
+    <emu-rhs a="a1d094cc"><emu-t>import</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleSpecifier">ModuleSpecifier</a></emu-nt><emu-t>;</emu-t></emu-rhs>
+    <ins><emu-rhs a="93b8b2d7"><emu-t>import</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-ImportClause">ImportClause</a></emu-nt><emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt><emu-gann>[no <emu-nt><a href="https://tc39.es/ecma262/#prod-LineTerminator">LineTerminator</a></emu-nt> here]</emu-gann><emu-nt id="_ref_41"><a href="#prod-AttributesClause">AttributesClause</a></emu-nt><emu-t>;</emu-t></emu-rhs></ins>
+    <ins><emu-rhs a="76e665a8"><emu-t>import</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleSpecifier">ModuleSpecifier</a></emu-nt><emu-gann>[no <emu-nt><a href="https://tc39.es/ecma262/#prod-LineTerminator">LineTerminator</a></emu-nt> here]</emu-gann><emu-nt id="_ref_42"><a href="#prod-AttributesClause">AttributesClause</a></emu-nt><emu-t>;</emu-t></emu-rhs></ins>
+</emu-production>
+<emu-production name="ExportDeclaration" id="prod-ExportDeclaration">
+    <emu-nt><a href="#prod-ExportDeclaration">ExportDeclaration</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="e0a40575"><emu-t>export</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-ExportFromClause">ExportFromClause</a></emu-nt><emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt><emu-t>;</emu-t></emu-rhs>
+    <ins><emu-rhs a="a16a041d"><emu-t>export</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-ExportFromClause">ExportFromClause</a></emu-nt><emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt><emu-gann>[no <emu-nt><a href="https://tc39.es/ecma262/#prod-LineTerminator">LineTerminator</a></emu-nt> here]</emu-gann><emu-nt id="_ref_43"><a href="#prod-AttributesClause">AttributesClause</a></emu-nt><emu-t>;</emu-t></emu-rhs></ins>
+    <emu-rhs a="2762c7fe"><emu-t>export</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-NamedExports">NamedExports</a></emu-nt><emu-t>;</emu-t></emu-rhs>
+    <emu-rhs a="696b8d6e"><emu-t>export</emu-t><emu-nt params="~Yield, ~Await"><a href="https://tc39.es/ecma262/#prod-VariableStatement">VariableStatement</a><emu-mods><emu-params>[~Yield, ~Await]</emu-params></emu-mods></emu-nt></emu-rhs>
+    <emu-rhs a="6bc99b97"><emu-t>export</emu-t><emu-nt params="~Yield, ~Await"><a href="https://tc39.es/ecma262/#prod-Declaration">Declaration</a><emu-mods><emu-params>[~Yield, ~Await]</emu-params></emu-mods></emu-nt></emu-rhs>
+    <emu-rhs a="d298e1ba"><emu-t>export</emu-t><emu-t>default</emu-t><emu-nt params="~Yield, ~Await, +Default"><a href="https://tc39.es/ecma262/#prod-HoistableDeclaration">HoistableDeclaration</a><emu-mods><emu-params>[~Yield, ~Await, +Default]</emu-params></emu-mods></emu-nt></emu-rhs>
+    <emu-rhs a="ae276654"><emu-t>export</emu-t><emu-t>default</emu-t><emu-nt params="~Yield, ~Await, +Default"><a href="https://tc39.es/ecma262/#prod-ClassDeclaration">ClassDeclaration</a><emu-mods><emu-params>[~Yield, ~Await, +Default]</emu-params></emu-mods></emu-nt></emu-rhs>
+    <emu-rhs a="e2a585b6"><emu-t>export</emu-t><emu-t>default</emu-t><emu-gann>[lookahead ∉ { <emu-t>function</emu-t>, <emu-t>async</emu-t>
+        <emu-gann>[no <emu-nt><a href="https://tc39.es/ecma262/#prod-LineTerminator">LineTerminator</a></emu-nt> here]</emu-gann>
+        <emu-t>function</emu-t>, <emu-t>class</emu-t> }]</emu-gann><emu-nt params="+In, ~Yield, ~Await"><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a><emu-mods><emu-params>[+In, ~Yield, ~Await]</emu-params></emu-mods></emu-nt><emu-t>;</emu-t></emu-rhs>
+</emu-production>
+<emu-production name="AttributesClause" id="prod-AttributesClause">
+    <emu-nt><a href="#prod-AttributesClause">AttributesClause</a></emu-nt><emu-geq>:</emu-geq><ins><emu-rhs a="1762e5de"><emu-t>with</emu-t><emu-t>{</emu-t><emu-t>}</emu-t></emu-rhs></ins>
+    <ins><emu-rhs a="af170d01"><emu-t>with</emu-t><emu-t>{</emu-t><emu-nt id="_ref_44"><a href="#prod-AttributeEntries">AttributeEntries</a></emu-nt><emu-t optional="">,<emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-t><emu-t>}</emu-t></emu-rhs></ins>
+</emu-production>
+<emu-production name="AttributeEntries" id="prod-AttributeEntries">
+    <emu-nt><a href="#prod-AttributeEntries">AttributeEntries</a></emu-nt><emu-geq>:</emu-geq><ins><emu-rhs a="000f6f84"><emu-nt id="_ref_45"><a href="#prod-AttributeEntry">AttributeEntry</a></emu-nt></emu-rhs></ins>
+    <ins><emu-rhs a="57521f76"><emu-nt id="_ref_46"><a href="#prod-AttributeEntries">AttributeEntries</a></emu-nt><emu-t>,</emu-t><emu-nt id="_ref_47"><a href="#prod-AttributeEntry">AttributeEntry</a></emu-nt></emu-rhs></ins>
+</emu-production>
+<emu-production name="AttributeEntry" id="prod-AttributeEntry">
+    <emu-nt><a href="#prod-AttributeEntry">AttributeEntry</a></emu-nt><emu-geq>:</emu-geq><ins><emu-rhs a="28cefc1e"><emu-nt id="_ref_48"><a href="#prod-AttributeKey">AttributeKey</a></emu-nt><emu-t>:</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt></emu-rhs>
+    </ins>
+</emu-production>
+<emu-production name="AttributeKey" id="prod-AttributeKey">
+    <emu-nt><a href="#prod-AttributeKey">AttributeKey</a></emu-nt><emu-geq>:</emu-geq><ins><emu-rhs a="0ebb31e2"><emu-nt><a href="https://tc39.es/ecma262/#prod-IdentifierName">IdentifierName</a></emu-nt></emu-rhs></ins>
+    <ins><emu-rhs a="5c74e54d"><emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt></emu-rhs></ins>
+</emu-production>
+<emu-production name="ImportCall" params="Yield, Await" id="prod-ImportCall">
+    <emu-nt params="Yield, Await"><a href="#prod-ImportCall">ImportCall</a><emu-mods><emu-params>[Yield, Await]</emu-params></emu-mods></emu-nt><emu-geq>:</emu-geq><emu-rhs a="9710d64c"><emu-t>import</emu-t><emu-t>(</emu-t><emu-nt params="+In, ?Yield, ?Await"><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a><emu-mods><emu-params>[+In, ?Yield, ?Await]</emu-params></emu-mods></emu-nt><ins><emu-t optional="">,<emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-t></ins><emu-t>)</emu-t></emu-rhs>
+    <ins><emu-rhs a="571c9520"><emu-t>import</emu-t><emu-t>(</emu-t><emu-nt params="+In, ?Yield, ?Await"><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a><emu-mods><emu-params>[+In, ?Yield, ?Await]</emu-params></emu-mods></emu-nt><emu-t>,</emu-t><emu-nt params="+In, ?Yield, ?Await"><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a><emu-mods><emu-params>[+In, ?Yield, ?Await]</emu-params></emu-mods></emu-nt><emu-t optional="">,<emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-t><emu-t>)</emu-t></emu-rhs></ins>
+</emu-production></emu-grammar>
+</emu-clause>
+
+<emu-clause id="sec-semantics">
+  <h1><span class="secnum">2</span> Semantics</h1>
+
+  <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents"><p>Many productions operating on grammar are the same whether or not an <emu-nt id="_ref_49"><a href="#prod-AttributesClause">AttributesClause</a></emu-nt>/second <emu-nt id="_ref_50"><a href="#prod-ImportCall">ImportCall</a></emu-nt> parameter is included; the new parameter is ignored. In this section, only the semantically significant changes are included, and the PR to merge into the main specification would fill in the straightforward details.</p></div></emu-note>
+
+    <emu-clause id="sec-import-calls">
+      <h1><span class="secnum">2.1</span> Import Calls</h1>
+
+      <emu-clause id="sec-import-call-runtime-semantics-evaluation">
+        <h1><span class="secnum">2.1.1</span> Runtime Semantics: Evaluation</h1>
+
+        <emu-clause id="sec-evaluate-import-call">
+          <h1><span class="secnum">2.1.1.1</span> EvaluateImportCall ( <var>specifierExpression</var> [ , <var>optionsExpression</var> ] )</h1>
+          <emu-alg><ol><li>Let <var>referencingScriptOrModule</var> be !&nbsp;<emu-xref aoid="GetActiveScriptOrModule" id="_ref_2"><a href="https://tc39.es/ecma262/#sec-getactivescriptormodule">GetActiveScriptOrModule</a></emu-xref>().</li><li>Let <var>specifierRef</var> be the result of evaluating <var>specifierExpression</var>.</li><li>Let <var>specifier</var> be ?&nbsp;<emu-xref aoid="GetValue" id="_ref_3"><a href="https://tc39.es/ecma262/#sec-getvalue">GetValue</a></emu-xref>(<var>specifierRef</var>).</li><li>If <var>optionsExpression</var> is present, then<ol><li>Let <var>optionsRef</var> be the result of evaluating <var>optionsExpression</var>.</li><li>Let <var>options</var> be ?&nbsp;<emu-xref aoid="GetValue" id="_ref_4"><a href="https://tc39.es/ecma262/#sec-getvalue">GetValue</a></emu-xref>(<var>optionsRef</var>).</li></ol></li><li>Else,<ol><li>Let <var>options</var> be <emu-val>undefined</emu-val>.</li></ol></li><li>Let <var>promiseCapability</var> be !&nbsp;<emu-xref aoid="NewPromiseCapability" id="_ref_5"><a href="https://tc39.es/ecma262/#sec-newpromisecapability">NewPromiseCapability</a></emu-xref>(<emu-xref href="#sec-promise-constructor"><a href="https://tc39.es/ecma262/#sec-promise-constructor">%Promise%</a></emu-xref>).</li><li>Let <var>specifierString</var> be <emu-xref aoid="ToString" id="_ref_6"><a href="https://tc39.es/ecma262/#sec-tostring">ToString</a></emu-xref>(<var>specifier</var>).</li><li><emu-xref aoid="IfAbruptRejectPromise" id="_ref_7"><a href="https://tc39.es/ecma262/#sec-ifabruptrejectpromise">IfAbruptRejectPromise</a></emu-xref>(<var>specifierString</var>, <var>promiseCapability</var>).</li><li>Let <var>moduleRequest</var> be a new <emu-xref href="#sec-modulerequest-record" id="_ref_8"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> { [[Specifier]]: <var>specifierString</var>, [[Type]]: <emu-const>empty</emu-const> }.</li><li>If <var>options</var> is not <emu-val>undefined</emu-val>, then<ol><li>If <emu-xref aoid="Type" id="_ref_9"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>options</var>) is not Object,<ol><li>Perform !&nbsp;<emu-xref aoid="Call" id="_ref_10"><a href="https://tc39.es/ecma262/#sec-call">Call</a></emu-xref>(<var>promiseCapability</var>.[[Reject]], <emu-val>undefined</emu-val>, « a newly created <emu-val>TypeError</emu-val> object »).</li><li>Return <var>promiseCapability</var>.[[Promise]].</li></ol></li><li>Let <var>attributesObj</var> be <emu-xref aoid="Get" id="_ref_11"><a href="https://tc39.es/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>options</var>, <emu-val>"with"</emu-val>).</li><li><emu-xref aoid="IfAbruptRejectPromise" id="_ref_12"><a href="https://tc39.es/ecma262/#sec-ifabruptrejectpromise">IfAbruptRejectPromise</a></emu-xref>(<var>attributesObj</var>, <var>promiseCapability</var>).</li><li>If <var>attributesObj</var> is not <emu-val>undefined</emu-val>,<ol><li>If <emu-xref aoid="Type" id="_ref_13"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>attributesObj</var>) is not Object,<ol><li>Perform !&nbsp;<emu-xref aoid="Call" id="_ref_14"><a href="https://tc39.es/ecma262/#sec-call">Call</a></emu-xref>(<var>promiseCapability</var>.[[Reject]], <emu-val>undefined</emu-val>, « a newly created <emu-val>TypeError</emu-val> object »).</li><li>Return <var>promiseCapability</var>.[[Promise]].</li></ol></li><li>Let <var>keys</var> be <emu-xref aoid="EnumerableOwnPropertyNames" id="_ref_15"><a href="https://tc39.es/ecma262/#sec-enumerableownpropertynames">EnumerableOwnPropertyNames</a></emu-xref>(<var>attributesObj</var>, <emu-const>key</emu-const>).</li><li><emu-xref aoid="IfAbruptRejectPromise" id="_ref_16"><a href="https://tc39.es/ecma262/#sec-ifabruptrejectpromise">IfAbruptRejectPromise</a></emu-xref>(<var>keys</var>, <var>promiseCapability</var>).</li><li>For each String <var>key</var> of <var>keys</var>,<ol><li>Let <var>value</var> be <emu-xref aoid="Get" id="_ref_17"><a href="https://tc39.es/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>attributesObj</var>, <var>key</var>).</li><li><emu-xref aoid="IfAbruptRejectPromise" id="_ref_18"><a href="https://tc39.es/ecma262/#sec-ifabruptrejectpromise">IfAbruptRejectPromise</a></emu-xref>(<var>value</var>, <var>promiseCapability</var>).</li><li>If <emu-xref aoid="Type" id="_ref_19"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>value</var>) is not String, then<ol><li>Perform !&nbsp;<emu-xref aoid="Call" id="_ref_20"><a href="https://tc39.es/ecma262/#sec-call">Call</a></emu-xref>(<var>promiseCapability</var>.[[Reject]], <emu-val>undefined</emu-val>, « a newly created <emu-val>TypeError</emu-val> object »).</li><li>Return <var>promiseCapability</var>.[[Promise]].</li></ol></li><li>If <var>key</var> is <emu-val>"type"</emu-val>, then<ol><li><emu-xref href="#assert"><a href="https://tc39.es/ecma262/#assert">Assert</a></emu-xref>: <var>moduleRequest</var>.[[Type]] is <emu-const>empty</emu-const>.</li><li>Set <var>moduleRequest</var>.[[Type]] to <var>value</var>.</li></ol></li><li>TODO: Throw on unknown keys?</li></ol></li></ol></li></ol></li><li>Perform <emu-xref aoid="HostLoadImportedModule" id="_ref_21"><a href="#sec-hostloadimportedmodule">HostLoadImportedModule</a></emu-xref>(<var>referrer</var>, <var>moduleRequest</var>, <emu-const>empty</emu-const>, <var>promiseCapability</var>).</li><li>Return <var>promiseCapability</var>.[[Promise]].</li></ol></emu-alg>
+        </emu-clause>
+
+        <emu-grammar><emu-production name="ImportCall" collapsed="">
+    <emu-nt><a href="#prod-ImportCall">ImportCall</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="44ab2e9a"><emu-t>import</emu-t><emu-t>(</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt><emu-t optional="">,<emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-t><emu-t>)</emu-t></emu-rhs>
+</emu-production></emu-grammar>
+        <emu-alg><ol><li>Return ?&nbsp;EvaluateImportCall(<emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>).</li></ol></emu-alg>
+
+        <ins><emu-grammar><emu-production name="ImportCall" collapsed="">
+    <emu-nt><a href="#prod-ImportCall">ImportCall</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="ee392673"><emu-t>import</emu-t><emu-t>(</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt><emu-t>,</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt><emu-t optional="">,<emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-t><emu-t>)</emu-t></emu-rhs>
+</emu-production></emu-grammar></ins>
+        <emu-alg><ol><li>Return ?&nbsp;EvaluateImportCall(the first <emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>, the second <emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>).</li></ol></emu-alg>
+      </emu-clause>
+    </emu-clause>
+
+      <emu-clause id="sec-hostloadimportedmodule" aoid="HostLoadImportedModule">
+        <h1><span class="secnum">2.2</span> HostLoadImportedModule ( <var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>hostDefined</var>, <var>payload</var> )</h1>
+        <p>The host-defined abstract operation HostLoadImportedModule takes arguments <var>referrer</var> (a <emu-xref href="#script-record"><a href="https://tc39.es/ecma262/#script-record">Script Record</a></emu-xref>, a <emu-xref href="#cyclic-module-record"><a href="https://tc39.es/ecma262/#cyclic-module-record">Cyclic Module Record</a></emu-xref>, or a <emu-xref href="#realm-record"><a href="https://tc39.es/ecma262/#realm-record">Realm Record</a></emu-xref>), <del><var>specifier</var> (a String)</del><ins><var>moduleRequest</var> (a <emu-xref href="#sec-modulerequest-record" id="_ref_22"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref>)</ins>, <var>hostDefined</var> (anything), and <var>payload</var> (a GraphLoadingState <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> or a PromiseCapability <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref>) and returns <emu-const>unused</emu-const>.</p>
+
+        <emu-note><span class="note">Note</span><div class="note-contents">
+          <p>An example of when <var>referrer</var> can be a <emu-xref href="#realm-record"><a href="https://tc39.es/ecma262/#realm-record">Realm Record</a></emu-xref> is in a web browser host. There, if a user clicks on a control given by</p>
+
+          <pre><code class="html hljs"><span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"button"</span> <span class="hljs-attr">onclick</span>=<span class="hljs-string">"import('./foo.mjs')"</span>&gt;</span>Click me<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></code></pre>
+
+          <p>there will be no active script or module at the time the <emu-xref href="#sec-import-calls" id="_ref_0"><a href="#sec-import-calls"><code>import()</code></a></emu-xref> expression runs. More generally, this can happen in any situation where the host pushes execution contexts with <emu-val>null</emu-val> ScriptOrModule components onto the <emu-xref href="#execution-context-stack"><a href="https://tc39.es/ecma262/#execution-context-stack">execution context stack</a></emu-xref>.</p>
+        </div></emu-note>
+
+        <p>An implementation of HostLoadImportedModule must conform to the following requirements:</p>
+        <ul>
+          <li>
+            The host environment must perform FinishLoadingImportedModule(<var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>payload</var>, <var>result</var>), where <var>result</var> is either a normal completion containing the loaded <emu-xref href="#sec-abstract-module-records"><a href="https://tc39.es/ecma262/#sec-abstract-module-records">Module Record</a></emu-xref> or a throw completion, either synchronously or asynchronously.
+          </li>
+          <li>
+            <p>If this operation is called multiple times with the same <del>(<var>referrer</var>, <var>specifier</var>) pair</del><ins>(<var>referrer</var>, <var>moduleRequest</var>.[[Specifier]], <var>moduleRequest</var>.[[Type]]) triple</ins> and it performs FinishLoadingImportedModule(<var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>payload</var>, <var>result</var>) where <var>result</var> is a normal completion, then it must perform FinishLoadingImportedModule(<var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>payload</var>, <var>result</var>) with the same <var>result</var> each time.</p>
+          </li>
+          <li>
+            The operation must treat <var>payload</var> as an opaque value to be passed through to FinishLoadingImportedModule.
+          </li>
+        </ul>
+      </emu-clause>
+
+      <emu-clause id="sec-FinishLoadingImportedModule" type="abstract operation">
+        <h1><span class="secnum">2.3</span> FinishLoadingImportedModule ( <var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>payload</var>, <var>result</var> )</h1>
+        <p>The abstract operation FinishLoadingImportedModule takes arguments <var>referrer</var> (a <emu-xref href="#script-record"><a href="https://tc39.es/ecma262/#script-record">Script Record</a></emu-xref>, a <emu-xref href="#cyclic-module-record"><a href="https://tc39.es/ecma262/#cyclic-module-record">Cyclic Module Record</a></emu-xref>, or a <emu-xref href="#realm-record"><a href="https://tc39.es/ecma262/#realm-record">Realm Record</a></emu-xref>), <del><var>specifier</var> (a String)</del><ins><var>moduleRequest</var> (a <emu-xref href="#sec-modulerequest-record" id="_ref_23"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref>)</ins>, <var>payload</var> (a GraphLoadingState <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> or a PromiseCapability <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref>), and <var>result</var> (either a normal completion containing a <emu-xref href="#sec-abstract-module-records"><a href="https://tc39.es/ecma262/#sec-abstract-module-records">Module Record</a></emu-xref> or a throw completion) and returns <emu-const>unused</emu-const>.</p>
+
+        <emu-alg><ol><li>If <var>result</var> is a normal completion, then<ol><li>If <var>referrer</var>.[[LoadedModules]] contains a <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> <var>record</var> such that <var>record</var>.[[Specifier]] is <var>moduleRequest</var>.[[Specifier]] <ins>and <var>record</var>.[[Type]] is <var>moduleRequest</var>.[[Type]]</ins>, then<ol><li><emu-xref href="#assert"><a href="https://tc39.es/ecma262/#assert">Assert</a></emu-xref>: <var>record</var>.[[Module]] is <var>result</var>.[[Value]].</li></ol></li><li>Else, add <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> { [[Specifier]]: <var>moduleRequest</var>.[[Specifier]], <ins>[[Type]]: <var>moduleRequest</var>.[[Type]]</ins>, [[Module]]: <var>result</var>.[[Value]] } to <var>referrer</var>.[[LoadedModules]].</li></ol></li><li>If <var>payload</var> is a GraphLoadingState <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref>, then<ol><li>Perform ContinueModuleLoading(<var>payload</var>, <var>result</var>).</li></ol></li><li>Else,<ol><li>Perform ContinueDynamicImport(<var>payload</var>, <var>result</var>).</li></ol></li><li>Return <emu-const>unused</emu-const>.</li></ol></emu-alg>
+
+        <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents">
+          <p>The description of the [[LoadedModules]] field of <emu-xref href="#realm-record"><a href="https://tc39.es/ecma262/#realm-record">Realm Record</a></emu-xref>, <emu-xref href="#script-record"><a href="https://tc39.es/ecma262/#script-record">Script Record</a></emu-xref>, and <emu-xref href="#cyclic-module-record"><a href="https://tc39.es/ecma262/#cyclic-module-record">Cyclic Module Record</a></emu-xref> should be updated to include the [[Type]] field.</p>
+        </div></emu-note>
+      </emu-clause>
+
+  <emu-clause id="sec-collect-import-attributes" aoid="CollectImportAttributes">
+    <h1><span class="secnum">2.4</span> Static Semantics: CollectImportAttributes ( <var>moduleRequest</var> )</h1>
+    <emu-grammar><emu-production name="AttributeEntries" collapsed="">
+    <emu-nt><a href="#prod-AttributeEntries">AttributeEntries</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="57521f76"><emu-nt id="_ref_51"><a href="#prod-AttributeEntries">AttributeEntries</a></emu-nt><emu-t>,</emu-t><emu-nt id="_ref_52"><a href="#prod-AttributeEntry">AttributeEntry</a></emu-nt></emu-rhs>
+</emu-production></emu-grammar>
+    <emu-alg><ol><li>Perform <emu-xref aoid="CollectImportAttributes" id="_ref_24"><a href="#sec-collect-import-attributes">CollectImportAttributes</a></emu-xref> of <emu-nt id="_ref_53"><a href="#prod-AttributeEntries">AttributeEntries</a></emu-nt> with parameters « <var>moduleRequest</var> ».</li><li>Perform <emu-xref aoid="CollectImportAttributes" id="_ref_25"><a href="#sec-collect-import-attributes">CollectImportAttributes</a></emu-xref> of <emu-nt id="_ref_54"><a href="#prod-AttributeEntry">AttributeEntry</a></emu-nt> with parameters « <var>moduleRequest</var> ».</li></ol></emu-alg>
+
+    <emu-grammar><emu-production name="AttributeEntry" collapsed="">
+    <emu-nt><a href="#prod-AttributeEntry">AttributeEntry</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="28cefc1e"><emu-nt id="_ref_55"><a href="#prod-AttributeKey">AttributeKey</a></emu-nt><emu-t>:</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt></emu-rhs>
+</emu-production></emu-grammar>
+    <emu-alg><ol><li>Let <var>key</var> be StringValue of <emu-nt id="_ref_56"><a href="#prod-AttributeKey">AttributeKey</a></emu-nt>.</li><li>If <var>key</var> is <emu-val>"type"</emu-val>, then<ol><li>If <var>moduleRequest</var>.[[Type]] is not <emu-const>empty</emu-const>, throw a SyntaxError exception.</li><li>Set <var>moduleRequest</var>.[[Type]] to the StringValue of <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt>.</li></ol></li><li>TODO: Throw on unknown keys?</li></ol></emu-alg>
+  </emu-clause>
+
+      <emu-clause id="sec-modulerequest-record">
+        <h1><span class="secnum">2.5</span> ModuleRequest Records</h1>
+
+        <p>A <dfn>ModuleRequest Record</dfn> represents the request to import a module with given import attributes. It consists of the following fields:</p>
+        <emu-table id="table-modulerequest-fields" caption="ModuleRequest Record fields"><figure><figcaption>Table 1: <emu-xref href="#sec-modulerequest-record" id="_ref_26"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> fields</figcaption>
+          <table>
+            <tbody>
+              <tr>
+                <th>
+                  Field Name
+                </th>
+                <th>
+                  Value Type
+                </th>
+                <th>
+                  Meaning
+                </th>
+              </tr>
+              <tr>
+                <td>
+                  [[Specifier]]
+                </td>
+                <td>
+                  String
+                </td>
+                <td>
+                  The module specifier
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  [[Type]]
+                </td>
+                <td>
+                  a String, or <emu-const>empty</emu-const>
+                </td>
+                <td>
+                  The <code>type</code> attribute of this import
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </figure></emu-table>
+
+        <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents">In general, this proposal replaces places where module specifiers are passed around with ModuleRequest Records. For example, several syntax-directed operations, such as ModuleRequests produce Lists of ModuleRequest Records rather than Lists of Strings which are interpreted as module specifiers. Some algorithms like ImportEntries and ImportEntriesForModule pass around ModuleRequest Records rather than Strings, in a way which doesn't require any particular textual change. Additionally, record fields in Cyclic Module Records and Source Text Module Records which contained Lists of Strings are replaced by Lists of ModuleRequest Records, as indicated above.</div></emu-note>
+      </emu-clause>
+
+        <emu-table id="table-cyclic-module-fields" caption="Additional Fields of Cyclic Module Records"><figure><figcaption>Table 2: Additional Fields of Cyclic Module Records</figcaption>
+          <table>
+            <tbody>
+              <tr>
+                <th>
+                  Field Name
+                </th>
+                <th>
+                  Value Type
+                </th>
+                <th>
+                  Meaning
+                </th>
+              </tr>
+              <tr>
+                <td>
+                  [[Status]]
+                </td>
+                <td>
+                  <emu-const>unlinked</emu-const> | <emu-const>linking</emu-const> | <emu-const>linked</emu-const> | <emu-const>evaluating</emu-const> | <emu-const>evaluated</emu-const>
+                </td>
+                <td>
+                  Initially <emu-const>unlinked</emu-const>. Transitions to <emu-const>linking</emu-const>, <emu-const>linked</emu-const>, <emu-const>evaluating</emu-const>, <emu-const>evaluated</emu-const> (in that order) as the module progresses throughout its lifecycle.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  [[EvaluationError]]
+                </td>
+                <td>
+                  An <emu-xref href="#sec-completion-record-specification-type"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">abrupt completion</a></emu-xref> | <emu-val>undefined</emu-val>
+                </td>
+                <td>
+                  A completion of type <emu-const>throw</emu-const> representing the exception that occurred during evaluation.  <emu-val>undefined</emu-val> if no exception occurred or if [[Status]] is not <emu-const>evaluated</emu-const>.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  [[DFSIndex]]
+                </td>
+                <td>
+                  <emu-xref href="#integer"><a href="https://tc39.es/ecma262/#integer">Integer</a></emu-xref> | <emu-val>undefined</emu-val>
+                </td>
+                <td>
+                  Auxiliary field used during Link and Evaluate only.
+                  If [[Status]] is <emu-const>linking</emu-const> or <emu-const>evaluating</emu-const>, this nonnegative number records the point at which the module was first visited during the ongoing depth-first traversal of the dependency graph.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  [[DFSAncestorIndex]]
+                </td>
+                <td>
+                  <emu-xref href="#integer"><a href="https://tc39.es/ecma262/#integer">Integer</a></emu-xref> | <emu-val>undefined</emu-val>
+                </td>
+                <td>
+                  Auxiliary field used during Link and Evaluate only. If [[Status]] is <emu-const>linking</emu-const> or <emu-const>evaluating</emu-const>, this is either the module's own [[DFSIndex]] or that of an "earlier" module in the same strongly connected component.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  [[RequestedModules]]
+                </td>
+                <td>
+                  <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> of <del>String</del><ins><emu-xref href="#sec-modulerequest-record" id="_ref_27"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref></ins>
+                </td>
+                <td>
+                  A <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> of all the <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleSpecifier">ModuleSpecifier</a></emu-nt> strings <ins>with the corresponding <code>type</code> import attribute</ins> used by the module represented by this record to request the importation of a module. The <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> is source code occurrence ordered.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </figure></emu-table>
+
+        <p>An <dfn id="importentry-record">ImportEntry Record</dfn> is a <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> that digests information about a single declarative import. Each <emu-xref href="#importentry-record" id="_ref_28"><a href="#importentry-record">ImportEntry Record</a></emu-xref> has the fields defined in <emu-xref href="#table-39" id="_ref_1"><a href="#table-39">Table 3</a></emu-xref>:</p>
+        <emu-table id="table-39" caption="ImportEntry Record Fields"><figure><figcaption>Table 3: <emu-xref href="#importentry-record" id="_ref_29"><a href="#importentry-record">ImportEntry Record</a></emu-xref> Fields</figcaption>
+          <table>
+            <tbody>
+            <tr>
+              <th>
+                Field Name
+              </th>
+              <th>
+                Value Type
+              </th>
+              <th>
+                Meaning
+              </th>
+            </tr>
+            <tr>
+              <td>
+                [[ModuleRequest]]
+              </td>
+              <td>
+                <del>String</del>
+                <ins><emu-xref href="#sec-modulerequest-record" id="_ref_30"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref></ins>
+              </td>
+              <td>
+                <del>String value of the <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleSpecifier">ModuleSpecifier</a></emu-nt> of the <emu-nt id="_ref_57"><a href="#prod-ImportDeclaration">ImportDeclaration</a></emu-nt>.</del>
+                <ins><emu-xref href="#sec-modulerequest-record" id="_ref_31"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> representing the <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleSpecifier">ModuleSpecifier</a></emu-nt> and the <code>type</code> import attribute of the <emu-nt id="_ref_58"><a href="#prod-ImportDeclaration">ImportDeclaration</a></emu-nt>.</ins>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                [[ImportName]]
+              </td>
+              <td>
+                String
+              </td>
+              <td>
+                The name under which the desired binding is exported by the module identified by [[ModuleRequest]]. The value <emu-val>"*"</emu-val> indicates that the import request is for the target module's namespace object.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                [[LocalName]]
+              </td>
+              <td>
+                String
+              </td>
+              <td>
+                The name that is used to locally access the imported value from within the importing module.
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </figure></emu-table>
+
+      <emu-clause id="sec-static-semantics-modulerequests">
+        <h1><span class="secnum">2.6</span> Static Semantics: ModuleRequests</h1>
+        <emu-see-also-para op="ModuleRequests"></emu-see-also-para>
+        <emu-grammar><emu-production name="ImportDeclaration" collapsed="">
+    <emu-nt><a href="#prod-ImportDeclaration">ImportDeclaration</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="1a51d4c5"><emu-t>import</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-ImportClause">ImportClause</a></emu-nt><emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt><emu-t>;</emu-t></emu-rhs>
+</emu-production></emu-grammar>
+        <emu-alg><ol><li><del>Return ModuleRequests of <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>.</del></li><li><ins>Let <var>specifier</var> be StringValue of <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>.</ins></li><li><ins>Return a <emu-xref href="#sec-modulerequest-record" id="_ref_32"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> { [[Specifer]]: <var>specifier</var>, [[Type]]: <emu-const>empty</emu-const> }.</ins></li></ol></emu-alg>
+        <emu-grammar><emu-production name="ImportDeclaration" collapsed="">
+    <emu-nt><a href="#prod-ImportDeclaration">ImportDeclaration</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="20cf3b93"><emu-t>import</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-ImportClause">ImportClause</a></emu-nt><emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt><emu-nt id="_ref_59"><a href="#prod-AttributesClause">AttributesClause</a></emu-nt><emu-t>;</emu-t></emu-rhs>
+</emu-production></emu-grammar>
+        <emu-alg><ol><li><ins>Let <var>specifier</var> be StringValue of <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>.</ins></li><li><ins>Let <var>request</var> be the <emu-xref href="#sec-modulerequest-record" id="_ref_33"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> { [[Specifer]]: <var>specifier</var>, [[Type]]: <emu-const>empty</emu-const> }.</ins></li><li><ins>Perform <emu-xref aoid="CollectImportAttributes" id="_ref_34"><a href="#sec-collect-import-attributes">CollectImportAttributes</a></emu-xref> of <emu-nt id="_ref_60"><a href="#prod-AttributesClause">AttributesClause</a></emu-nt> with argument <var>request</var>.</ins></li><li><ins>Return <var>request</var>.</ins></li></ol></emu-alg>
+        <emu-grammar><emu-production name="Module" collapsed="" id="prod-Module">
+    <emu-nt><a href="#prod-Module">Module</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="37b9c04c"><emu-gann>[empty]</emu-gann></emu-rhs>
+</emu-production></emu-grammar>
+        <emu-alg><ol><li>Return a new empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref>.</li></ol></emu-alg>
+        <emu-grammar><emu-production name="ModuleItemList" collapsed="" id="prod-ModuleItemList">
+    <emu-nt><a href="#prod-ModuleItemList">ModuleItemList</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="029ec31e"><emu-nt id="_ref_61"><a href="#prod-ModuleItem">ModuleItem</a></emu-nt></emu-rhs>
+</emu-production></emu-grammar>
+        <emu-alg><ol><li>Return ModuleRequests of <emu-nt id="_ref_62"><a href="#prod-ModuleItem">ModuleItem</a></emu-nt>.</li></ol></emu-alg>
+        <emu-grammar><emu-production name="ModuleItemList" collapsed="">
+    <emu-nt><a href="#prod-ModuleItemList">ModuleItemList</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="75ddb725"><emu-nt id="_ref_63"><a href="#prod-ModuleItemList">ModuleItemList</a></emu-nt><emu-nt id="_ref_64"><a href="#prod-ModuleItem">ModuleItem</a></emu-nt></emu-rhs>
+</emu-production></emu-grammar>
+        <emu-alg><ol><li>Let <var>moduleNames</var> be ModuleRequests of <emu-nt id="_ref_65"><a href="#prod-ModuleItemList">ModuleItemList</a></emu-nt>.</li><li>Let <var>additionalNames</var> be ModuleRequests of <emu-nt id="_ref_66"><a href="#prod-ModuleItem">ModuleItem</a></emu-nt>.</li><li>Append to <var>moduleNames</var> each element of <var>additionalNames</var> that is not already an element of <var>moduleNames</var>.</li><li>Return <var>moduleNames</var>.</li></ol></emu-alg>
+        <emu-grammar><emu-production name="ModuleItem" collapsed="" id="prod-ModuleItem">
+    <emu-nt><a href="#prod-ModuleItem">ModuleItem</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="d791d1c9"><emu-nt><a href="https://tc39.es/ecma262/#prod-StatementListItem">StatementListItem</a></emu-nt></emu-rhs>
+</emu-production></emu-grammar>
+        <emu-alg><ol><li>Return a new empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref>.</li></ol></emu-alg>
+        <emu-grammar><emu-production name="ExportDeclaration" collapsed="">
+    <emu-nt><a href="#prod-ExportDeclaration">ExportDeclaration</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="e0a40575"><emu-t>export</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-ExportFromClause">ExportFromClause</a></emu-nt><emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt><emu-t>;</emu-t></emu-rhs>
+</emu-production></emu-grammar>
+        <emu-alg><ol><li><del>Return ModuleRequests of <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>.</del></li><li><ins>Let <var>specifier</var> be StringValue of <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>.</ins></li><li><ins>Return the <emu-xref href="#sec-modulerequest-record" id="_ref_35"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> { [[Specifer]]: <var>specifier</var>, [[Type]]: <emu-const>empty</emu-const> }.</ins></li></ol></emu-alg>
+        <emu-grammar><emu-production name="ExportDeclaration" collapsed="">
+    <emu-nt><a href="#prod-ExportDeclaration">ExportDeclaration</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="6813ec6e"><emu-t>export</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-ExportFromClause">ExportFromClause</a></emu-nt><emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt><emu-nt id="_ref_67"><a href="#prod-AttributesClause">AttributesClause</a></emu-nt><emu-t>;</emu-t></emu-rhs>
+</emu-production></emu-grammar>
+        <emu-alg><ol><li><ins>Let <var>specifier</var> be StringValue of the <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt> contained in <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>.</ins></li><li><ins>Let <var>request</var> be the <emu-xref href="#sec-modulerequest-record" id="_ref_36"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> { [[Specifer]]: <var>specifier</var>, [[Type]]: <emu-const>empty</emu-const> }.</ins></li><li><ins>Perform <emu-xref aoid="CollectImportAttributes" id="_ref_37"><a href="#sec-collect-import-attributes">CollectImportAttributes</a></emu-xref> of <emu-nt id="_ref_68"><a href="#prod-AttributesClause">AttributesClause</a></emu-nt> with argument <var>request</var>.</ins></li><li><ins>Return <var>request</var>.</ins></li></ol></emu-alg>
+        <emu-grammar><emu-production name="ExportDeclaration">
+    <emu-nt><a href="#prod-ExportDeclaration">ExportDeclaration</a></emu-nt><emu-geq>:</emu-geq><emu-rhs a="2762c7fe"><emu-t>export</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-NamedExports">NamedExports</a></emu-nt><emu-t>;</emu-t></emu-rhs>
+    <emu-rhs a="6c6de801"><emu-t>export</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-VariableStatement">VariableStatement</a></emu-nt></emu-rhs>
+    <emu-rhs a="828f5ae3"><emu-t>export</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-Declaration">Declaration</a></emu-nt></emu-rhs>
+    <emu-rhs a="71d1417e"><emu-t>export</emu-t><emu-t>default</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-HoistableDeclaration">HoistableDeclaration</a></emu-nt></emu-rhs>
+    <emu-rhs a="c3c3cb8d"><emu-t>export</emu-t><emu-t>default</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-ClassDeclaration">ClassDeclaration</a></emu-nt></emu-rhs>
+    <emu-rhs a="e1fe9c4f"><emu-t>export</emu-t><emu-t>default</emu-t><emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt><emu-t>;</emu-t></emu-rhs>
+</emu-production></emu-grammar>
+        <emu-alg><ol><li>Return a new empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref>.</li></ol></emu-alg>
+      </emu-clause>
+</emu-clause>
+
+<emu-annex id="sec-host-integration">
+  <h1><span class="secnum">A</span> Sample host integration: The Web embedding</h1>
+
+  <p>The import attributes proposal is intended to give key information about how modules are interpreted to hosts. For the Web embedding and environments which aim to be similar to it, the string is interpreted as the "module type". This is not the primary way the module type is determined (which, on the Web, would be the MIME type, and in other environments may be the file extension), but rather a secondary check which is required to pass for the module graph to load.</p>
+
+  <p>In the Web embedding, the following changes would be made to the HTML specification for import attributes:</p>
+
+  <ul>
+    <li>The <a href="https://html.spec.whatwg.org/#module-script">module script</a> would have an additional item, which would be the module type, as a string (e.g., <emu-val>"json"</emu-val>), or <emu-val>undefined</emu-val> for a JavaScript module.</li>
+    <li><emu-xref aoid="HostLoadImportedModule" id="_ref_38"><a href="#sec-hostloadimportedmodule">HostLoadImportedModule</a></emu-xref> would take a <emu-xref href="#sec-modulerequest-record" id="_ref_39"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> parameter in place of a specifier string, which would be passed down through several <emu-xref href="#sec-algorithm-conventions-abstract-operations"><a href="https://tc39.es/ecma262/#sec-algorithm-conventions-abstract-operations">abstract operations</a></emu-xref> to reach the <a href="https://html.spec.whatwg.org/#fetch-a-single-module-script">fetch a single module script</a> algorithm. Somewhere near the entrypoint, if the <emu-xref href="#sec-modulerequest-record" id="_ref_40"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref>'s [[Type]] field has an element <var>entry</var> such that <var>entry</var>.[[Key]] is <emu-val>"type"</emu-val>, then let <var>type</var> be <var>entry</var>.[[Value]]; otherwise let <var>type</var> be <emu-val>undefined</emu-val>. If the type is invalid, then an exception is thrown and module loading fails. Otherwise, this will equal the module type, if the module can be successfully fetched with a matching MIME type.</li>
+    <li>In the <a href="https://html.spec.whatwg.org/#fetch-the-descendants-of-a-module-script">fetch the descendents of a module script</a> algorithm, when iterating over [[RequestedModules]], the elements are ModuleRequest Records rather than just specifier strings; these Records is passed on to the internal module script graph fetching procedure (which sends it to "fetch a single module script". Other usage sites of [[RequestedModules]] ignore the assertion.</li>
+    <li>"Fetch a single module script" would check the assertion in two places:
+      <ul>
+        <li>The module map is keyed with both the absolute URL and the module type, so an existing entry will be found only if its <var>type</var> matches.</li>
+        <li>When a new module is fetched, before writing it into the module map, the MIME type is checked to ensure that it matches <var>type</var>. (Note that the interpretation of the module is still driven by the MIME type, but once the MIME type is established, this is checked against the <var>type</var>.) If they differ, then an exception is thrown and module loading fails. The <var>type</var> is written into the module script as the type.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <p>The module map is keyed by the absolute URL and the <var>type</var>. Initially no other import attributes are supported, so they are not present.</p>
+</emu-annex>
+</div></body>
