@@ -20,11 +20,14 @@ jobs:
     - run: npm run build
 
     - name: Deploy
-      uses: peaceiris/actions-gh-pages@v2
+      uses: peaceiris/actions-gh-pages@v3
       env:
         ACTIONS_DEPLOY_KEY: ${{ secrets.ACTIONS_DEPLOY_KEY }}
         PUBLISH_BRANCH: gh-pages
         PUBLISH_DIR: ./dist
       with:
-        username: "ghpages auto deploy"
-        useremail: "myles.borins@gmail.com"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_branch: gh-pages
+        publish_dir: ./dist
+        user_name: "ghpages auto deploy"
+        user_email: "myles.borins@gmail.com"
