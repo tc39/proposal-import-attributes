@@ -1,13 +1,12 @@
 {
   "private": true,
   "scripts": {
-    "test": ":",
-    "prebuild": "mkdirp dist",
-    "build": "ecmarkup --verbose spec.html dist/index.html --css dist/ecmarkup.css --js dist/ecmarkup.js",
-    "watch": "npm run build -- --watch"
+    "start": "npm run build-loose -- --watch",
+    "build": "npm run build-loose -- --strict",
+    "build-loose": "ecmarkup --load-biblio @tc39/ecma262-biblio --verbose spec.emu index.html"
   },
   "devDependencies": {
-    "ecmarkup": "^3.12.0",
-    "mkdirp": "^0.5.1"
+    "@tc39/ecma262-biblio": "2.1.2503",
+    "ecmarkup": "^16.0.1"
   }
 }

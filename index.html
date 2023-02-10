@@ -1,0 +1,3277 @@
+<!doctype html>
+<head><meta charset="utf-8">
+<script src="ecmarkup.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/styles/base16/solarized-light.min.css"><link rel="stylesheet" href="ecmarkup.css">
+<title>import assertions</title>
+<script>'use strict';
+let sdoBox = {
+  init() {
+    this.$alternativeId = null;
+    this.$outer = document.createElement('div');
+    this.$outer.classList.add('toolbox-container');
+    this.$container = document.createElement('div');
+    this.$container.classList.add('toolbox');
+    this.$displayLink = document.createElement('a');
+    this.$displayLink.setAttribute('href', '#');
+    this.$displayLink.textContent = 'Syntax-Directed Operations';
+    this.$displayLink.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      referencePane.showSDOs(sdoMap[this.$alternativeId] || {}, this.$alternativeId);
+    });
+    this.$container.appendChild(this.$displayLink);
+    this.$outer.appendChild(this.$container);
+    document.body.appendChild(this.$outer);
+  },
+
+  activate(el) {
+    clearTimeout(this.deactiveTimeout);
+    Toolbox.deactivate();
+    this.$alternativeId = el.id;
+    let numSdos = Object.keys(sdoMap[this.$alternativeId] || {}).length;
+    this.$displayLink.textContent = 'Syntax-Directed Operations (' + numSdos + ')';
+    this.$outer.classList.add('active');
+    let top = el.offsetTop - this.$outer.offsetHeight;
+    let left = el.offsetLeft + 50 - 10; // 50px = padding-left(=75px) + text-indent(=-25px)
+    this.$outer.setAttribute('style', 'left: ' + left + 'px; top: ' + top + 'px');
+    if (top < document.body.scrollTop) {
+      this.$container.scrollIntoView();
+    }
+  },
+
+  deactivate() {
+    clearTimeout(this.deactiveTimeout);
+    this.$outer.classList.remove('active');
+  },
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof sdoMap == 'undefined') {
+    console.error('could not find sdo map');
+    return;
+  }
+  sdoBox.init();
+
+  let insideTooltip = false;
+  sdoBox.$outer.addEventListener('pointerenter', () => {
+    insideTooltip = true;
+  });
+  sdoBox.$outer.addEventListener('pointerleave', () => {
+    insideTooltip = false;
+    sdoBox.deactivate();
+  });
+
+  sdoBox.deactiveTimeout = null;
+  [].forEach.call(document.querySelectorAll('emu-grammar[type=definition] emu-rhs'), node => {
+    node.addEventListener('pointerenter', function () {
+      sdoBox.activate(this);
+    });
+
+    node.addEventListener('pointerleave', () => {
+      sdoBox.deactiveTimeout = setTimeout(() => {
+        if (!insideTooltip) {
+          sdoBox.deactivate();
+        }
+      }, 500);
+    });
+  });
+
+  document.addEventListener(
+    'keydown',
+    debounce(e => {
+      if (e.code === 'Escape') {
+        sdoBox.deactivate();
+      }
+    })
+  );
+});
+
+'use strict';
+function Search(menu) {
+  this.menu = menu;
+  this.$search = document.getElementById('menu-search');
+  this.$searchBox = document.getElementById('menu-search-box');
+  this.$searchResults = document.getElementById('menu-search-results');
+
+  this.loadBiblio();
+
+  document.addEventListener('keydown', this.documentKeydown.bind(this));
+
+  this.$searchBox.addEventListener(
+    'keydown',
+    debounce(this.searchBoxKeydown.bind(this), { stopPropagation: true })
+  );
+  this.$searchBox.addEventListener(
+    'keyup',
+    debounce(this.searchBoxKeyup.bind(this), { stopPropagation: true })
+  );
+
+  // Perform an initial search if the box is not empty.
+  if (this.$searchBox.value) {
+    this.search(this.$searchBox.value);
+  }
+}
+
+Search.prototype.loadBiblio = function () {
+  if (typeof biblio === 'undefined') {
+    console.error('could not find biblio');
+    this.biblio = { refToClause: {}, entries: [] };
+  } else {
+    this.biblio = biblio;
+    this.biblio.clauses = this.biblio.entries.filter(e => e.type === 'clause');
+    this.biblio.byId = this.biblio.entries.reduce((map, entry) => {
+      map[entry.id] = entry;
+      return map;
+    }, {});
+    let refParentClause = Object.create(null);
+    this.biblio.refParentClause = refParentClause;
+    let refsByClause = this.biblio.refsByClause;
+    Object.keys(refsByClause).forEach(clause => {
+      refsByClause[clause].forEach(ref => {
+        refParentClause[ref] = clause;
+      });
+    });
+  }
+};
+
+Search.prototype.documentKeydown = function (e) {
+  if (e.key === '/') {
+    e.preventDefault();
+    e.stopPropagation();
+    this.triggerSearch();
+  }
+};
+
+Search.prototype.searchBoxKeydown = function (e) {
+  e.stopPropagation();
+  e.preventDefault();
+  if (e.keyCode === 191 && e.target.value.length === 0) {
+    e.preventDefault();
+  } else if (e.keyCode === 13) {
+    e.preventDefault();
+    this.selectResult();
+  }
+};
+
+Search.prototype.searchBoxKeyup = function (e) {
+  if (e.keyCode === 13 || e.keyCode === 9) {
+    return;
+  }
+
+  this.search(e.target.value);
+};
+
+Search.prototype.triggerSearch = function () {
+  if (this.menu.isVisible()) {
+    this._closeAfterSearch = false;
+  } else {
+    this._closeAfterSearch = true;
+    this.menu.show();
+  }
+
+  this.$searchBox.focus();
+  this.$searchBox.select();
+};
+// bit 12 - Set if the result starts with searchString
+// bits 8-11: 8 - number of chunks multiplied by 2 if cases match, otherwise 1.
+// bits 1-7: 127 - length of the entry
+// General scheme: prefer case sensitive matches with fewer chunks, and otherwise
+// prefer shorter matches.
+function relevance(result) {
+  let relevance = 0;
+
+  relevance = Math.max(0, 8 - result.match.chunks) << 7;
+
+  if (result.match.caseMatch) {
+    relevance *= 2;
+  }
+
+  if (result.match.prefix) {
+    relevance += 2048;
+  }
+
+  relevance += Math.max(0, 255 - result.key.length);
+
+  return relevance;
+}
+
+Search.prototype.search = function (searchString) {
+  if (searchString === '') {
+    this.displayResults([]);
+    this.hideSearch();
+    return;
+  } else {
+    this.showSearch();
+  }
+
+  if (searchString.length === 1) {
+    this.displayResults([]);
+    return;
+  }
+
+  let results;
+
+  if (/^[\d.]*$/.test(searchString)) {
+    results = this.biblio.clauses
+      .filter(clause => clause.number.substring(0, searchString.length) === searchString)
+      .map(clause => ({ key: getKey(clause), entry: clause }));
+  } else {
+    results = [];
+
+    for (let i = 0; i < this.biblio.entries.length; i++) {
+      let entry = this.biblio.entries[i];
+      let key = getKey(entry);
+      if (!key) {
+        // biblio entries without a key aren't searchable
+        continue;
+      }
+
+      let match = fuzzysearch(searchString, key);
+      if (match) {
+        results.push({ key, entry, match });
+      }
+    }
+
+    results.forEach(result => {
+      result.relevance = relevance(result, searchString);
+    });
+
+    results = results.sort((a, b) => b.relevance - a.relevance);
+  }
+
+  if (results.length > 50) {
+    results = results.slice(0, 50);
+  }
+
+  this.displayResults(results);
+};
+Search.prototype.hideSearch = function () {
+  this.$search.classList.remove('active');
+};
+
+Search.prototype.showSearch = function () {
+  this.$search.classList.add('active');
+};
+
+Search.prototype.selectResult = function () {
+  let $first = this.$searchResults.querySelector('li:first-child a');
+
+  if ($first) {
+    document.location = $first.getAttribute('href');
+  }
+
+  this.$searchBox.value = '';
+  this.$searchBox.blur();
+  this.displayResults([]);
+  this.hideSearch();
+
+  if (this._closeAfterSearch) {
+    this.menu.hide();
+  }
+};
+
+Search.prototype.displayResults = function (results) {
+  if (results.length > 0) {
+    this.$searchResults.classList.remove('no-results');
+
+    let html = '<ul>';
+
+    results.forEach(result => {
+      let key = result.key;
+      let entry = result.entry;
+      let id = entry.id;
+      let cssClass = '';
+      let text = '';
+
+      if (entry.type === 'clause') {
+        let number = entry.number ? entry.number + ' ' : '';
+        text = number + key;
+        cssClass = 'clause';
+        id = entry.id;
+      } else if (entry.type === 'production') {
+        text = key;
+        cssClass = 'prod';
+        id = entry.id;
+      } else if (entry.type === 'op') {
+        text = key;
+        cssClass = 'op';
+        id = entry.id || entry.refId;
+      } else if (entry.type === 'term') {
+        text = key;
+        cssClass = 'term';
+        id = entry.id || entry.refId;
+      }
+
+      if (text) {
+        // prettier-ignore
+        html += `<li class=menu-search-result-${cssClass}><a href="${makeLinkToId(id)}">${text}</a></li>`;
+      }
+    });
+
+    html += '</ul>';
+
+    this.$searchResults.innerHTML = html;
+  } else {
+    this.$searchResults.innerHTML = '';
+    this.$searchResults.classList.add('no-results');
+  }
+};
+
+function getKey(item) {
+  if (item.key) {
+    return item.key;
+  }
+  switch (item.type) {
+    case 'clause':
+      return item.title || item.titleHTML;
+    case 'production':
+      return item.name;
+    case 'op':
+      return item.aoid;
+    case 'term':
+      return item.term;
+    case 'table':
+    case 'figure':
+    case 'example':
+    case 'note':
+      return item.caption;
+    case 'step':
+      return item.id;
+    default:
+      throw new Error("Can't get key for " + item.type);
+  }
+}
+
+function Menu() {
+  this.$toggle = document.getElementById('menu-toggle');
+  this.$menu = document.getElementById('menu');
+  this.$toc = document.querySelector('menu-toc > ol');
+  this.$pins = document.querySelector('#menu-pins');
+  this.$pinList = document.getElementById('menu-pins-list');
+  this.$toc = document.querySelector('#menu-toc > ol');
+  this.$specContainer = document.getElementById('spec-container');
+  this.search = new Search(this);
+
+  this._pinnedIds = {};
+  this.loadPinEntries();
+
+  // toggle menu
+  this.$toggle.addEventListener('click', this.toggle.bind(this));
+
+  // keydown events for pinned clauses
+  document.addEventListener('keydown', this.documentKeydown.bind(this));
+
+  // toc expansion
+  let tocItems = this.$menu.querySelectorAll('#menu-toc li');
+  for (let i = 0; i < tocItems.length; i++) {
+    let $item = tocItems[i];
+    $item.addEventListener('click', event => {
+      $item.classList.toggle('active');
+      event.stopPropagation();
+    });
+  }
+
+  // close toc on toc item selection
+  let tocLinks = this.$menu.querySelectorAll('#menu-toc li > a');
+  for (let i = 0; i < tocLinks.length; i++) {
+    let $link = tocLinks[i];
+    $link.addEventListener('click', event => {
+      this.toggle();
+      event.stopPropagation();
+    });
+  }
+
+  // update active clause on scroll
+  window.addEventListener('scroll', debounce(this.updateActiveClause.bind(this)));
+  this.updateActiveClause();
+
+  // prevent menu scrolling from scrolling the body
+  this.$toc.addEventListener('wheel', e => {
+    let target = e.currentTarget;
+    let offTop = e.deltaY < 0 && target.scrollTop === 0;
+    if (offTop) {
+      e.preventDefault();
+    }
+    let offBottom = e.deltaY > 0 && target.offsetHeight + target.scrollTop >= target.scrollHeight;
+
+    if (offBottom) {
+      e.preventDefault();
+    }
+  });
+}
+
+Menu.prototype.documentKeydown = function (e) {
+  e.stopPropagation();
+  if (e.keyCode === 80) {
+    this.togglePinEntry();
+  } else if (e.keyCode > 48 && e.keyCode < 58) {
+    this.selectPin(e.keyCode - 49);
+  }
+};
+
+Menu.prototype.updateActiveClause = function () {
+  this.setActiveClause(findActiveClause(this.$specContainer));
+};
+
+Menu.prototype.setActiveClause = function (clause) {
+  this.$activeClause = clause;
+  this.revealInToc(this.$activeClause);
+};
+
+Menu.prototype.revealInToc = function (path) {
+  let current = this.$toc.querySelectorAll('li.revealed');
+  for (let i = 0; i < current.length; i++) {
+    current[i].classList.remove('revealed');
+    current[i].classList.remove('revealed-leaf');
+  }
+
+  current = this.$toc;
+  let index = 0;
+  outer: while (index < path.length) {
+    let children = current.children;
+    for (let i = 0; i < children.length; i++) {
+      if ('#' + path[index].id === children[i].children[1].hash) {
+        children[i].classList.add('revealed');
+        if (index === path.length - 1) {
+          children[i].classList.add('revealed-leaf');
+          let rect = children[i].getBoundingClientRect();
+          // this.$toc.getBoundingClientRect().top;
+          let tocRect = this.$toc.getBoundingClientRect();
+          if (rect.top + 10 > tocRect.bottom) {
+            this.$toc.scrollTop =
+              this.$toc.scrollTop + (rect.top - tocRect.bottom) + (rect.bottom - rect.top);
+          } else if (rect.top < tocRect.top) {
+            this.$toc.scrollTop = this.$toc.scrollTop - (tocRect.top - rect.top);
+          }
+        }
+        current = children[i].querySelector('ol');
+        index++;
+        continue outer;
+      }
+    }
+    console.log('could not find location in table of contents', path);
+    break;
+  }
+};
+
+function findActiveClause(root, path) {
+  let clauses = getChildClauses(root);
+  path = path || [];
+
+  for (let $clause of clauses) {
+    let rect = $clause.getBoundingClientRect();
+    let $header = $clause.querySelector('h1');
+    let marginTop = Math.max(
+      parseInt(getComputedStyle($clause)['margin-top']),
+      parseInt(getComputedStyle($header)['margin-top'])
+    );
+
+    if (rect.top - marginTop <= 1 && rect.bottom > 0) {
+      return findActiveClause($clause, path.concat($clause)) || path;
+    }
+  }
+
+  return path;
+}
+
+function* getChildClauses(root) {
+  for (let el of root.children) {
+    switch (el.nodeName) {
+      // descend into <emu-import>
+      case 'EMU-IMPORT':
+        yield* getChildClauses(el);
+        break;
+
+      // accept <emu-clause>, <emu-intro>, and <emu-annex>
+      case 'EMU-CLAUSE':
+      case 'EMU-INTRO':
+      case 'EMU-ANNEX':
+        yield el;
+    }
+  }
+}
+
+Menu.prototype.toggle = function () {
+  this.$menu.classList.toggle('active');
+};
+
+Menu.prototype.show = function () {
+  this.$menu.classList.add('active');
+};
+
+Menu.prototype.hide = function () {
+  this.$menu.classList.remove('active');
+};
+
+Menu.prototype.isVisible = function () {
+  return this.$menu.classList.contains('active');
+};
+
+Menu.prototype.showPins = function () {
+  this.$pins.classList.add('active');
+};
+
+Menu.prototype.hidePins = function () {
+  this.$pins.classList.remove('active');
+};
+
+Menu.prototype.addPinEntry = function (id) {
+  let entry = this.search.biblio.byId[id];
+  if (!entry) {
+    // id was deleted after pin (or something) so remove it
+    delete this._pinnedIds[id];
+    this.persistPinEntries();
+    return;
+  }
+
+  if (entry.type === 'clause') {
+    let prefix;
+    if (entry.number) {
+      prefix = entry.number + ' ';
+    } else {
+      prefix = '';
+    }
+    // prettier-ignore
+    this.$pinList.innerHTML += `<li><a href="${makeLinkToId(entry.id)}">${prefix}${entry.titleHTML}</a></li>`;
+  } else {
+    this.$pinList.innerHTML += `<li><a href="${makeLinkToId(entry.id)}">${getKey(entry)}</a></li>`;
+  }
+
+  if (Object.keys(this._pinnedIds).length === 0) {
+    this.showPins();
+  }
+  this._pinnedIds[id] = true;
+  this.persistPinEntries();
+};
+
+Menu.prototype.removePinEntry = function (id) {
+  let item = this.$pinList.querySelector(`a[href="${makeLinkToId(id)}"]`).parentNode;
+  this.$pinList.removeChild(item);
+  delete this._pinnedIds[id];
+  if (Object.keys(this._pinnedIds).length === 0) {
+    this.hidePins();
+  }
+
+  this.persistPinEntries();
+};
+
+Menu.prototype.persistPinEntries = function () {
+  try {
+    if (!window.localStorage) return;
+  } catch (e) {
+    return;
+  }
+
+  localStorage.pinEntries = JSON.stringify(Object.keys(this._pinnedIds));
+};
+
+Menu.prototype.loadPinEntries = function () {
+  try {
+    if (!window.localStorage) return;
+  } catch (e) {
+    return;
+  }
+
+  let pinsString = window.localStorage.pinEntries;
+  if (!pinsString) return;
+  let pins = JSON.parse(pinsString);
+  for (let i = 0; i < pins.length; i++) {
+    this.addPinEntry(pins[i]);
+  }
+};
+
+Menu.prototype.togglePinEntry = function (id) {
+  if (!id) {
+    id = this.$activeClause[this.$activeClause.length - 1].id;
+  }
+
+  if (this._pinnedIds[id]) {
+    this.removePinEntry(id);
+  } else {
+    this.addPinEntry(id);
+  }
+};
+
+Menu.prototype.selectPin = function (num) {
+  document.location = this.$pinList.children[num].children[0].href;
+};
+
+let menu;
+
+document.addEventListener('DOMContentLoaded', init);
+
+function debounce(fn, opts) {
+  opts = opts || {};
+  let timeout;
+  return function (e) {
+    if (opts.stopPropagation) {
+      e.stopPropagation();
+    }
+    let args = arguments;
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(() => {
+      timeout = null;
+      fn.apply(this, args);
+    }, 150);
+  };
+}
+
+let CLAUSE_NODES = ['EMU-CLAUSE', 'EMU-INTRO', 'EMU-ANNEX'];
+function findContainer($elem) {
+  let parentClause = $elem.parentNode;
+  while (parentClause && CLAUSE_NODES.indexOf(parentClause.nodeName) === -1) {
+    parentClause = parentClause.parentNode;
+  }
+  return parentClause;
+}
+
+function findLocalReferences(parentClause, name) {
+  let vars = parentClause.querySelectorAll('var');
+  let references = [];
+
+  for (let i = 0; i < vars.length; i++) {
+    let $var = vars[i];
+
+    if ($var.innerHTML === name) {
+      references.push($var);
+    }
+  }
+
+  return references;
+}
+
+let REFERENCED_CLASSES = Array.from({ length: 7 }, (x, i) => `referenced${i}`);
+function chooseHighlightIndex(parentClause) {
+  let counts = REFERENCED_CLASSES.map($class => parentClause.getElementsByClassName($class).length);
+  // Find the earliest index with the lowest count.
+  let minCount = Infinity;
+  let index = null;
+  for (let i = 0; i < counts.length; i++) {
+    if (counts[i] < minCount) {
+      minCount = counts[i];
+      index = i;
+    }
+  }
+  return index;
+}
+
+function toggleFindLocalReferences($elem) {
+  let parentClause = findContainer($elem);
+  let references = findLocalReferences(parentClause, $elem.innerHTML);
+  if ($elem.classList.contains('referenced')) {
+    references.forEach($reference => {
+      $reference.classList.remove('referenced', ...REFERENCED_CLASSES);
+    });
+  } else {
+    let index = chooseHighlightIndex(parentClause);
+    references.forEach($reference => {
+      $reference.classList.add('referenced', `referenced${index}`);
+    });
+  }
+}
+
+function installFindLocalReferences() {
+  document.addEventListener('click', e => {
+    if (e.target.nodeName === 'VAR') {
+      toggleFindLocalReferences(e.target);
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', installFindLocalReferences);
+
+// The following license applies to the fuzzysearch function
+// The MIT License (MIT)
+// Copyright © 2015 Nicolas Bevacqua
+// Copyright © 2016 Brian Terlson
+// Permission is hereby granted, free of charge, to any person obtaining a copy of
+// this software and associated documentation files (the "Software"), to deal in
+// the Software without restriction, including without limitation the rights to
+// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+// the Software, and to permit persons to whom the Software is furnished to do so,
+// subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+// FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+function fuzzysearch(searchString, haystack, caseInsensitive) {
+  let tlen = haystack.length;
+  let qlen = searchString.length;
+  let chunks = 1;
+  let finding = false;
+
+  if (qlen > tlen) {
+    return false;
+  }
+
+  if (qlen === tlen) {
+    if (searchString === haystack) {
+      return { caseMatch: true, chunks: 1, prefix: true };
+    } else if (searchString.toLowerCase() === haystack.toLowerCase()) {
+      return { caseMatch: false, chunks: 1, prefix: true };
+    } else {
+      return false;
+    }
+  }
+
+  let j = 0;
+  outer: for (let i = 0; i < qlen; i++) {
+    let nch = searchString[i];
+    while (j < tlen) {
+      let targetChar = haystack[j++];
+      if (targetChar === nch) {
+        finding = true;
+        continue outer;
+      }
+      if (finding) {
+        chunks++;
+        finding = false;
+      }
+    }
+
+    if (caseInsensitive) {
+      return false;
+    }
+
+    return fuzzysearch(searchString.toLowerCase(), haystack.toLowerCase(), true);
+  }
+
+  return { caseMatch: !caseInsensitive, chunks, prefix: j <= qlen };
+}
+
+let referencePane = {
+  init() {
+    this.$container = document.createElement('div');
+    this.$container.setAttribute('id', 'references-pane-container');
+
+    let $spacer = document.createElement('div');
+    $spacer.setAttribute('id', 'references-pane-spacer');
+    $spacer.classList.add('menu-spacer');
+
+    this.$pane = document.createElement('div');
+    this.$pane.setAttribute('id', 'references-pane');
+
+    this.$container.appendChild($spacer);
+    this.$container.appendChild(this.$pane);
+
+    this.$header = document.createElement('div');
+    this.$header.classList.add('menu-pane-header');
+    this.$headerText = document.createElement('span');
+    this.$header.appendChild(this.$headerText);
+    this.$headerRefId = document.createElement('a');
+    this.$header.appendChild(this.$headerRefId);
+    this.$closeButton = document.createElement('span');
+    this.$closeButton.setAttribute('id', 'references-pane-close');
+    this.$closeButton.addEventListener('click', () => {
+      this.deactivate();
+    });
+    this.$header.appendChild(this.$closeButton);
+
+    this.$pane.appendChild(this.$header);
+    let tableContainer = document.createElement('div');
+    tableContainer.setAttribute('id', 'references-pane-table-container');
+
+    this.$table = document.createElement('table');
+    this.$table.setAttribute('id', 'references-pane-table');
+
+    this.$tableBody = this.$table.createTBody();
+
+    tableContainer.appendChild(this.$table);
+    this.$pane.appendChild(tableContainer);
+
+    menu.$specContainer.appendChild(this.$container);
+  },
+
+  activate() {
+    this.$container.classList.add('active');
+  },
+
+  deactivate() {
+    this.$container.classList.remove('active');
+    this.state = null;
+  },
+
+  showReferencesFor(entry) {
+    this.activate();
+    this.state = { type: 'ref', id: entry.id };
+    this.$headerText.textContent = 'References to ';
+    let newBody = document.createElement('tbody');
+    let previousId;
+    let previousCell;
+    let dupCount = 0;
+    this.$headerRefId.textContent = '#' + entry.id;
+    this.$headerRefId.setAttribute('href', makeLinkToId(entry.id));
+    this.$headerRefId.style.display = 'inline';
+    (entry.referencingIds || [])
+      .map(id => {
+        let cid = menu.search.biblio.refParentClause[id];
+        let clause = menu.search.biblio.byId[cid];
+        if (clause == null) {
+          throw new Error('could not find clause for id ' + cid);
+        }
+        return { id, clause };
+      })
+      .sort((a, b) => sortByClauseNumber(a.clause, b.clause))
+      .forEach(record => {
+        if (previousId === record.clause.id) {
+          previousCell.innerHTML += ` (<a href="${makeLinkToId(record.id)}">${dupCount + 2}</a>)`;
+          dupCount++;
+        } else {
+          let row = newBody.insertRow();
+          let cell = row.insertCell();
+          cell.innerHTML = record.clause.number;
+          cell = row.insertCell();
+          cell.innerHTML = `<a href="${makeLinkToId(record.id)}">${record.clause.titleHTML}</a>`;
+          previousCell = cell;
+          previousId = record.clause.id;
+          dupCount = 0;
+        }
+      }, this);
+    this.$table.removeChild(this.$tableBody);
+    this.$tableBody = newBody;
+    this.$table.appendChild(this.$tableBody);
+  },
+
+  showSDOs(sdos, alternativeId) {
+    let rhs = document.getElementById(alternativeId);
+    let parentName = rhs.parentNode.getAttribute('name');
+    let colons = rhs.parentNode.querySelector('emu-geq');
+    rhs = rhs.cloneNode(true);
+    rhs.querySelectorAll('emu-params,emu-constraints').forEach(e => {
+      e.remove();
+    });
+    rhs.querySelectorAll('[id]').forEach(e => {
+      e.removeAttribute('id');
+    });
+    rhs.querySelectorAll('a').forEach(e => {
+      e.parentNode.replaceChild(document.createTextNode(e.textContent), e);
+    });
+
+    // prettier-ignore
+    this.$headerText.innerHTML = `Syntax-Directed Operations for<br><a href="${makeLinkToId(alternativeId)}" class="menu-pane-header-production"><emu-nt>${parentName}</emu-nt> ${colons.outerHTML} </a>`;
+    this.$headerText.querySelector('a').append(rhs);
+    this.showSDOsBody(sdos, alternativeId);
+  },
+
+  showSDOsBody(sdos, alternativeId) {
+    this.activate();
+    this.state = { type: 'sdo', id: alternativeId, html: this.$headerText.innerHTML };
+    this.$headerRefId.style.display = 'none';
+    let newBody = document.createElement('tbody');
+    Object.keys(sdos).forEach(sdoName => {
+      let pair = sdos[sdoName];
+      let clause = pair.clause;
+      let ids = pair.ids;
+      let first = ids[0];
+      let row = newBody.insertRow();
+      let cell = row.insertCell();
+      cell.innerHTML = clause;
+      cell = row.insertCell();
+      let html = '<a href="' + makeLinkToId(first) + '">' + sdoName + '</a>';
+      for (let i = 1; i < ids.length; ++i) {
+        html += ' (<a href="' + makeLinkToId(ids[i]) + '">' + (i + 1) + '</a>)';
+      }
+      cell.innerHTML = html;
+    });
+    this.$table.removeChild(this.$tableBody);
+    this.$tableBody = newBody;
+    this.$table.appendChild(this.$tableBody);
+  },
+};
+
+let Toolbox = {
+  init() {
+    this.$outer = document.createElement('div');
+    this.$outer.classList.add('toolbox-container');
+    this.$container = document.createElement('div');
+    this.$container.classList.add('toolbox');
+    this.$outer.appendChild(this.$container);
+    this.$permalink = document.createElement('a');
+    this.$permalink.textContent = 'Permalink';
+    this.$pinLink = document.createElement('a');
+    this.$pinLink.textContent = 'Pin';
+    this.$pinLink.setAttribute('href', '#');
+    this.$pinLink.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      menu.togglePinEntry(this.entry.id);
+      this.$pinLink.textContent = menu._pinnedIds[this.entry.id] ? 'Unpin' : 'Pin';
+    });
+
+    this.$refsLink = document.createElement('a');
+    this.$refsLink.setAttribute('href', '#');
+    this.$refsLink.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      referencePane.showReferencesFor(this.entry);
+    });
+    this.$container.appendChild(this.$permalink);
+    this.$container.appendChild(this.$pinLink);
+    this.$container.appendChild(this.$refsLink);
+    document.body.appendChild(this.$outer);
+  },
+
+  activate(el, entry, target) {
+    if (el === this._activeEl) return;
+    sdoBox.deactivate();
+    this.active = true;
+    this.entry = entry;
+    this.$pinLink.textContent = menu._pinnedIds[entry.id] ? 'Unpin' : 'Pin';
+    this.$outer.classList.add('active');
+    this.top = el.offsetTop - this.$outer.offsetHeight;
+    this.left = el.offsetLeft - 10;
+    this.$outer.setAttribute('style', 'left: ' + this.left + 'px; top: ' + this.top + 'px');
+    this.updatePermalink();
+    this.updateReferences();
+    this._activeEl = el;
+    if (this.top < document.body.scrollTop && el === target) {
+      // don't scroll unless it's a small thing (< 200px)
+      this.$outer.scrollIntoView();
+    }
+  },
+
+  updatePermalink() {
+    this.$permalink.setAttribute('href', makeLinkToId(this.entry.id));
+  },
+
+  updateReferences() {
+    this.$refsLink.textContent = `References (${(this.entry.referencingIds || []).length})`;
+  },
+
+  activateIfMouseOver(e) {
+    let ref = this.findReferenceUnder(e.target);
+    if (ref && (!this.active || e.pageY > this._activeEl.offsetTop)) {
+      let entry = menu.search.biblio.byId[ref.id];
+      this.activate(ref.element, entry, e.target);
+    } else if (
+      this.active &&
+      (e.pageY < this.top || e.pageY > this._activeEl.offsetTop + this._activeEl.offsetHeight)
+    ) {
+      this.deactivate();
+    }
+  },
+
+  findReferenceUnder(el) {
+    while (el) {
+      let parent = el.parentNode;
+      if (el.nodeName === 'EMU-RHS' || el.nodeName === 'EMU-PRODUCTION') {
+        return null;
+      }
+      if (
+        el.nodeName === 'H1' &&
+        parent.nodeName.match(/EMU-CLAUSE|EMU-ANNEX|EMU-INTRO/) &&
+        parent.id
+      ) {
+        return { element: el, id: parent.id };
+      } else if (el.nodeName === 'EMU-NT') {
+        if (
+          parent.nodeName === 'EMU-PRODUCTION' &&
+          parent.id &&
+          parent.id[0] !== '_' &&
+          parent.firstElementChild === el
+        ) {
+          // return the LHS non-terminal element
+          return { element: el, id: parent.id };
+        }
+        return null;
+      } else if (
+        el.nodeName.match(/EMU-(?!CLAUSE|XREF|ANNEX|INTRO)|DFN/) &&
+        el.id &&
+        el.id[0] !== '_'
+      ) {
+        if (
+          el.nodeName === 'EMU-FIGURE' ||
+          el.nodeName === 'EMU-TABLE' ||
+          el.nodeName === 'EMU-EXAMPLE'
+        ) {
+          // return the figcaption element
+          return { element: el.children[0].children[0], id: el.id };
+        } else {
+          return { element: el, id: el.id };
+        }
+      }
+      el = parent;
+    }
+  },
+
+  deactivate() {
+    this.$outer.classList.remove('active');
+    this._activeEl = null;
+    this.active = false;
+  },
+};
+
+function sortByClauseNumber(clause1, clause2) {
+  let c1c = clause1.number.split('.');
+  let c2c = clause2.number.split('.');
+
+  for (let i = 0; i < c1c.length; i++) {
+    if (i >= c2c.length) {
+      return 1;
+    }
+
+    let c1 = c1c[i];
+    let c2 = c2c[i];
+    let c1cn = Number(c1);
+    let c2cn = Number(c2);
+
+    if (Number.isNaN(c1cn) && Number.isNaN(c2cn)) {
+      if (c1 > c2) {
+        return 1;
+      } else if (c1 < c2) {
+        return -1;
+      }
+    } else if (!Number.isNaN(c1cn) && Number.isNaN(c2cn)) {
+      return -1;
+    } else if (Number.isNaN(c1cn) && !Number.isNaN(c2cn)) {
+      return 1;
+    } else if (c1cn > c2cn) {
+      return 1;
+    } else if (c1cn < c2cn) {
+      return -1;
+    }
+  }
+
+  if (c1c.length === c2c.length) {
+    return 0;
+  }
+  return -1;
+}
+
+function makeLinkToId(id) {
+  let hash = '#' + id;
+  if (typeof idToSection === 'undefined' || !idToSection[id]) {
+    return hash;
+  }
+  let targetSec = idToSection[id];
+  return (targetSec === 'index' ? './' : targetSec + '.html') + hash;
+}
+
+function doShortcut(e) {
+  if (!(e.target instanceof HTMLElement)) {
+    return;
+  }
+  let target = e.target;
+  let name = target.nodeName.toLowerCase();
+  if (name === 'textarea' || name === 'input' || name === 'select' || target.isContentEditable) {
+    return;
+  }
+  if (e.altKey || e.ctrlKey || e.metaKey) {
+    return;
+  }
+  if (e.key === 'm' && usesMultipage) {
+    let pathParts = location.pathname.split('/');
+    let hash = location.hash;
+    if (pathParts[pathParts.length - 2] === 'multipage') {
+      if (hash === '') {
+        let sectionName = pathParts[pathParts.length - 1];
+        if (sectionName.endsWith('.html')) {
+          sectionName = sectionName.slice(0, -5);
+        }
+        if (idToSection['sec-' + sectionName] !== undefined) {
+          hash = '#sec-' + sectionName;
+        }
+      }
+      location = pathParts.slice(0, -2).join('/') + '/' + hash;
+    } else {
+      location = 'multipage/' + hash;
+    }
+  } else if (e.key === 'u') {
+    document.documentElement.classList.toggle('show-ao-annotations');
+  } else if (e.key === '?') {
+    document.getElementById('shortcuts-help').classList.toggle('active');
+  }
+}
+
+function init() {
+  menu = new Menu();
+  let $container = document.getElementById('spec-container');
+  $container.addEventListener(
+    'mouseover',
+    debounce(e => {
+      Toolbox.activateIfMouseOver(e);
+    })
+  );
+  document.addEventListener(
+    'keydown',
+    debounce(e => {
+      if (e.code === 'Escape') {
+        if (Toolbox.active) {
+          Toolbox.deactivate();
+        }
+        document.getElementById('shortcuts-help').classList.remove('active');
+      }
+    })
+  );
+}
+
+document.addEventListener('keypress', doShortcut);
+
+document.addEventListener('DOMContentLoaded', () => {
+  Toolbox.init();
+  referencePane.init();
+});
+
+// preserve state during navigation
+
+function getTocPath(li) {
+  let path = [];
+  let pointer = li;
+  while (true) {
+    let parent = pointer.parentElement;
+    if (parent == null) {
+      return null;
+    }
+    let index = [].indexOf.call(parent.children, pointer);
+    if (index == -1) {
+      return null;
+    }
+    path.unshift(index);
+    pointer = parent.parentElement;
+    if (pointer == null) {
+      return null;
+    }
+    if (pointer.id === 'menu-toc') {
+      break;
+    }
+    if (pointer.tagName !== 'LI') {
+      return null;
+    }
+  }
+  return path;
+}
+
+function activateTocPath(path) {
+  try {
+    let pointer = document.getElementById('menu-toc');
+    for (let index of path) {
+      pointer = pointer.querySelector('ol').children[index];
+    }
+    pointer.classList.add('active');
+  } catch (e) {
+    // pass
+  }
+}
+
+function getActiveTocPaths() {
+  return [...menu.$menu.querySelectorAll('.active')].map(getTocPath).filter(p => p != null);
+}
+
+function loadStateFromSessionStorage() {
+  if (!window.sessionStorage || typeof menu === 'undefined' || window.navigating) {
+    return;
+  }
+  if (sessionStorage.referencePaneState != null) {
+    let state = JSON.parse(sessionStorage.referencePaneState);
+    if (state != null) {
+      if (state.type === 'ref') {
+        let entry = menu.search.biblio.byId[state.id];
+        if (entry != null) {
+          referencePane.showReferencesFor(entry);
+        }
+      } else if (state.type === 'sdo') {
+        let sdos = sdoMap[state.id];
+        if (sdos != null) {
+          referencePane.$headerText.innerHTML = state.html;
+          referencePane.showSDOsBody(sdos, state.id);
+        }
+      }
+      delete sessionStorage.referencePaneState;
+    }
+  }
+
+  if (sessionStorage.activeTocPaths != null) {
+    document
+      .getElementById('menu-toc')
+      .querySelectorAll('.active')
+      .forEach(e => {
+        e.classList.remove('active');
+      });
+    let active = JSON.parse(sessionStorage.activeTocPaths);
+    active.forEach(activateTocPath);
+    delete sessionStorage.activeTocPaths;
+  }
+
+  if (sessionStorage.searchValue != null) {
+    let value = JSON.parse(sessionStorage.searchValue);
+    menu.search.$searchBox.value = value;
+    menu.search.search(value);
+    delete sessionStorage.searchValue;
+  }
+
+  if (sessionStorage.tocScroll != null) {
+    let tocScroll = JSON.parse(sessionStorage.tocScroll);
+    menu.$toc.scrollTop = tocScroll;
+    delete sessionStorage.tocScroll;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadStateFromSessionStorage);
+
+window.addEventListener('pageshow', loadStateFromSessionStorage);
+
+window.addEventListener('beforeunload', () => {
+  if (!window.sessionStorage || typeof menu === 'undefined') {
+    return;
+  }
+  sessionStorage.referencePaneState = JSON.stringify(referencePane.state || null);
+  sessionStorage.activeTocPaths = JSON.stringify(getActiveTocPaths());
+  sessionStorage.searchValue = JSON.stringify(menu.search.$searchBox.value);
+  sessionStorage.tocScroll = JSON.stringify(menu.$toc.scrollTop);
+});
+
+'use strict';
+
+// Manually prefix algorithm step list items with hidden counter representations
+// corresponding with their markers so they get selected and copied with content.
+// We read list-style-type to avoid divergence with the style sheet, but
+// for efficiency assume that all lists at the same nesting depth use the same
+// style (except for those associated with replacement steps).
+// We also precompute some initial items for each supported style type.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/
+
+const lowerLetters = Array.from({ length: 26 }, (_, i) =>
+  String.fromCharCode('a'.charCodeAt(0) + i)
+);
+// Implement the lower-alpha 'alphabetic' algorithm,
+// adjusting for indexing from 0 rather than 1.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#simple-alphabetic
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#alphabetic-system
+const lowerAlphaTextForIndex = i => {
+  let S = '';
+  for (const N = lowerLetters.length; i >= 0; i--) {
+    S = lowerLetters[i % N] + S;
+    i = Math.floor(i / N);
+  }
+  return S;
+};
+
+const weightedLowerRomanSymbols = Object.entries({
+  m: 1000,
+  cm: 900,
+  d: 500,
+  cd: 400,
+  c: 100,
+  xc: 90,
+  l: 50,
+  xl: 40,
+  x: 10,
+  ix: 9,
+  v: 5,
+  iv: 4,
+  i: 1,
+});
+// Implement the lower-roman 'additive' algorithm,
+// adjusting for indexing from 0 rather than 1.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#simple-numeric
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#additive-system
+const lowerRomanTextForIndex = i => {
+  let value = i + 1;
+  let S = '';
+  for (const [symbol, weight] of weightedLowerRomanSymbols) {
+    if (!value) break;
+    if (weight > value) continue;
+    const reps = Math.floor(value / weight);
+    S += symbol.repeat(reps);
+    value -= weight * reps;
+  }
+  return S;
+};
+
+// Memoize pure index-to-text functions with an exposed cache for fast retrieval.
+const makeCounter = (pureGetTextForIndex, precomputeCount = 30) => {
+  const cache = Array.from({ length: precomputeCount }, (_, i) => pureGetTextForIndex(i));
+  const getTextForIndex = i => {
+    if (i >= cache.length) cache[i] = pureGetTextForIndex(i);
+    return cache[i];
+  };
+  return { getTextForIndex, cache };
+};
+
+const counterByStyle = {
+  __proto__: null,
+  decimal: makeCounter(i => String(i + 1)),
+  'lower-alpha': makeCounter(lowerAlphaTextForIndex),
+  'upper-alpha': makeCounter(i => lowerAlphaTextForIndex(i).toUpperCase()),
+  'lower-roman': makeCounter(lowerRomanTextForIndex),
+  'upper-roman': makeCounter(i => lowerRomanTextForIndex(i).toUpperCase()),
+};
+const fallbackCounter = makeCounter(() => '?');
+const counterByDepth = [];
+
+function addStepNumberText(
+  ol,
+  depth = 0,
+  special = [...ol.classList].some(c => c.startsWith('nested-'))
+) {
+  let counter = !special && counterByDepth[depth];
+  if (!counter) {
+    const counterStyle = getComputedStyle(ol)['list-style-type'];
+    counter = counterByStyle[counterStyle];
+    if (!counter) {
+      console.warn('unsupported list-style-type', {
+        ol,
+        counterStyle,
+        id: ol.closest('[id]')?.getAttribute('id'),
+      });
+      counterByStyle[counterStyle] = fallbackCounter;
+      counter = fallbackCounter;
+    }
+    if (!special) {
+      counterByDepth[depth] = counter;
+    }
+  }
+  const { cache, getTextForIndex } = counter;
+  let i = (Number(ol.getAttribute('start')) || 1) - 1;
+  for (const li of ol.children) {
+    const marker = document.createElement('span');
+    marker.textContent = `${i < cache.length ? cache[i] : getTextForIndex(i)}. `;
+    marker.setAttribute('aria-hidden', 'true');
+    li.prepend(marker);
+    for (const sublist of li.querySelectorAll(':scope > ol')) {
+      addStepNumberText(sublist, depth + 1, special);
+    }
+    i++;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('emu-alg > ol').forEach(ol => {
+    addStepNumberText(ol);
+  });
+});
+
+let sdoMap = JSON.parse(`{}`);
+let biblio = JSON.parse(`{"refsByClause":{"sec-hostloadimportedmodule":["_ref_0","_ref_5"],"sec-semantics":["_ref_1","_ref_14","_ref_15","_ref_16","_ref_17","_ref_18"],"sec-evaluate-import-call":["_ref_2","_ref_3","_ref_4"],"sec-FinishLoadingImportedModule":["_ref_6"],"sec-assert-clause-early-errors":["_ref_7"],"sec-assert-clause-to-assertions":["_ref_8","_ref_9","_ref_10","_ref_11","_ref_12"],"sec-modulerequest-record":["_ref_13"],"sec-static-semantics-modulerequests":["_ref_19","_ref_20","_ref_21","_ref_22","_ref_23","_ref_24"],"sec-host-integration":["_ref_25","_ref_26","_ref_27"]},"entries":[{"type":"clause","id":"intro","titleHTML":"import assertions","number":""},{"type":"clause","id":"sec-syntax","titleHTML":"Syntax","number":"1"},{"type":"clause","id":"sec-evaluate-import-call","title":"EvaluateImportCall ( specifierExpression [ , optionsExpression ] )","titleHTML":"EvaluateImportCall ( <var>specifierExpression</var> [ , <var>optionsExpression</var> ] )","number":"2.1.1.1"},{"type":"clause","id":"sec-import-call-runtime-semantics-evaluation","titleHTML":"Runtime Semantics: Evaluation","number":"2.1.1"},{"type":"clause","id":"sec-import-calls","titleHTML":"Import Calls","number":"2.1","referencingIds":["_ref_0"]},{"type":"op","aoid":"HostLoadImportedModule","refId":"sec-hostloadimportedmodule"},{"type":"clause","id":"sec-hostloadimportedmodule","title":"HostLoadImportedModule ( referrer, specifiermoduleRequest, hostDefined, payload )","titleHTML":"HostLoadImportedModule ( <var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>hostDefined</var>, <var>payload</var> )","number":"2.2","referencingIds":["_ref_4","_ref_25"]},{"type":"clause","id":"sec-FinishLoadingImportedModule-AssertionsEqual","title":"AssertionsEqual(left, right)","titleHTML":"<ins>AssertionsEqual(<var>left</var>, <var>right</var>)</ins>","number":"2.3.1"},{"type":"clause","id":"sec-FinishLoadingImportedModule","title":"FinishLoadingImportedModule ( referrer, specifiermoduleRequest, payload, result )","titleHTML":"FinishLoadingImportedModule ( <var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>payload</var>, <var>result</var> )","number":"2.3"},{"type":"op","aoid":"HostGetSupportedImportAssertions","refId":"sec-hostgetsupportedimportassertions"},{"type":"clause","id":"sec-hostgetsupportedimportassertions","titleHTML":"Static Semantics: HostGetSupportedImportAssertions ()","number":"2.4","referencingIds":["_ref_2","_ref_9","_ref_10"]},{"type":"clause","id":"sec-assert-clause-early-errors","titleHTML":"Static Semantics: Early Errors","number":"2.5"},{"type":"op","aoid":"AssertClauseToAssertions","refId":"sec-assert-clause-to-assertions"},{"type":"clause","id":"sec-assert-clause-to-assertions","titleHTML":"Static Semantics: AssertClauseToAssertions","number":"2.6","referencingIds":["_ref_7","_ref_8","_ref_11","_ref_12","_ref_20","_ref_23"]},{"type":"clause","id":"sec-assertion-key-string-value","titleHTML":"Static Semantics: StringValue","number":"2.7"},{"type":"term","term":"ModuleRequest Record","refId":"sec-modulerequest-record"},{"type":"table","id":"table-modulerequest-fields","number":1,"caption":"Table 1: ModuleRequest Record fields"},{"type":"clause","id":"sec-modulerequest-record","titleHTML":"ModuleRequest Records","number":"2.8","referencingIds":["_ref_3","_ref_5","_ref_6","_ref_13","_ref_14","_ref_17","_ref_18","_ref_19","_ref_21","_ref_22","_ref_24","_ref_26","_ref_27"]},{"type":"table","id":"table-cyclic-module-fields","number":2,"caption":"Table 2: Additional Fields of Cyclic Module Records"},{"type":"term","term":"ImportEntry Record","id":"importentry-record","referencingIds":["_ref_15","_ref_16"]},{"type":"table","id":"table-39","number":3,"caption":"Table 3: ImportEntry Record Fields","referencingIds":["_ref_1"]},{"type":"clause","id":"sec-static-semantics-modulerequests","titleHTML":"Static Semantics: ModuleRequests","number":"2.9"},{"type":"clause","id":"sec-semantics","titleHTML":"Semantics","number":"2"},{"type":"clause","id":"sec-host-integration","titleHTML":"Sample host integration: The Web embedding","number":"A"}]}`);
+;let usesMultipage = false</script><style>body {
+  display: flex;
+  word-wrap: break-word;
+  font-size: 18px;
+  line-height: 1.5;
+  font-family: Cambria, Palatino Linotype, Palatino, Liberation Serif, serif;
+  padding: 0;
+  margin: 0;
+  color: #111;
+}
+
+#spec-container {
+  padding: 0 20px;
+  flex-grow: 1;
+  flex-basis: 66%;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding-bottom: 1em;
+}
+
+body.oldtoc {
+  margin: 0 auto;
+}
+
+a {
+  text-decoration: none;
+  color: #206ca7;
+}
+
+a:visited {
+  color: #206ca7;
+}
+
+a:hover {
+  text-decoration: underline;
+  color: #239dee;
+}
+
+a.e-user-code,
+span.e-user-code {
+  white-space: nowrap;
+}
+
+a.e-user-code::before,
+span.e-user-code::before {
+  display: none;
+  color: brown;
+  background-color: white;
+  border: 2pt solid brown;
+  padding: 0.3ex;
+  margin: 0 0.25em 0 0;
+  line-height: 1;
+  vertical-align: text-top;
+  text-transform: uppercase;
+  font-family: 'Comic Code', sans-serif;
+  font-weight: 900;
+  font-size: x-small;
+}
+
+a.e-user-code:hover::before,
+span.e-user-code:hover::before {
+  background-color: brown;
+  color: white;
+}
+
+html.show-ao-annotations a.e-user-code::before,
+html.show-ao-annotations span.e-user-code::before {
+  display: inline-block;
+}
+
+a.e-user-code::before,
+span.e-user-code::before {
+  content: 'UC';
+}
+
+code {
+  font-weight: bold;
+  font-family: Consolas, Monaco, monospace;
+  white-space: pre;
+}
+
+pre code {
+  font-weight: inherit;
+}
+
+pre code.hljs {
+  background-color: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+ol.toc {
+  list-style: none;
+  padding-left: 0;
+}
+
+ol.toc ol.toc {
+  padding-left: 2ex;
+  list-style: none;
+}
+
+var {
+  color: #2aa198;
+  transition: background-color 0.25s ease;
+  cursor: pointer;
+}
+
+var.referenced0 {
+  color: inherit;
+  background-color: #ffff33;
+  box-shadow: 0 0 0 2px #ffff33;
+}
+var.referenced1 {
+  color: inherit;
+  background-color: #ff87a2;
+  box-shadow: 0 0 0 2px #ff87a2;
+}
+var.referenced2 {
+  color: inherit;
+  background-color: #96e885;
+  box-shadow: 0 0 0 2px #96e885;
+}
+var.referenced3 {
+  color: inherit;
+  background-color: #3eeed2;
+  box-shadow: 0 0 0 2px #3eeed2;
+}
+var.referenced4 {
+  color: inherit;
+  background-color: #eacfb6;
+  box-shadow: 0 0 0 2px #eacfb6;
+}
+var.referenced5 {
+  color: inherit;
+  background-color: #82ddff;
+  box-shadow: 0 0 0 2px #82ddff;
+}
+var.referenced6 {
+  color: inherit;
+  background-color: #ffbcf2;
+  box-shadow: 0 0 0 2px #ffbcf2;
+}
+
+emu-const {
+  font-family: sans-serif;
+}
+
+emu-val {
+  font-weight: bold;
+}
+
+/* depth 1 */
+emu-alg ol,
+/* depth 4 */
+emu-alg ol ol ol ol,
+emu-alg ol.nested-thrice,
+emu-alg ol.nested-twice ol,
+emu-alg ol.nested-once ol ol {
+  list-style-type: decimal;
+}
+
+/* depth 2 */
+emu-alg ol ol,
+emu-alg ol.nested-once,
+/* depth 5 */
+emu-alg ol ol ol ol ol,
+emu-alg ol.nested-four-times,
+emu-alg ol.nested-thrice ol,
+emu-alg ol.nested-twice ol ol,
+emu-alg ol.nested-once ol ol ol {
+  list-style-type: lower-alpha;
+}
+
+/* depth 3 */
+emu-alg ol ol ol,
+emu-alg ol.nested-twice,
+emu-alg ol.nested-once ol,
+/* depth 6 */
+emu-alg ol ol ol ol ol ol,
+emu-alg ol.nested-lots,
+emu-alg ol.nested-four-times ol,
+emu-alg ol.nested-thrice ol ol,
+emu-alg ol.nested-twice ol ol ol,
+emu-alg ol.nested-once ol ol ol ol,
+/* depth 7+ */
+emu-alg ol.nested-lots ol {
+  list-style-type: lower-roman;
+}
+
+emu-alg [aria-hidden=true] {
+  font-size: 0;
+}
+
+emu-eqn {
+  display: block;
+  margin-left: 4em;
+}
+
+emu-eqn.inline {
+  display: inline;
+  margin: 0;
+}
+
+emu-eqn div:first-child {
+  margin-left: -2em;
+}
+
+emu-note {
+  margin: 1em 0;
+  display: flex;
+  flex-direction: row;
+  color: inherit;
+  border-left: 5px solid #52e052;
+  background: #e9fbe9;
+  padding: 10px 10px 10px 0;
+}
+
+emu-note > span.note {
+  flex-basis: 100px;
+  min-width: 100px;
+  flex-grow: 0;
+  flex-shrink: 1;
+  text-transform: uppercase;
+  padding-left: 5px;
+}
+
+emu-note[type='editor'] {
+  border-left-color: #faa;
+}
+
+emu-note > div.note-contents {
+  flex-grow: 1;
+  flex-shrink: 1;
+  overflow: auto;
+}
+
+emu-note > div.note-contents > p:first-of-type {
+  margin-top: 0;
+}
+
+emu-note > div.note-contents > p:last-of-type {
+  margin-bottom: 0;
+}
+
+emu-table:not(.code) td code {
+  white-space: normal;
+}
+
+emu-figure {
+  display: block;
+}
+
+emu-example {
+  display: block;
+  margin: 1em 3em;
+}
+
+emu-example figure figcaption {
+  margin-top: 0.5em;
+  text-align: left;
+}
+
+emu-figure figure,
+emu-example figure,
+emu-table figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+emu-production {
+  display: block;
+}
+
+emu-grammar[type='example'] emu-production,
+emu-grammar[type='definition'] emu-production {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  margin-left: 5ex;
+}
+
+emu-grammar.inline,
+emu-production.inline,
+emu-grammar.inline emu-production emu-rhs,
+emu-production.inline emu-rhs,
+emu-grammar[collapsed] emu-production emu-rhs {
+  display: inline;
+  padding-left: 1ex;
+  margin-left: 0;
+}
+
+emu-production[collapsed] emu-rhs {
+  display: inline;
+  padding-left: 0.5ex;
+  margin-left: 0;
+}
+
+emu-grammar[collapsed] emu-production,
+emu-production[collapsed] {
+  margin: 0;
+}
+
+emu-constraints {
+  font-size: 0.75em;
+  margin-right: 0.5ex;
+}
+
+emu-gann {
+  margin-right: 0.5ex;
+}
+
+emu-gann emu-t:last-child,
+emu-gann emu-gprose:last-child,
+emu-gann emu-nt:last-child {
+  margin-right: 0;
+}
+
+emu-geq {
+  margin-left: 0.5ex;
+  font-weight: bold;
+}
+
+emu-oneof {
+  font-weight: bold;
+  margin-left: 0.5ex;
+}
+
+emu-nt {
+  display: inline-block;
+  font-style: italic;
+  white-space: nowrap;
+  text-indent: 0;
+}
+
+emu-nt a,
+emu-nt a:visited {
+  color: #333;
+}
+
+emu-rhs emu-nt {
+  margin-right: 0.5ex;
+}
+
+emu-t {
+  display: inline-block;
+  font-family: monospace;
+  font-weight: bold;
+  white-space: nowrap;
+  text-indent: 0;
+}
+
+emu-production emu-t {
+  margin-right: 0.5ex;
+}
+
+emu-rhs {
+  display: block;
+  padding-left: 75px;
+  text-indent: -25px;
+}
+
+emu-production:not([collapsed]) emu-rhs {
+  border: 0.2ex dashed transparent;
+}
+
+emu-production:not([collapsed]) emu-rhs:hover {
+  border-color: #888;
+  background-color: #f0f0f0;
+}
+
+emu-mods {
+  font-size: 0.85em;
+  vertical-align: sub;
+  font-style: normal;
+  font-weight: normal;
+}
+
+emu-params,
+emu-opt {
+  margin-right: 1ex;
+  font-family: monospace;
+}
+
+emu-params,
+emu-constraints {
+  color: #2aa198;
+}
+
+emu-opt {
+  color: #b58900;
+}
+
+emu-gprose {
+  font-size: 0.9em;
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+emu-production emu-gprose {
+  margin-right: 1ex;
+}
+
+h1.shortname {
+  color: #f60;
+  font-size: 1.5em;
+  margin: 0;
+}
+
+h1.version {
+  color: #f60;
+  font-size: 1.5em;
+}
+
+h1.title {
+  color: #f60;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  position: relative;
+}
+
+h1 .secnum {
+  text-decoration: none;
+  margin-right: 5px;
+}
+
+h1 span.title {
+  order: 2;
+}
+
+h1 {
+  font-size: 2.67em;
+  margin-bottom: 0;
+  line-height: 1em;
+}
+h2 {
+  font-size: 2em;
+}
+h3 {
+  font-size: 1.56em;
+}
+h4 {
+  font-size: 1.25em;
+}
+h5 {
+  font-size: 1.11em;
+}
+h6 {
+  font-size: 1em;
+}
+
+pre code.hljs {
+  background: transparent;
+}
+
+emu-clause[id],
+emu-annex[id],
+emu-intro[id] {
+  scroll-margin-top: 2ex;
+}
+
+emu-intro h1,
+emu-clause h1,
+emu-annex h1 {
+  font-size: 2em;
+}
+emu-intro h2,
+emu-clause h2,
+emu-annex h2 {
+  font-size: 1.56em;
+}
+emu-intro h3,
+emu-clause h3,
+emu-annex h3 {
+  font-size: 1.25em;
+}
+emu-intro h4,
+emu-clause h4,
+emu-annex h4 {
+  font-size: 1.11em;
+}
+emu-intro h5,
+emu-clause h5,
+emu-annex h5 {
+  font-size: 1em;
+}
+emu-intro h6,
+emu-clause h6,
+emu-annex h6 {
+  font-size: 0.9em;
+}
+emu-intro emu-intro h1,
+emu-clause emu-clause h1,
+emu-annex emu-annex h1 {
+  font-size: 1.56em;
+}
+emu-intro emu-intro h2,
+emu-clause emu-clause h2,
+emu-annex emu-annex h2 {
+  font-size: 1.25em;
+}
+emu-intro emu-intro h3,
+emu-clause emu-clause h3,
+emu-annex emu-annex h3 {
+  font-size: 1.11em;
+}
+emu-intro emu-intro h4,
+emu-clause emu-clause h4,
+emu-annex emu-annex h4 {
+  font-size: 1em;
+}
+emu-intro emu-intro h5,
+emu-clause emu-clause h5,
+emu-annex emu-annex h5 {
+  font-size: 0.9em;
+}
+emu-intro emu-intro emu-intro h1,
+emu-clause emu-clause emu-clause h1,
+emu-annex emu-annex emu-annex h1 {
+  font-size: 1.25em;
+}
+emu-intro emu-intro emu-intro h2,
+emu-clause emu-clause emu-clause h2,
+emu-annex emu-annex emu-annex h2 {
+  font-size: 1.11em;
+}
+emu-intro emu-intro emu-intro h3,
+emu-clause emu-clause emu-clause h3,
+emu-annex emu-annex emu-annex h3 {
+  font-size: 1em;
+}
+emu-intro emu-intro emu-intro h4,
+emu-clause emu-clause emu-clause h4,
+emu-annex emu-annex emu-annex h4 {
+  font-size: 0.9em;
+}
+emu-intro emu-intro emu-intro emu-intro h1,
+emu-clause emu-clause emu-clause emu-clause h1,
+emu-annex emu-annex emu-annex emu-annex h1 {
+  font-size: 1.11em;
+}
+emu-intro emu-intro emu-intro emu-intro h2,
+emu-clause emu-clause emu-clause emu-clause h2,
+emu-annex emu-annex emu-annex emu-annex h2 {
+  font-size: 1em;
+}
+emu-intro emu-intro emu-intro emu-intro h3,
+emu-clause emu-clause emu-clause emu-clause h3,
+emu-annex emu-annex emu-annex emu-annex h3 {
+  font-size: 0.9em;
+}
+emu-intro emu-intro emu-intro emu-intro emu-intro h1,
+emu-clause emu-clause emu-clause emu-clause emu-clause h1,
+emu-annex emu-annex emu-annex emu-annex emu-annex h1 {
+  font-size: 1em;
+}
+emu-intro emu-intro emu-intro emu-intro emu-intro h2,
+emu-clause emu-clause emu-clause emu-clause emu-clause h2,
+emu-annex emu-annex emu-annex emu-annex emu-annex h2 {
+  font-size: 0.9em;
+}
+emu-intro emu-intro emu-intro emu-intro emu-intro emu-intro h1,
+emu-clause emu-clause emu-clause emu-clause emu-clause emu-clause h1,
+emu-annex emu-annex emu-annex emu-annex emu-annex emu-annex h1 {
+  font-size: 0.9em;
+}
+
+emu-clause,
+emu-intro,
+emu-annex {
+  display: block;
+}
+
+/* these values are twice the font-size for the <h1> titles for clauses */
+emu-intro,
+emu-clause,
+emu-annex {
+  margin-top: 4em;
+}
+emu-intro emu-intro,
+emu-clause emu-clause,
+emu-annex emu-annex {
+  margin-top: 3.12em;
+}
+emu-intro emu-intro emu-intro,
+emu-clause emu-clause emu-clause,
+emu-annex emu-annex emu-annex {
+  margin-top: 2.5em;
+}
+emu-intro emu-intro emu-intro emu-intro,
+emu-clause emu-clause emu-clause emu-clause,
+emu-annex emu-annex emu-annex emu-annex {
+  margin-top: 2.22em;
+}
+emu-intro emu-intro emu-intro emu-intro emu-intro,
+emu-clause emu-clause emu-clause emu-clause emu-clause,
+emu-annex emu-annex emu-annex emu-annex emu-annex {
+  margin-top: 2em;
+}
+emu-intro emu-intro emu-intro emu-intro emu-intro emu-intro,
+emu-clause emu-clause emu-clause emu-clause emu-clause emu-clause,
+emu-annex emu-annex emu-annex emu-annex emu-annex emu-annex {
+  margin-top: 1.8em;
+}
+
+#spec-container > emu-intro:first-of-type,
+#spec-container > emu-clause:first-of-type,
+#spec-container > emu-annex:first-of-type {
+  margin-top: 0;
+}
+
+/* Figures and tables */
+figure {
+  display: block;
+  margin: 1em 0 3em 0;
+}
+figure object {
+  display: block;
+  margin: 0 auto;
+}
+figure table.real-table {
+  margin: 0 auto;
+}
+figure figcaption {
+  display: block;
+  color: #555555;
+  font-weight: bold;
+  text-align: center;
+}
+
+emu-table table {
+  margin: 0 auto;
+}
+
+emu-table table,
+table.real-table {
+  border-collapse: collapse;
+}
+
+emu-table td,
+emu-table th,
+table.real-table td,
+table.real-table th {
+  border: 1px solid black;
+  padding: 0.4em;
+  vertical-align: baseline;
+}
+emu-table th,
+emu-table thead td,
+table.real-table th {
+  background-color: #eeeeee;
+}
+
+emu-table td {
+  background: #fff;
+}
+
+/* Note: the left content edges of table.lightweight-table >tbody >tr >td
+   and div.display line up. */
+table.lightweight-table {
+  border-collapse: collapse;
+  margin: 0 0 0 1.5em;
+}
+table.lightweight-table td,
+table.lightweight-table th {
+  border: none;
+  padding: 0 0.5em;
+  vertical-align: baseline;
+}
+
+/* diff styles */
+ins {
+  background-color: #e0f8e0;
+  text-decoration: none;
+  border-bottom: 1px solid #396;
+}
+
+del {
+  background-color: #fee;
+}
+
+ins.block,
+del.block,
+emu-production > ins,
+emu-production > del,
+emu-grammar > ins,
+emu-grammar > del {
+  display: block;
+}
+emu-rhs > ins,
+emu-rhs > del {
+  display: inline;
+}
+
+tr.ins > td > ins {
+  border-bottom: none;
+}
+
+tr.ins > td {
+  background-color: #e0f8e0;
+}
+
+tr.del > td {
+  background-color: #fee;
+}
+
+/* Menu Styles */
+#menu-toggle {
+  font-size: 2em;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1.5em;
+  height: 1.5em;
+  z-index: 3;
+  visibility: hidden;
+  color: #1567a2;
+  background-color: #fff;
+
+  line-height: 1.5em;
+  text-align: center;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  cursor: pointer;
+}
+
+#menu {
+  display: flex;
+  flex-direction: column;
+  width: 33%;
+  height: 100vh;
+  max-width: 500px;
+  box-sizing: border-box;
+  background-color: #ddd;
+  overflow: hidden;
+  transition: opacity 0.1s linear;
+  padding: 0 5px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  border-right: 2px solid #bbb;
+
+  z-index: 2;
+}
+
+.menu-spacer {
+  flex-basis: 33%;
+  max-width: 500px;
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+#menu a {
+  color: #1567a2;
+}
+
+#menu.active {
+  display: flex;
+  opacity: 1;
+  z-index: 2;
+}
+
+#menu-pins {
+  flex-grow: 1;
+  display: none;
+}
+
+#menu-pins.active {
+  display: block;
+}
+
+#menu-pins-list {
+  margin: 0;
+  padding: 0;
+  counter-reset: pins-counter;
+}
+
+#menu-pins-list > li:before {
+  content: counter(pins-counter);
+  counter-increment: pins-counter;
+  display: inline-block;
+  width: 25px;
+  text-align: center;
+  border: 1px solid #bbb;
+  padding: 2px;
+  margin: 4px;
+  box-sizing: border-box;
+  line-height: 1em;
+  background-color: #ccc;
+  border-radius: 4px;
+}
+#menu-toc > ol {
+  padding: 0;
+  flex-grow: 1;
+}
+
+#menu-toc > ol li {
+  padding: 0;
+}
+
+#menu-toc > ol,
+#menu-toc > ol ol {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#menu-toc > ol ol {
+  padding-left: 0.75em;
+}
+
+#menu-toc li {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+#menu-toc .item-toggle {
+  display: inline-block;
+  transform: rotate(-45deg) translate(-5px, -5px);
+  transition: transform 0.1s ease;
+  text-align: center;
+  width: 20px;
+
+  color: #aab;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  cursor: pointer;
+}
+
+#menu-toc .item-toggle-none {
+  display: inline-block;
+  width: 20px;
+}
+
+#menu-toc li.active > .item-toggle {
+  transform: rotate(45deg) translate(-5px, -5px);
+}
+
+#menu-toc li > ol {
+  display: none;
+}
+
+#menu-toc li.active > ol {
+  display: block;
+}
+
+#menu-toc li.revealed > a {
+  background-color: #bbb;
+  font-weight: bold;
+  /*
+  background-color: #222;
+  color: #c6d8e4;
+  */
+}
+
+#menu-toc li.revealed-leaf > a {
+  color: #206ca7;
+  /*
+  background-color: #222;
+  color: #c6d8e4;
+  */
+}
+
+#menu-toc li.revealed > .item-toggle {
+  transform: rotate(45deg) translate(-5px, -5px);
+}
+
+#menu-toc li.revealed > ol {
+  display: block;
+}
+
+#menu-toc li > a {
+  padding: 2px 5px;
+}
+
+#menu > * {
+  margin-bottom: 5px;
+}
+
+.menu-pane-header {
+  padding: 0 5px;
+  text-transform: uppercase;
+  background-color: #aaa;
+  color: #335;
+  font-weight: bold;
+  letter-spacing: 2px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  font-size: 0.8em;
+}
+
+.menu-pane-header emu-opt,
+.menu-pane-header emu-t,
+.menu-pane-header emu-nt {
+  margin-right: 0px;
+  display: inline;
+  color: inherit;
+}
+
+.menu-pane-header emu-rhs {
+  display: inline;
+  padding-left: 0px;
+  text-indent: 0px;
+}
+
+.menu-pane-header emu-geq {
+  margin-left: 0px;
+}
+
+a.menu-pane-header-production {
+  color: inherit;
+}
+
+.menu-pane-header-production {
+  text-transform: none;
+  letter-spacing: 1.5px;
+  padding-left: 0.5em;
+}
+
+#menu-toc {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+#menu-toc ol.toc {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#menu-search {
+  position: relative;
+  flex-grow: 0;
+  flex-shrink: 0;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  max-height: 300px;
+}
+
+#menu-trace-list {
+  display: none;
+}
+
+#menu-search-box {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  margin: 5px 0 0 0;
+  font-size: 1em;
+  padding: 2px;
+  background-color: #bbb;
+  border: 1px solid #999;
+}
+
+#menu-search-results {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+li.menu-search-result-clause:before {
+  content: 'clause';
+  width: 40px;
+  display: inline-block;
+  text-align: right;
+  padding-right: 1ex;
+  color: #666;
+  font-size: 75%;
+}
+li.menu-search-result-op:before {
+  content: 'op';
+  width: 40px;
+  display: inline-block;
+  text-align: right;
+  padding-right: 1ex;
+  color: #666;
+  font-size: 75%;
+}
+
+li.menu-search-result-prod:before {
+  content: 'prod';
+  width: 40px;
+  display: inline-block;
+  text-align: right;
+  padding-right: 1ex;
+  color: #666;
+  font-size: 75%;
+}
+
+li.menu-search-result-term:before {
+  content: 'term';
+  width: 40px;
+  display: inline-block;
+  text-align: right;
+  padding-right: 1ex;
+  color: #666;
+  font-size: 75%;
+}
+
+#menu-search-results ul {
+  padding: 0 5px;
+  margin: 0;
+}
+
+#menu-search-results li {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+#menu-trace-list {
+  counter-reset: item;
+  margin: 0 0 0 20px;
+  padding: 0;
+}
+#menu-trace-list li {
+  display: block;
+  white-space: nowrap;
+}
+
+#menu-trace-list li .secnum:after {
+  content: ' ';
+}
+#menu-trace-list li:before {
+  content: counter(item) ' ';
+  background-color: #222;
+  counter-increment: item;
+  color: #999;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  display: inline-block;
+  text-align: center;
+  margin: 2px 4px 2px 0;
+}
+
+@media (max-width: 1000px) {
+  body {
+    margin: 0;
+    display: block;
+  }
+
+  #menu {
+    display: none;
+    padding-top: 3em;
+    width: 450px;
+  }
+
+  #menu.active {
+    position: fixed;
+    height: 100%;
+    left: 0;
+    top: 0;
+    right: 300px;
+  }
+
+  #menu-toggle {
+    visibility: visible;
+  }
+
+  #spec-container {
+    padding: 0 5px;
+  }
+
+  #references-pane-spacer {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 800px) {
+  #menu {
+    width: 100%;
+  }
+
+  h1 .secnum:empty {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Toolbox */
+.toolbox-container {
+  position: absolute;
+  display: none;
+  padding-bottom: 7px;
+}
+
+.toolbox-container.active {
+  display: inline-block;
+}
+
+.toolbox {
+  position: relative;
+  background: #ddd;
+  border: 1px solid #aaa;
+  color: #eee;
+  padding: 5px;
+  border-radius: 3px;
+}
+
+.toolbox a {
+  text-decoration: none;
+  padding: 0 5px;
+}
+
+.toolbox a:hover {
+  text-decoration: underline;
+}
+
+.toolbox:after,
+.toolbox:before {
+  top: 100%;
+  left: 15px;
+  border: solid transparent;
+  content: ' ';
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+.toolbox:after {
+  border-color: rgba(0, 0, 0, 0);
+  border-top-color: #ddd;
+  border-width: 10px;
+  margin-left: -10px;
+}
+.toolbox:before {
+  border-color: rgba(204, 204, 204, 0);
+  border-top-color: #aaa;
+  border-width: 12px;
+  margin-left: -12px;
+}
+
+#references-pane-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 250px;
+  display: none;
+  background-color: #ddd;
+  z-index: 1;
+}
+
+#references-pane-table-container {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#references-pane {
+  flex-grow: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#references-pane-container.active {
+  display: flex;
+}
+
+#references-pane-close:after {
+  content: '✖';
+  float: right;
+  cursor: pointer;
+}
+
+#references-pane table tbody {
+  vertical-align: baseline;
+}
+
+#references-pane table tr td:first-child {
+  text-align: right;
+  padding-right: 5px;
+}
+
+@media print {
+  #menu-toggle {
+    display: none;
+  }
+}
+
+[normative-optional],
+[legacy] {
+  border-left: 5px solid #ff6600;
+  padding: 0.5em;
+  display: block;
+  background: #ffeedd;
+}
+
+.clause-attributes-tag {
+  text-transform: uppercase;
+  color: #884400;
+}
+
+.clause-attributes-tag a {
+  color: #884400;
+}
+
+/* Shortcuts help dialog */
+
+#shortcuts-help {
+  position: fixed;
+  left: 5%;
+  margin: 0 auto;
+  right: 5%;
+  z-index: 10;
+  top: 10%;
+  top: calc(5vw + 5vh);
+  padding: 30px 90px;
+  max-width: 500px;
+  outline: solid 10000px rgba(255, 255, 255, 0.6);
+  border-radius: 5px;
+  border-width: 1px 1px 0 1px;
+  background-color: #ddd;
+  display: none;
+}
+
+#shortcuts-help.active {
+  display: block;
+}
+
+#shortcuts-help ul {
+  padding: 0;
+}
+
+#shortcuts-help li {
+  display: flex;
+  justify-content: space-between;
+}
+
+#shortcuts-help code {
+  padding: 3px 10px;
+  border-radius: 3px;
+  border-width: 1px 1px 0 1px;
+  border-color: #bbb;
+  background-color: #eee;
+  box-shadow: inset 0 -1px 0 #ccc;
+}
+</style></head><body><div id="shortcuts-help">
+<ul>
+  <li><span>Toggle shortcuts help</span><code>?</code></li>
+  <li><span>Toggle "can call user code" annotations</span><code>u</code></li>
+
+  <li><span>Jump to search box</span><code>/</code></li>
+</ul></div><div id="menu-toggle"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; stroke:currentColor" viewBox="0 0 120 120">
+      <title>Menu</title>
+      <path stroke-width="10" stroke-linecap="round" d="M30,60 h60  M30,30 m0,5 h60  M30,90 m0,-5 h60"></path>
+    </svg></div><div id="menu-spacer" class="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle-none"></span><a href="#intro" title="import assertions">import assertions</a></li><li><span class="item-toggle-none"></span><a href="#sec-syntax" title="Syntax"><span class="secnum">1</span> Syntax</a></li><li><span class="item-toggle">◢</span><a href="#sec-semantics" title="Semantics"><span class="secnum">2</span> Semantics</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-import-calls" title="Import Calls"><span class="secnum">2.1</span> Import Calls</a><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-import-call-runtime-semantics-evaluation" title="Runtime Semantics: Evaluation"><span class="secnum">2.1.1</span> RS: Evaluation</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-evaluate-import-call" title="EvaluateImportCall ( specifierExpression [ , optionsExpression ] )"><span class="secnum">2.1.1.1</span> EvaluateImportCall ( <var>specifierExpression</var> [ , <var>optionsExpression</var> ] )</a></li></ol></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-hostloadimportedmodule" title="HostLoadImportedModule ( referrer, specifiermoduleRequest, hostDefined, payload )"><span class="secnum">2.2</span> HostLoadImportedModule ( <var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>hostDefined</var>, <var>payload</var> )</a></li><li><span class="item-toggle">◢</span><a href="#sec-FinishLoadingImportedModule" title="FinishLoadingImportedModule ( referrer, specifiermoduleRequest, payload, result )"><span class="secnum">2.3</span> FinishLoadingImportedModule ( <var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>payload</var>, <var>result</var> )</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-FinishLoadingImportedModule-AssertionsEqual" title="AssertionsEqual(left, right)"><span class="secnum">2.3.1</span> <ins>AssertionsEqual(<var>left</var>, <var>right</var>)</ins></a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-hostgetsupportedimportassertions" title="Static Semantics: HostGetSupportedImportAssertions ()"><span class="secnum">2.4</span> SS: HostGetSupportedImportAssertions ()</a></li><li><span class="item-toggle-none"></span><a href="#sec-assert-clause-early-errors" title="Static Semantics: Early Errors"><span class="secnum">2.5</span> SS: Early Errors</a></li><li><span class="item-toggle-none"></span><a href="#sec-assert-clause-to-assertions" title="Static Semantics: AssertClauseToAssertions"><span class="secnum">2.6</span> SS: AssertClauseToAssertions</a></li><li><span class="item-toggle-none"></span><a href="#sec-assertion-key-string-value" title="Static Semantics: StringValue"><span class="secnum">2.7</span> SS: StringValue</a></li><li><span class="item-toggle-none"></span><a href="#sec-modulerequest-record" title="ModuleRequest Records"><span class="secnum">2.8</span> ModuleRequest Records</a></li><li><span class="item-toggle-none"></span><a href="#sec-static-semantics-modulerequests" title="Static Semantics: ModuleRequests"><span class="secnum">2.9</span> SS: ModuleRequests</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-host-integration" title="Sample host integration: The Web embedding"><span class="secnum">A</span> Sample host integration: The Web embedding</a></li></ol></div></div><div id="spec-container"><h1 class="version">Stage 2 Draft / February 10, 2023</h1>
+<emu-intro id="intro">
+  <h1>import assertions</h1>
+  <p>See <a href="https://github.com/tc39/proposal-import-assertions/blob/master/README.md">the explainer</a> for information.</p>
+</emu-intro>
+
+<emu-clause id="sec-syntax">
+  <h1><span class="secnum">1</span> Syntax</h1>
+
+  <emu-grammar><emu-production name="ImportDeclaration">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-ImportDeclaration">ImportDeclaration</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="glhuxxec">
+        <emu-t>import</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ImportClause">ImportClause</a></emu-nt>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs>
+    <emu-rhs a="odcuzpbi">
+        <emu-t>import</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleSpecifier">ModuleSpecifier</a></emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs>
+    <ins><emu-rhs a="lrw35o0v">
+        <emu-t>import</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ImportClause">ImportClause</a></emu-nt>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>
+        <emu-gann>[no <emu-nt><a href="https://tc39.es/ecma262/#prod-LineTerminator">LineTerminator</a></emu-nt> here]</emu-gann>
+        <emu-nt>AssertClause</emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs></ins>
+    <ins><emu-rhs a="jt0livql">
+        <emu-t>import</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleSpecifier">ModuleSpecifier</a></emu-nt>
+        <emu-gann>[no <emu-nt><a href="https://tc39.es/ecma262/#prod-LineTerminator">LineTerminator</a></emu-nt> here]</emu-gann>
+        <emu-nt>AssertClause</emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs></ins>
+</emu-production>
+<emu-production name="ExportDeclaration">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-ExportDeclaration">ExportDeclaration</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="4kqfdugp">
+        <emu-t>export</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ExportFromClause">ExportFromClause</a></emu-nt>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs>
+    <ins><emu-rhs a="q1gs8kh2">
+        <emu-t>export</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ExportFromClause">ExportFromClause</a></emu-nt>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>
+        <emu-gann>[no <emu-nt><a href="https://tc39.es/ecma262/#prod-LineTerminator">LineTerminator</a></emu-nt> here]</emu-gann>
+        <emu-nt>AssertClause</emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs></ins>
+    <emu-rhs a="j2lh_kda">
+        <emu-t>export</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-NamedExports">NamedExports</a></emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs>
+    <emu-rhs a="awunbvdu">
+        <emu-t>export</emu-t>
+        <emu-nt params="~Yield, ~Await"><a href="https://tc39.es/ecma262/#prod-VariableStatement">VariableStatement</a><emu-mods><emu-params>[~Yield, ~Await]</emu-params></emu-mods></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="a8mbl6ic">
+        <emu-t>export</emu-t>
+        <emu-nt params="~Yield, ~Await"><a href="https://tc39.es/ecma262/#prod-Declaration">Declaration</a><emu-mods><emu-params>[~Yield, ~Await]</emu-params></emu-mods></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="0pjhun9m">
+        <emu-t>export</emu-t>
+        <emu-t>default</emu-t>
+        <emu-nt params="~Yield, ~Await, +Default"><a href="https://tc39.es/ecma262/#prod-HoistableDeclaration">HoistableDeclaration</a><emu-mods><emu-params>[~Yield, ~Await, +Default]</emu-params></emu-mods></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="ridmvkht">
+        <emu-t>export</emu-t>
+        <emu-t>default</emu-t>
+        <emu-nt params="~Yield, ~Await, +Default"><a href="https://tc39.es/ecma262/#prod-ClassDeclaration">ClassDeclaration</a><emu-mods><emu-params>[~Yield, ~Await, +Default]</emu-params></emu-mods></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="4qwftn93">
+        <emu-t>export</emu-t>
+        <emu-t>default</emu-t>
+        <emu-gann>[lookahead ∉ { <emu-t>function</emu-t>, <emu-t>async</emu-t>
+        <emu-gann>[no <emu-nt><a href="https://tc39.es/ecma262/#prod-LineTerminator">LineTerminator</a></emu-nt> here]</emu-gann>
+        <emu-t>function</emu-t>, <emu-t>class</emu-t> }]</emu-gann>
+        <emu-nt params="+In, ~Yield, ~Await"><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a><emu-mods><emu-params>[+In, ~Yield, ~Await]</emu-params></emu-mods></emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs>
+</emu-production>
+<emu-production name="AssertClause">
+    <emu-nt>AssertClause</emu-nt> <emu-geq>:</emu-geq> <ins><emu-rhs a="uul2hn9u">
+        <emu-t>assert</emu-t>
+        <emu-t>{</emu-t>
+        <emu-t>}</emu-t>
+    </emu-rhs></ins>
+    <ins><emu-rhs a="ifkqczcb">
+        <emu-t>assert</emu-t>
+        <emu-t>{</emu-t>
+        <emu-nt>AssertEntries</emu-nt>
+        <emu-t optional="">,<emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-t>
+        <emu-t>}</emu-t>
+    </emu-rhs></ins>
+</emu-production>
+<emu-production name="AssertEntries">
+    <emu-nt>AssertEntries</emu-nt> <emu-geq>:</emu-geq> <ins><emu-rhs a="su9gfubp">
+        <emu-nt>AssertionKey</emu-nt>
+        <emu-t>:</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt>
+    </emu-rhs></ins>
+    <ins><emu-rhs a="lopyou-y">
+        <emu-nt>AssertionKey</emu-nt>
+        <emu-t>:</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt>
+        <emu-t>,</emu-t>
+        <emu-nt>AssertEntries</emu-nt>
+    </emu-rhs></ins>
+</emu-production>
+<emu-production name="AssertionKey">
+    <emu-nt>AssertionKey</emu-nt> <emu-geq>:</emu-geq> <ins><emu-rhs a="drsx4tka">
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-IdentifierName">IdentifierName</a></emu-nt>
+    </emu-rhs></ins>
+    <ins><emu-rhs a="xhtltz00">
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt>
+    </emu-rhs></ins>
+</emu-production>
+<emu-production name="ImportCall" params="Yield, Await">
+    <emu-nt params="Yield, Await"><a href="https://tc39.es/ecma262/#prod-ImportCall">ImportCall</a><emu-mods><emu-params>[Yield, Await]</emu-params></emu-mods></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="lxdwtaop">
+        <emu-t>import</emu-t>
+        <emu-t>(</emu-t>
+        <emu-nt params="+In, ?Yield, ?Await"><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a><emu-mods><emu-params>[+In, ?Yield, ?Await]</emu-params></emu-mods></emu-nt>
+        <ins><emu-t optional="">,<emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-t></ins>
+        <emu-t>)</emu-t>
+    </emu-rhs>
+    <ins><emu-rhs a="vxyviles">
+        <emu-t>import</emu-t>
+        <emu-t>(</emu-t>
+        <emu-nt params="+In, ?Yield, ?Await"><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a><emu-mods><emu-params>[+In, ?Yield, ?Await]</emu-params></emu-mods></emu-nt>
+        <emu-t>,</emu-t>
+        <emu-nt params="+In, ?Yield, ?Await"><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a><emu-mods><emu-params>[+In, ?Yield, ?Await]</emu-params></emu-mods></emu-nt>
+        <emu-t optional="">,<emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-t>
+        <emu-t>)</emu-t>
+    </emu-rhs></ins>
+</emu-production>
+</emu-grammar>
+</emu-clause>
+
+<emu-clause id="sec-semantics">
+  <h1><span class="secnum">2</span> Semantics</h1>
+
+  <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents"><p>Many productions operating on grammar are the same whether or not an <emu-nt>AssertClause</emu-nt>/second <emu-nt><a href="https://tc39.es/ecma262/#prod-ImportCall">ImportCall</a></emu-nt> parameter is included; the new parameter is ignored. In this section, only the semantically significant changes are included, and the PR to merge into the main specification would fill in the straightforward details.</p></div></emu-note>
+
+    <emu-clause id="sec-import-calls">
+      <h1><span class="secnum">2.1</span> Import Calls</h1>
+
+      <emu-clause id="sec-import-call-runtime-semantics-evaluation">
+        <h1><span class="secnum">2.1.1</span> Runtime Semantics: Evaluation</h1>
+
+        <emu-clause id="sec-evaluate-import-call">
+          <h1><span class="secnum">2.1.1.1</span> EvaluateImportCall ( <var>specifierExpression</var> [ , <var>optionsExpression</var> ] )</h1>
+          <emu-alg><ol><li>Let <var>referencingScriptOrModule</var> be !&nbsp;<emu-xref aoid="GetActiveScriptOrModule"><a href="https://tc39.es/ecma262/#sec-getactivescriptormodule">GetActiveScriptOrModule</a></emu-xref>().</li><li>Let <var>specifierRef</var> be the result of evaluating <var>specifierExpression</var>.</li><li>Let <var>specifier</var> be ?&nbsp;<emu-xref aoid="GetValue"><a href="https://tc39.es/ecma262/#sec-getvalue">GetValue</a></emu-xref>(<var>specifierRef</var>).</li><li>If <var>optionsExpression</var> is present, then<ol><li>Let <var>optionsRef</var> be the result of evaluating <var>optionsExpression</var>.</li><li>Let <var>options</var> be ?&nbsp;<emu-xref aoid="GetValue"><a href="https://tc39.es/ecma262/#sec-getvalue">GetValue</a></emu-xref>(<var>optionsRef</var>).</li></ol></li><li>Else,<ol><li>Let <var>options</var> be <emu-val>undefined</emu-val>.</li></ol></li><li>Let <var>promiseCapability</var> be !&nbsp;<emu-xref aoid="NewPromiseCapability"><a href="https://tc39.es/ecma262/#sec-newpromisecapability">NewPromiseCapability</a></emu-xref>(<emu-xref href="#sec-promise-constructor"><a href="https://tc39.es/ecma262/#sec-promise-constructor">%Promise%</a></emu-xref>).</li><li>Let <var>specifierString</var> be <emu-xref aoid="ToString"><a href="https://tc39.es/ecma262/#sec-tostring">ToString</a></emu-xref>(<var>specifier</var>).</li><li><emu-xref aoid="IfAbruptRejectPromise"><a href="https://tc39.es/ecma262/#sec-ifabruptrejectpromise">IfAbruptRejectPromise</a></emu-xref>(<var>specifierString</var>, <var>promiseCapability</var>).</li><li>Let <var>assertions</var> be a new empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref>.</li><li>If <var>options</var> is not <emu-val>undefined</emu-val>, then<ol><li>If <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>options</var>) is not Object,<ol><li>Perform !&nbsp;<emu-xref aoid="Call"><a href="https://tc39.es/ecma262/#sec-call">Call</a></emu-xref>(<var>promiseCapability</var>.[[Reject]], <emu-val>undefined</emu-val>, « a newly created <emu-val>TypeError</emu-val> object »).</li><li>Return <var>promiseCapability</var>.[[Promise]].</li></ol></li><li>Let <var>assertionsObj</var> be <emu-xref aoid="Get"><a href="https://tc39.es/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>options</var>, <emu-val>"assert"</emu-val>).</li><li><emu-xref aoid="IfAbruptRejectPromise"><a href="https://tc39.es/ecma262/#sec-ifabruptrejectpromise">IfAbruptRejectPromise</a></emu-xref>(<var>assertionsObj</var>, <var>promiseCapability</var>).</li><li>If <var>assertionsObj</var> is not <emu-val>undefined</emu-val>,<ol><li>If <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>assertionsObj</var>) is not Object,<ol><li>Perform !&nbsp;<emu-xref aoid="Call"><a href="https://tc39.es/ecma262/#sec-call">Call</a></emu-xref>(<var>promiseCapability</var>.[[Reject]], <emu-val>undefined</emu-val>, « a newly created <emu-val>TypeError</emu-val> object »).</li><li>Return <var>promiseCapability</var>.[[Promise]].</li></ol></li><li>Let <var>keys</var> be EnumerableOwnPropertyNames(<var>assertionsObj</var>, <emu-const>key</emu-const>).</li><li><emu-xref aoid="IfAbruptRejectPromise"><a href="https://tc39.es/ecma262/#sec-ifabruptrejectpromise">IfAbruptRejectPromise</a></emu-xref>(<var>keys</var>, <var>promiseCapability</var>).</li><li>Let <var>supportedAssertions</var> be !&nbsp;<emu-xref aoid="HostGetSupportedImportAssertions" id="_ref_2"><a href="#sec-hostgetsupportedimportassertions">HostGetSupportedImportAssertions</a></emu-xref>().</li><li>For each String <var>key</var> of <var>keys</var>,<ol><li>Let <var>value</var> be <emu-xref aoid="Get"><a href="https://tc39.es/ecma262/#sec-get-o-p">Get</a></emu-xref>(<var>assertionsObj</var>, <var>key</var>).</li><li><emu-xref aoid="IfAbruptRejectPromise"><a href="https://tc39.es/ecma262/#sec-ifabruptrejectpromise">IfAbruptRejectPromise</a></emu-xref>(<var>value</var>, <var>promiseCapability</var>).</li><li>If <emu-xref aoid="Type"><a href="https://tc39.es/ecma262/#sec-ecmascript-data-types-and-values">Type</a></emu-xref>(<var>value</var>) is not String, then<ol><li>Perform !&nbsp;<emu-xref aoid="Call"><a href="https://tc39.es/ecma262/#sec-call">Call</a></emu-xref>(<var>promiseCapability</var>.[[Reject]], <emu-val>undefined</emu-val>, « a newly created <emu-val>TypeError</emu-val> object »).</li><li>Return <var>promiseCapability</var>.[[Promise]].</li></ol></li><li>If <var>supportedAssertions</var> contains <var>key</var>, then<ol><li>Append { [[Key]]: <var>key</var>, [[Value]]: <var>value</var> } to <var>assertions</var>.</li></ol></li></ol></li></ol></li><li>Sort <var>assertions</var> by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that <emu-xref href="#host"><a href="https://tc39.es/ecma262/#host">hosts</a></emu-xref> are prohibited from distinguishing among assertions by the order they occur in.</li></ol></li><li>Let <var>moduleRequest</var> be a new <emu-xref href="#sec-modulerequest-record" id="_ref_3"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> { [[Specifier]]: <var>specifierString</var>, [[Assertions]]: <var>assertions</var> }.</li><li>Perform <emu-xref aoid="HostLoadImportedModule" id="_ref_4"><a href="#sec-hostloadimportedmodule">HostLoadImportedModule</a></emu-xref>(<var>referrer</var>, <var>moduleRequest</var>, <emu-const>empty</emu-const>, <var>promiseCapability</var>).</li><li>Return <var>promiseCapability</var>.[[Promise]].</li></ol></emu-alg>
+        </emu-clause>
+
+        <emu-grammar><emu-production name="ImportCall" collapsed="">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-ImportCall">ImportCall</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="rksumt7f">
+        <emu-t>import</emu-t>
+        <emu-t>(</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>
+        <emu-t optional="">,<emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-t>
+        <emu-t>)</emu-t>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+        <emu-alg><ol><li>Return ?&nbsp;EvaluateImportCall(<emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>).</li></ol></emu-alg>
+
+        <ins><emu-grammar><emu-production name="ImportCall" collapsed="">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-ImportCall">ImportCall</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="7jkmc6eq">
+        <emu-t>import</emu-t>
+        <emu-t>(</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>
+        <emu-t>,</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>
+        <emu-t optional="">,<emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-t>
+        <emu-t>)</emu-t>
+    </emu-rhs>
+</emu-production>
+</emu-grammar></ins>
+        <emu-alg><ol><li>Return ?&nbsp;EvaluateImportCall(the first <emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>, the second <emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>).</li></ol></emu-alg>
+      </emu-clause>
+    </emu-clause>
+
+      <emu-clause id="sec-hostloadimportedmodule" aoid="HostLoadImportedModule">
+        <h1><span class="secnum">2.2</span> HostLoadImportedModule ( <var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>hostDefined</var>, <var>payload</var> )</h1>
+        <p>The <emu-xref href="#host-defined"><a href="https://tc39.es/ecma262/#host-defined">host-defined</a></emu-xref> abstract operation HostLoadImportedModule takes arguments <var>referrer</var> (a <emu-xref href="#script-record"><a href="https://tc39.es/ecma262/#script-record">Script Record</a></emu-xref>, a <emu-xref href="#cyclic-module-record"><a href="https://tc39.es/ecma262/#cyclic-module-record">Cyclic Module Record</a></emu-xref>, or a <emu-xref href="#realm-record"><a href="https://tc39.es/ecma262/#realm-record">Realm Record</a></emu-xref>), <del><var>specifier</var> (a String)</del><ins><var>moduleRequest</var> (a <emu-xref href="#sec-modulerequest-record" id="_ref_5"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref>)</ins>, <var>hostDefined</var> (anything), and <var>payload</var> (a <emu-xref href="#graphloadingstate-record"><a href="https://tc39.es/ecma262/#graphloadingstate-record">GraphLoadingState Record</a></emu-xref> or a <emu-xref href="#sec-promisecapability-records"><a href="https://tc39.es/ecma262/#sec-promisecapability-records">PromiseCapability Record</a></emu-xref>) and returns <emu-const>unused</emu-const>.</p>
+
+        <emu-note><span class="note">Note</span><div class="note-contents">
+          <p>An example of when <var>referrer</var> can be a <emu-xref href="#realm-record"><a href="https://tc39.es/ecma262/#realm-record">Realm Record</a></emu-xref> is in a web browser <emu-xref href="#host"><a href="https://tc39.es/ecma262/#host">host</a></emu-xref>. There, if a user clicks on a control given by</p>
+
+          <pre><code class="html hljs"><span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"button"</span> <span class="hljs-attr">onclick</span>=<span class="hljs-string">"import('./foo.mjs')"</span>&gt;</span>Click me<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></code></pre>
+
+          <p>there will be no <emu-xref href="#job-activescriptormodule"><a href="https://tc39.es/ecma262/#job-activescriptormodule">active script or module</a></emu-xref> at the time the <emu-xref href="#sec-import-calls" id="_ref_0"><a href="#sec-import-calls"><code>import()</code></a></emu-xref> expression runs. More generally, this can happen in any situation where the <emu-xref href="#host"><a href="https://tc39.es/ecma262/#host">host</a></emu-xref> pushes <emu-xref href="#sec-execution-contexts"><a href="https://tc39.es/ecma262/#sec-execution-contexts">execution contexts</a></emu-xref> with <emu-val>null</emu-val> ScriptOrModule components onto the <emu-xref href="#execution-context-stack"><a href="https://tc39.es/ecma262/#execution-context-stack">execution context stack</a></emu-xref>.</p>
+        </div></emu-note>
+
+        <p>An implementation of HostLoadImportedModule must conform to the following requirements:</p>
+        <ul>
+          <li>
+            The <emu-xref href="#host-environment"><a href="https://tc39.es/ecma262/#host-environment">host environment</a></emu-xref> must perform <emu-xref aoid="FinishLoadingImportedModule"><a href="https://tc39.es/ecma262/#sec-FinishLoadingImportedModule">FinishLoadingImportedModule</a></emu-xref>(<var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>payload</var>, <var>result</var>), where <var>result</var> is either a <emu-xref href="#sec-completion-record-specification-type"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">normal completion containing</a></emu-xref> the loaded <emu-xref href="#sec-abstract-module-records"><a href="https://tc39.es/ecma262/#sec-abstract-module-records">Module Record</a></emu-xref> or a <emu-xref href="#sec-completion-record-specification-type"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">throw completion</a></emu-xref>, either synchronously or asynchronously.
+          </li>
+          <li>
+            <p>If this operation is called multiple times with the same <del>(<var>referrer</var>, <var>specifier</var>) pair</del><ins>(<var>referrer</var>, <var>moduleRequest</var>.[[Specifier]], <var>moduleRequest</var>.[[Assertions]]) triple</ins> and it performs <emu-xref aoid="FinishLoadingImportedModule"><a href="https://tc39.es/ecma262/#sec-FinishLoadingImportedModule">FinishLoadingImportedModule</a></emu-xref>(<var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>payload</var>, <var>result</var>) where <var>result</var> is a <emu-xref href="#sec-completion-record-specification-type"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">normal completion</a></emu-xref>, then it must perform <emu-xref aoid="FinishLoadingImportedModule"><a href="https://tc39.es/ecma262/#sec-FinishLoadingImportedModule">FinishLoadingImportedModule</a></emu-xref>(<var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>payload</var>, <var>result</var>) with the same <var>result</var> each time.</p>
+
+            <p><ins>It is recommended but not required that implementations additionally conform to the following stronger constraint:</ins></p>
+            <ul>
+              <li>
+                <ins>If this operation is called multiple times with the same (<var>referrer</var>, <var>moduleRequest</var>.[[Specifier]]) pair and it performs <emu-xref aoid="FinishLoadingImportedModule"><a href="https://tc39.es/ecma262/#sec-FinishLoadingImportedModule">FinishLoadingImportedModule</a></emu-xref>(<var>referrer</var>, <var>moduleRequest</var>, <var>payload</var>, <var>result</var>) where <var>result</var> is a <emu-xref href="#sec-completion-record-specification-type"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">normal completion</a></emu-xref>, then it must perform <emu-xref aoid="FinishLoadingImportedModule"><a href="https://tc39.es/ecma262/#sec-FinishLoadingImportedModule">FinishLoadingImportedModule</a></emu-xref>(<var>referrer</var>, <var>moduleRequest</var>, <var>payload</var>, <var>result</var>) with the same <var>result</var> each time.</ins>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <ins><var>moduleRequest</var>.[[Assertions]] must not influence the interpretation of the module or the module specifier; instead, it may be used to determine whether the algorithm completes normally or with an <emu-xref href="#sec-completion-record-specification-type"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">abrupt completion</a></emu-xref>.</ins>
+          </li>
+          <li>
+            The operation must treat <var>payload</var> as an opaque value to be passed through to <emu-xref aoid="FinishLoadingImportedModule"><a href="https://tc39.es/ecma262/#sec-FinishLoadingImportedModule">FinishLoadingImportedModule</a></emu-xref>.
+          </li>
+        </ul>
+
+        <p>The actual process performed is <emu-xref href="#host-defined"><a href="https://tc39.es/ecma262/#host-defined">host-defined</a></emu-xref>, but typically consists of performing whatever I/O operations are necessary to load the appropriate <emu-xref href="#sec-abstract-module-records"><a href="https://tc39.es/ecma262/#sec-abstract-module-records">Module Record</a></emu-xref>. Multiple different (<var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var>.[[Specifier]]</ins>) pairs may map to the same <emu-xref href="#sec-abstract-module-records"><a href="https://tc39.es/ecma262/#sec-abstract-module-records">Module Record</a></emu-xref> instance. The actual mapping semantic is <emu-xref href="#host-defined"><a href="https://tc39.es/ecma262/#host-defined">host-defined</a></emu-xref> but typically a normalization process is applied to <del><var>specifier</var></del><ins><var>moduleRequest</var>.[[Specifier]]</ins> as part of the mapping process. A typical normalization process would include actions such as expansion of relative and abbreviated path specifiers.</p>
+
+        <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents">
+          <p>The above text implies that is recommended but not required that <emu-xref href="#host"><a href="https://tc39.es/ecma262/#host">hosts</a></emu-xref> do not use <var>moduleRequest</var>.[[Assertions]] as part of the module cache key. In either case, an exception thrown from an import with a given assertion list does not rule out success of another import with the same specifier but a different assertion list.</p>
+          <p>Assertions do not affect the contents of the module. Future follow-up proposals may relax this restriction with "evaluator attributes" that would change the contents of the module. There are three possible ways to handle multiple imports of the same module with "evaluator attributes":</p>
+          <ul>
+            <li><strong>Race</strong> and use the attribute that was requested by the first import. This seems broken--the second usage is ignored.</li>
+            <li><strong>Reject</strong> the module graph and don't load if attributes differ. This seems bad for composition--using two unrelated packages together could break, if they load the same module with disagreeing attributes.</li>
+            <li><strong>Clone</strong> and make two copies of the module, for the different ways it's transformed. In this case, the attributes would have to be part of the cache key. These semantics would run counter to the intuition that there is just one copy of a module.</li>
+          </ul>
+          <p>It's possible that one of these three options may make sense for a module load, on a case-by-case basis by attribute, but it's worth careful thought before making this choice.</p>
+        </div></emu-note>
+      </emu-clause>
+
+      <emu-clause id="sec-FinishLoadingImportedModule" type="abstract operation">
+        <h1><span class="secnum">2.3</span> FinishLoadingImportedModule ( <var>referrer</var>, <del><var>specifier</var></del><ins><var>moduleRequest</var></ins>, <var>payload</var>, <var>result</var> )</h1>
+        <p>The abstract operation FinishLoadingImportedModule takes arguments <var>referrer</var> (a <emu-xref href="#script-record"><a href="https://tc39.es/ecma262/#script-record">Script Record</a></emu-xref>, a <emu-xref href="#cyclic-module-record"><a href="https://tc39.es/ecma262/#cyclic-module-record">Cyclic Module Record</a></emu-xref>, or a <emu-xref href="#realm-record"><a href="https://tc39.es/ecma262/#realm-record">Realm Record</a></emu-xref>), <del><var>specifier</var> (a String)</del><ins><var>moduleRequest</var> (a <emu-xref href="#sec-modulerequest-record" id="_ref_6"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref>)</ins>, <var>payload</var> (a <emu-xref href="#graphloadingstate-record"><a href="https://tc39.es/ecma262/#graphloadingstate-record">GraphLoadingState Record</a></emu-xref> or a <emu-xref href="#sec-promisecapability-records"><a href="https://tc39.es/ecma262/#sec-promisecapability-records">PromiseCapability Record</a></emu-xref>), and <var>result</var> (either a <emu-xref href="#sec-completion-record-specification-type"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">normal completion containing</a></emu-xref> a <emu-xref href="#sec-abstract-module-records"><a href="https://tc39.es/ecma262/#sec-abstract-module-records">Module Record</a></emu-xref> or a <emu-xref href="#sec-completion-record-specification-type"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">throw completion</a></emu-xref>) and returns <emu-const>unused</emu-const>.</p>
+
+        <emu-alg><ol><li>If <var>result</var> is a <emu-xref href="#sec-completion-record-specification-type"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">normal completion</a></emu-xref>, then<ol><li>If <var>referrer</var>.[[LoadedModules]] contains a <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> <var>record</var> such that <var>record</var>.[[Specifier]] is <var>moduleRequest</var>.[[Specifier]] <ins>and AssertionsEqual(<var>record</var>.[[Assertions]], <var>moduleRequest</var>.[[Assertions]]) is <emu-val>true</emu-val></ins>, then<ol><li><emu-xref href="#assert"><a href="https://tc39.es/ecma262/#assert">Assert</a></emu-xref>: <var>record</var>.[[Module]] is <var>result</var>.[[Value]].</li></ol></li><li>Else, add <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> { [[Specifier]]: <var>moduleRequest</var>.[[Specifier]], <ins>[[Assertions]]: <var>moduleRequest</var>.[[Assertions]]</ins>, [[Module]]: <var>result</var>.[[Value]] } to <var>referrer</var>.[[LoadedModules]].</li></ol></li><li>If <var>payload</var> is a <emu-xref href="#graphloadingstate-record"><a href="https://tc39.es/ecma262/#graphloadingstate-record">GraphLoadingState Record</a></emu-xref>, then<ol><li>Perform <emu-xref aoid="ContinueModuleLoading"><a href="https://tc39.es/ecma262/#sec-ContinueModuleLoading">ContinueModuleLoading</a></emu-xref>(<var>payload</var>, <var>result</var>).</li></ol></li><li>Else,<ol><li>Perform <emu-xref aoid="ContinueDynamicImport"><a href="https://tc39.es/ecma262/#sec-ContinueDynamicImport">ContinueDynamicImport</a></emu-xref>(<var>payload</var>, <var>result</var>).</li></ol></li><li>Return <emu-const>unused</emu-const>.</li></ol></emu-alg>
+
+        <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents">
+          <p>The description of the [[LoadedModules]] field of <emu-xref href="#realm-record"><a href="https://tc39.es/ecma262/#realm-record">Realm Record</a></emu-xref>, <emu-xref href="#script-record"><a href="https://tc39.es/ecma262/#script-record">Script Record</a></emu-xref>, and <emu-xref href="#cyclic-module-record"><a href="https://tc39.es/ecma262/#cyclic-module-record">Cyclic Module Record</a></emu-xref> should be updated to include the [[Assertions]] field.</p>
+        </div></emu-note>
+
+        <emu-clause id="sec-FinishLoadingImportedModule-AssertionsEqual" type="abstract operation">
+          <h1><span class="secnum">2.3.1</span> <ins>AssertionsEqual(<var>left</var>, <var>right</var>)</ins></h1>
+          <p>The abstract operation AssertionsEqual takes arguments <var>left</var> and <var>right</var> (two <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Lists</a></emu-xref> of <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Records</a></emu-xref> { [[Key]]: a String, [[Value]]: a String }), and returns a Boolean.</p>
+
+          <emu-alg><ol><li>If the number of elements in <var>left</var> is not the same as the number of elements in <var>right</var>, return <emu-val>false</emu-val>.</li><li>For each <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> { [[Key]], [[Value]] } <var>r</var> of <var>left</var>, do<ol><li>Let <var>found</var> be <emu-val>false</emu-val>.</li><li>For each <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> { [[Key]], [[Value]] } <var>s</var> of <var>right</var>, do<ol><li>If <var>r</var>.[[Key]] is <var>s</var>.[[Key]] and <var>r</var>.[[Value]] is <var>s</var>.[[Value]], then<ol><li>Set <var>found</var> to <emu-val>true</emu-val>.</li></ol></li></ol></li><li>If <var>found</var> is <emu-val>false</emu-val>, return <emu-val>false</emu-val>.</li></ol></li><li>Return <emu-val>true</emu-val>.</li></ol></emu-alg>
+        </emu-clause>
+      </emu-clause>
+
+  <emu-clause id="sec-hostgetsupportedimportassertions" aoid="HostGetSupportedImportAssertions">
+    <h1><span class="secnum">2.4</span> Static Semantics: HostGetSupportedImportAssertions ()</h1>
+    <p>
+      HostGetSupportedImportAssertions is a <emu-xref href="#host-defined"><a href="https://tc39.es/ecma262/#host-defined">host-defined</a></emu-xref> abstract operation that allows <emu-xref href="#host-environment"><a href="https://tc39.es/ecma262/#host-environment">host environments</a></emu-xref> to specify which import assertions they support.
+      Only assertions with supported keys will be provided to the <emu-xref href="#host"><a href="https://tc39.es/ecma262/#host">host</a></emu-xref>.
+    </p>
+
+    <p>The implementation of HostGetSupportedImportAssertions must conform to the following requrements:</p>
+
+    <ul>
+      <li>It must return a <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> whose values are all StringValues, each indicating a supported assertion.</li>
+
+      <li>Each time this operation is called, it must return the same <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> instance with the same contents.</li>
+
+      <li>An implementation of HostGetSupportedImportAssertions must always complete normally (i.e., not return an <emu-xref href="#sec-completion-record-specification-type"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">abrupt completion</a></emu-xref>).</li>
+    </ul>
+
+    <p>The default implementation of HostGetSupportedImportAssertions is to return an empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref>.</p>
+
+    <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents">The purpose of requiring the <emu-xref href="#host"><a href="https://tc39.es/ecma262/#host">host</a></emu-xref> to specify its supported import assertions, rather than passing all assertions to the <emu-xref href="#host"><a href="https://tc39.es/ecma262/#host">host</a></emu-xref> and letting it then choose which ones it wants to handle, is to ensure that unsupported assertions are handled in a consistent way across different <emu-xref href="#host"><a href="https://tc39.es/ecma262/#host">hosts</a></emu-xref>.</div></emu-note>
+  </emu-clause>
+
+  <emu-clause id="sec-assert-clause-early-errors">
+    <h1><span class="secnum">2.5</span> Static Semantics: Early Errors</h1>
+    <emu-grammar><emu-production name="AssertClause" collapsed="">
+    <emu-nt>AssertClause</emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="ifkqczcb">
+        <emu-t>assert</emu-t>
+        <emu-t>{</emu-t>
+        <emu-nt>AssertEntries</emu-nt>
+        <emu-t optional="">,<emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-t>
+        <emu-t>}</emu-t>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+    <ul>
+      <li>It is a Syntax Error if <emu-xref aoid="AssertClauseToAssertions" id="_ref_7"><a href="#sec-assert-clause-to-assertions">AssertClauseToAssertions</a></emu-xref> of <emu-nt>AssertClause</emu-nt> has two entries <var>a</var> and <var>b</var> such that <var>a</var>.[[Key]] is <var>b</var>.[[Key]].</li>
+    </ul>
+  </emu-clause>
+
+  <emu-clause id="sec-assert-clause-to-assertions" aoid="AssertClauseToAssertions">
+    <h1><span class="secnum">2.6</span> Static Semantics: AssertClauseToAssertions</h1>
+    <emu-grammar><emu-production name="AssertClause" collapsed="">
+    <emu-nt>AssertClause</emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="uul2hn9u">
+        <emu-t>assert</emu-t>
+        <emu-t>{</emu-t>
+        <emu-t>}</emu-t>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+    <emu-alg><ol><li>Return a new empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref>.</li></ol></emu-alg>
+
+    <emu-grammar><emu-production name="AssertClause" collapsed="">
+    <emu-nt>AssertClause</emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="ifkqczcb">
+        <emu-t>assert</emu-t>
+        <emu-t>{</emu-t>
+        <emu-nt>AssertEntries</emu-nt>
+        <emu-t optional="">,<emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-t>
+        <emu-t>}</emu-t>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+    <emu-alg><ol><li>Let <var>assertions</var> be <emu-xref aoid="AssertClauseToAssertions" id="_ref_8"><a href="#sec-assert-clause-to-assertions">AssertClauseToAssertions</a></emu-xref> of <emu-nt>AssertEntries</emu-nt>.</li><li>Sort <var>assertions</var> by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that <emu-xref href="#host"><a href="https://tc39.es/ecma262/#host">hosts</a></emu-xref> are prohibited from distinguishing among assertions by the order they occur in.</li><li>Return <var>assertions</var>.</li></ol></emu-alg>
+
+    <emu-grammar><emu-production name="AssertEntries" collapsed="">
+    <emu-nt>AssertEntries</emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="su9gfubp">
+        <emu-nt>AssertionKey</emu-nt>
+        <emu-t>:</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+    <emu-alg><ol><li>Let <var>supportedAssertions</var> be !<emu-xref aoid="HostGetSupportedImportAssertions" id="_ref_9"><a href="#sec-hostgetsupportedimportassertions">HostGetSupportedImportAssertions</a></emu-xref>().</li><li>Let <var>key</var> be <emu-xref aoid="StringValue"><a href="https://tc39.es/ecma262/#sec-static-semantics-stringvalue">StringValue</a></emu-xref> of <emu-nt>AssertionKey</emu-nt>.</li><li>If <var>supportedAssertions</var> contains <var>key</var>,<ol><li>Let <var>entry</var> be a <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> { [[Key]]: <var>key</var>, [[Value]]: <emu-xref aoid="StringValue"><a href="https://tc39.es/ecma262/#sec-static-semantics-stringvalue">StringValue</a></emu-xref> of <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt> }.</li><li>Return a new <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> containing the single element, <var>entry</var>.</li></ol></li><li>Otherwise, return a new empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref>.</li></ol></emu-alg>
+
+    <emu-grammar><emu-production name="AssertEntries" collapsed="">
+    <emu-nt>AssertEntries</emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="lopyou-y">
+        <emu-nt>AssertionKey</emu-nt>
+        <emu-t>:</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt>
+        <emu-t>,</emu-t>
+        <emu-nt>AssertEntries</emu-nt>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+    <emu-alg><ol><li>Let <var>supportedAssertions</var> be !<emu-xref aoid="HostGetSupportedImportAssertions" id="_ref_10"><a href="#sec-hostgetsupportedimportassertions">HostGetSupportedImportAssertions</a></emu-xref>().</li><li>Let <var>key</var> be <emu-xref aoid="StringValue"><a href="https://tc39.es/ecma262/#sec-static-semantics-stringvalue">StringValue</a></emu-xref> of <emu-nt>AssertionKey</emu-nt>.</li><li>If <var>supportedAssertions</var> contains <var>key</var>,<ol><li>Let <var>entry</var> be a <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> { [[Key]]: <var>key</var>, [[Value]]: <emu-xref aoid="StringValue"><a href="https://tc39.es/ecma262/#sec-static-semantics-stringvalue">StringValue</a></emu-xref> of <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt> }.</li><li>Let <var>rest</var> be <emu-xref aoid="AssertClauseToAssertions" id="_ref_11"><a href="#sec-assert-clause-to-assertions">AssertClauseToAssertions</a></emu-xref> of <emu-nt>AssertEntries</emu-nt>.</li><li>Return a new <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> containing <var>entry</var> followed by the elements of <var>rest</var>.</li></ol></li><li>Otherwise, return <emu-xref aoid="AssertClauseToAssertions" id="_ref_12"><a href="#sec-assert-clause-to-assertions">AssertClauseToAssertions</a></emu-xref> of <emu-nt>AssertEntries</emu-nt>.</li></ol></emu-alg>
+  </emu-clause>
+
+  <emu-clause id="sec-assertion-key-string-value">
+    <h1><span class="secnum">2.7</span> Static Semantics: StringValue</h1>
+    <emu-grammar><emu-production name="AssertionKey" collapsed="">
+    <emu-nt>AssertionKey</emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="drsx4tka"><emu-nt><a href="https://tc39.es/ecma262/#prod-IdentifierName">IdentifierName</a></emu-nt></emu-rhs>
+</emu-production>
+</emu-grammar>
+    <emu-alg><ol><li>Return the <emu-xref aoid="StringValue"><a href="https://tc39.es/ecma262/#sec-static-semantics-stringvalue">StringValue</a></emu-xref> of <emu-nt><a href="https://tc39.es/ecma262/#prod-IdentifierName">IdentifierName</a></emu-nt>.</li></ol></emu-alg>
+
+    <emu-grammar><emu-production name="AssertionKey" collapsed="">
+    <emu-nt>AssertionKey</emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="xhtltz00"><emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt></emu-rhs>
+</emu-production>
+</emu-grammar>
+    <emu-alg><ol><li>Return the <emu-xref aoid="StringValue"><a href="https://tc39.es/ecma262/#sec-static-semantics-stringvalue">StringValue</a></emu-xref> of <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt>.</li></ol></emu-alg>
+  </emu-clause>
+
+      <emu-clause id="sec-modulerequest-record">
+        <h1><span class="secnum">2.8</span> ModuleRequest Records</h1>
+
+        <p>A <dfn>ModuleRequest Record</dfn> represents the request to import a module with given import assertions. It consists of the following fields:</p>
+        <emu-table id="table-modulerequest-fields" caption="ModuleRequest Record fields"><figure><figcaption>Table 1: <emu-xref href="#sec-modulerequest-record" id="_ref_13"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> fields</figcaption>
+          <table>
+            <tbody>
+              <tr>
+                <th>
+                  Field Name
+                </th>
+                <th>
+                  Value Type
+                </th>
+                <th>
+                  Meaning
+                </th>
+              </tr>
+              <tr>
+                <td>
+                  [[Specifier]]
+                </td>
+                <td>
+                  String
+                </td>
+                <td>
+                  The module specifier
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  [[Assertions]]
+                </td>
+                <td>
+                  a <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> of <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Records</a></emu-xref> { [[Key]]: a String, [[Value]]: a String }
+                </td>
+                <td>
+                  The import assertions
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </figure></emu-table>
+
+        <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents">In general, this proposal replaces places where module specifiers are passed around with ModuleRequest <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Records</a></emu-xref>. For example, several <emu-xref href="#sec-algorithm-conventions-syntax-directed-operations"><a href="https://tc39.es/ecma262/#sec-algorithm-conventions-syntax-directed-operations">syntax-directed operations</a></emu-xref>, such as <emu-xref aoid="ModuleRequests"><a href="https://tc39.es/ecma262/#sec-static-semantics-modulerequests">ModuleRequests</a></emu-xref> produce <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Lists</a></emu-xref> of ModuleRequest <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Records</a></emu-xref> rather than <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Lists</a></emu-xref> of Strings which are interpreted as module specifiers. Some algorithms like <emu-xref aoid="ImportEntries"><a href="https://tc39.es/ecma262/#sec-static-semantics-importentries">ImportEntries</a></emu-xref> and <emu-xref aoid="ImportEntriesForModule"><a href="https://tc39.es/ecma262/#sec-static-semantics-importentriesformodule">ImportEntriesForModule</a></emu-xref> pass around ModuleRequest <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Records</a></emu-xref> rather than Strings, in a way which doesn't require any particular textual change. Additionally, record fields in <emu-xref href="#cyclic-module-record"><a href="https://tc39.es/ecma262/#cyclic-module-record">Cyclic Module Records</a></emu-xref> and <emu-xref href="#sourctextmodule-record"><a href="https://tc39.es/ecma262/#sourctextmodule-record">Source Text Module Records</a></emu-xref> which contained <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Lists</a></emu-xref> of Strings are replaced by <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Lists</a></emu-xref> of ModuleRequest <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Records</a></emu-xref>, as indicated above.</div></emu-note>
+      </emu-clause>
+
+        <emu-table id="table-cyclic-module-fields" caption="Additional Fields of Cyclic Module Records"><figure><figcaption>Table 2: Additional Fields of <emu-xref href="#cyclic-module-record"><a href="https://tc39.es/ecma262/#cyclic-module-record">Cyclic Module Records</a></emu-xref></figcaption>
+          <table>
+            <tbody>
+              <tr>
+                <th>
+                  Field Name
+                </th>
+                <th>
+                  Value Type
+                </th>
+                <th>
+                  Meaning
+                </th>
+              </tr>
+              <tr>
+                <td>
+                  [[Status]]
+                </td>
+                <td>
+                  <emu-const>unlinked</emu-const> | <emu-const>linking</emu-const> | <emu-const>linked</emu-const> | <emu-const>evaluating</emu-const> | <emu-const>evaluated</emu-const>
+                </td>
+                <td>
+                  Initially <emu-const>unlinked</emu-const>. Transitions to <emu-const>linking</emu-const>, <emu-const>linked</emu-const>, <emu-const>evaluating</emu-const>, <emu-const>evaluated</emu-const> (in that order) as the module progresses throughout its lifecycle.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  [[EvaluationError]]
+                </td>
+                <td>
+                  An <emu-xref href="#sec-completion-record-specification-type"><a href="https://tc39.es/ecma262/#sec-completion-record-specification-type">abrupt completion</a></emu-xref> | <emu-val>undefined</emu-val>
+                </td>
+                <td>
+                  A completion of type <emu-const>throw</emu-const> representing the exception that occurred during evaluation.  <emu-val>undefined</emu-val> if no exception occurred or if [[Status]] is not <emu-const>evaluated</emu-const>.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  [[DFSIndex]]
+                </td>
+                <td>
+                  <emu-xref href="#integer"><a href="https://tc39.es/ecma262/#integer">Integer</a></emu-xref> | <emu-val>undefined</emu-val>
+                </td>
+                <td>
+                  Auxiliary field used during Link and Evaluate only.
+                  If [[Status]] is <emu-const>linking</emu-const> or <emu-const>evaluating</emu-const>, this nonnegative number records the point at which the module was first visited during the ongoing depth-first traversal of the dependency graph.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  [[DFSAncestorIndex]]
+                </td>
+                <td>
+                  <emu-xref href="#integer"><a href="https://tc39.es/ecma262/#integer">Integer</a></emu-xref> | <emu-val>undefined</emu-val>
+                </td>
+                <td>
+                  Auxiliary field used during Link and Evaluate only. If [[Status]] is <emu-const>linking</emu-const> or <emu-const>evaluating</emu-const>, this is either the module's own [[DFSIndex]] or that of an "earlier" module in the same strongly connected component.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  [[RequestedModules]]
+                </td>
+                <td>
+                  <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> of <del>String</del><ins><emu-xref href="#sec-modulerequest-record" id="_ref_14"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref></ins>
+                </td>
+                <td>
+                  A <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> of all the <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleSpecifier">ModuleSpecifier</a></emu-nt> strings <ins>and import assertions</ins> used by the module represented by this record to request the importation of a module. The <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> is source code occurrence ordered.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </figure></emu-table>
+
+        <p>An <dfn id="importentry-record">ImportEntry Record</dfn> is a <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Record</a></emu-xref> that digests information about a single declarative import. Each <emu-xref href="#importentry-record" id="_ref_15"><a href="#importentry-record">ImportEntry Record</a></emu-xref> has the fields defined in <emu-xref href="#table-39" id="_ref_1"><a href="#table-39">Table 3</a></emu-xref>:</p>
+        <emu-table id="table-39" caption="ImportEntry Record Fields"><figure><figcaption>Table 3: <emu-xref href="#importentry-record" id="_ref_16"><a href="#importentry-record">ImportEntry Record</a></emu-xref> Fields</figcaption>
+          <table>
+            <tbody>
+            <tr>
+              <th>
+                Field Name
+              </th>
+              <th>
+                Value Type
+              </th>
+              <th>
+                Meaning
+              </th>
+            </tr>
+            <tr>
+              <td>
+                [[ModuleRequest]]
+              </td>
+              <td>
+                <del>String</del>
+                <ins><emu-xref href="#sec-modulerequest-record" id="_ref_17"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref></ins>
+              </td>
+              <td>
+                <del>String value of the <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleSpecifier">ModuleSpecifier</a></emu-nt> of the <emu-nt><a href="https://tc39.es/ecma262/#prod-ImportDeclaration">ImportDeclaration</a></emu-nt>.</del>
+                <ins><emu-xref href="#sec-modulerequest-record" id="_ref_18"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> representing the <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleSpecifier">ModuleSpecifier</a></emu-nt> and import assertions of the <emu-nt><a href="https://tc39.es/ecma262/#prod-ImportDeclaration">ImportDeclaration</a></emu-nt>.</ins>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                [[ImportName]]
+              </td>
+              <td>
+                String
+              </td>
+              <td>
+                The name under which the desired binding is exported by the module identified by [[ModuleRequest]]. The value <emu-val>"*"</emu-val> indicates that the import request is for the target module's namespace object.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                [[LocalName]]
+              </td>
+              <td>
+                String
+              </td>
+              <td>
+                The name that is used to locally access the imported value from within the importing module.
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </figure></emu-table>
+
+      <emu-clause id="sec-static-semantics-modulerequests">
+        <h1><span class="secnum">2.9</span> Static Semantics: ModuleRequests</h1>
+        <emu-see-also-para op="ModuleRequests"></emu-see-also-para>
+        <emu-grammar><emu-production name="ImportDeclaration" collapsed="">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-ImportDeclaration">ImportDeclaration</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="glhuxxec">
+        <emu-t>import</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ImportClause">ImportClause</a></emu-nt>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+        <emu-alg><ol><li><del>Return <emu-xref aoid="ModuleRequests"><a href="https://tc39.es/ecma262/#sec-static-semantics-modulerequests">ModuleRequests</a></emu-xref> of <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>.</del></li><li><ins>Let <var>specifier</var> be <emu-xref aoid="StringValue"><a href="https://tc39.es/ecma262/#sec-static-semantics-stringvalue">StringValue</a></emu-xref> of the <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt> contained in <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>.</ins></li><li><ins>Return a <emu-xref href="#sec-modulerequest-record" id="_ref_19"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> { [[Specifer]]: <var>specifier</var>, [[Assertions]]: an empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> }.</ins></li></ol></emu-alg>
+        <emu-grammar><emu-production name="ImportDeclaration" collapsed="">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-ImportDeclaration">ImportDeclaration</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="b66cd5gl">
+        <emu-t>import</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ImportClause">ImportClause</a></emu-nt>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>
+        <emu-nt>AssertClause</emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+        <emu-alg><ol><li><ins>Let <var>specifier</var> be <emu-xref aoid="StringValue"><a href="https://tc39.es/ecma262/#sec-static-semantics-stringvalue">StringValue</a></emu-xref> of the <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt> contained in <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>.</ins></li><li><ins>Let <var>assertions</var> be <emu-xref aoid="AssertClauseToAssertions" id="_ref_20"><a href="#sec-assert-clause-to-assertions">AssertClauseToAssertions</a></emu-xref> of <emu-nt>AssertClause</emu-nt>.</ins></li><li><ins>Return a <emu-xref href="#sec-modulerequest-record" id="_ref_21"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> { [[Specifer]]: <var>specifier</var>, [[Assertions]]: <var>assertions</var> }.</ins></li></ol></emu-alg>
+        <emu-grammar><emu-production name="Module" collapsed="">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-Module">Module</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="n7nathbb"><emu-gann>[empty]</emu-gann></emu-rhs>
+</emu-production>
+</emu-grammar>
+        <emu-alg><ol><li>Return a new empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref>.</li></ol></emu-alg>
+        <emu-grammar><emu-production name="ModuleItemList" collapsed="">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleItemList">ModuleItemList</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="ap7dhqxm"><emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleItem">ModuleItem</a></emu-nt></emu-rhs>
+</emu-production>
+</emu-grammar>
+        <emu-alg><ol><li>Return <emu-xref aoid="ModuleRequests"><a href="https://tc39.es/ecma262/#sec-static-semantics-modulerequests">ModuleRequests</a></emu-xref> of <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleItem">ModuleItem</a></emu-nt>.</li></ol></emu-alg>
+        <emu-grammar><emu-production name="ModuleItemList" collapsed="">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleItemList">ModuleItemList</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="dd23jrxs">
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleItemList">ModuleItemList</a></emu-nt>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleItem">ModuleItem</a></emu-nt>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+        <emu-alg><ol><li>Let <var>moduleNames</var> be <emu-xref aoid="ModuleRequests"><a href="https://tc39.es/ecma262/#sec-static-semantics-modulerequests">ModuleRequests</a></emu-xref> of <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleItemList">ModuleItemList</a></emu-nt>.</li><li>Let <var>additionalNames</var> be <emu-xref aoid="ModuleRequests"><a href="https://tc39.es/ecma262/#sec-static-semantics-modulerequests">ModuleRequests</a></emu-xref> of <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleItem">ModuleItem</a></emu-nt>.</li><li>Append to <var>moduleNames</var> each element of <var>additionalNames</var> <del>that is not already an element of <var>moduleNames</var></del>.</li><li>Return <var>moduleNames</var>.</li></ol></emu-alg>
+        <emu-note type="editor"><span class="note">Editor's Note</span><div class="note-contents">Deletion of duplicates is an unnecessary "spec optimization" that would be more complicated to explain in terms of examining import assertion records, and can be simply removed.</div></emu-note>
+        <emu-grammar><emu-production name="ModuleItem" collapsed="">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-ModuleItem">ModuleItem</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="15hryu6r"><emu-nt><a href="https://tc39.es/ecma262/#prod-StatementListItem">StatementListItem</a></emu-nt></emu-rhs>
+</emu-production>
+</emu-grammar>
+        <emu-alg><ol><li>Return a new empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref>.</li></ol></emu-alg>
+        <emu-grammar><emu-production name="ExportDeclaration" collapsed="">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-ExportDeclaration">ExportDeclaration</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="4kqfdugp">
+        <emu-t>export</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ExportFromClause">ExportFromClause</a></emu-nt>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+        <emu-alg><ol><li><del>Return <emu-xref aoid="ModuleRequests"><a href="https://tc39.es/ecma262/#sec-static-semantics-modulerequests">ModuleRequests</a></emu-xref> of <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>.</del></li><li><ins>Let <var>specifier</var> be <emu-xref aoid="StringValue"><a href="https://tc39.es/ecma262/#sec-static-semantics-stringvalue">StringValue</a></emu-xref> of the <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt> contained in <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>.</ins></li><li><ins>Return a <emu-xref href="#sec-modulerequest-record" id="_ref_22"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> { [[Specifer]]: <var>specifier</var>, [[Assertions]]: an empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref> }.</ins></li></ol></emu-alg>
+        <emu-grammar><emu-production name="ExportDeclaration" collapsed="">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-ExportDeclaration">ExportDeclaration</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="uj03qgl7">
+        <emu-t>export</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ExportFromClause">ExportFromClause</a></emu-nt>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>
+        <emu-nt>AssertClause</emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+        <emu-alg><ol><li><ins>Let <var>specifier</var> be <emu-xref aoid="StringValue"><a href="https://tc39.es/ecma262/#sec-static-semantics-stringvalue">StringValue</a></emu-xref> of the <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt> contained in <emu-nt><a href="https://tc39.es/ecma262/#prod-FromClause">FromClause</a></emu-nt>.</ins></li><li><ins>Let <var>assertions</var> be <emu-xref aoid="AssertClauseToAssertions" id="_ref_23"><a href="#sec-assert-clause-to-assertions">AssertClauseToAssertions</a></emu-xref> of <emu-nt>AssertClause</emu-nt>.</ins></li><li><ins>Return a <emu-xref href="#sec-modulerequest-record" id="_ref_24"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> { [[Specifer]]: <var>specifier</var>, [[Assertions]]: <var>assertions</var> }.</ins></li></ol></emu-alg>
+        <emu-grammar><emu-production name="ExportDeclaration">
+    <emu-nt><a href="https://tc39.es/ecma262/#prod-ExportDeclaration">ExportDeclaration</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="j2lh_kda">
+        <emu-t>export</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-NamedExports">NamedExports</a></emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs>
+    <emu-rhs a="bg3oaw2m">
+        <emu-t>export</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-VariableStatement">VariableStatement</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="go9a4xdq">
+        <emu-t>export</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-Declaration">Declaration</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="cdfbfvfu">
+        <emu-t>export</emu-t>
+        <emu-t>default</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-HoistableDeclaration">HoistableDeclaration</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="w8pljwgc">
+        <emu-t>export</emu-t>
+        <emu-t>default</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-ClassDeclaration">ClassDeclaration</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="4f6ct71n">
+        <emu-t>export</emu-t>
+        <emu-t>default</emu-t>
+        <emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>
+        <emu-t>;</emu-t>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+        <emu-alg><ol><li>Return a new empty <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">List</a></emu-xref>.</li></ol></emu-alg>
+      </emu-clause>
+</emu-clause>
+
+<emu-annex id="sec-host-integration">
+  <h1><span class="secnum">A</span> Sample host integration: The Web embedding</h1>
+
+  <p>The import assertions proposal is intended to give key information about how modules are interpreted to <emu-xref href="#host"><a href="https://tc39.es/ecma262/#host">hosts</a></emu-xref>. For the Web embedding and environments which aim to be similar to it, the string is interpreted as the "module type". This is not the primary way the module type is determined (which, on the Web, would be the MIME type, and in other environments may be the file extension), but rather a secondary check which is required to pass for the module graph to load.</p>
+
+  <p>In the Web embedding, the following changes would be made to the HTML specification for import assertions:</p>
+
+  <ul>
+    <li>The <a href="https://html.spec.whatwg.org/#module-script">module script</a> would have an additional item, which would be the module type, as a string (e.g., <emu-val>"json"</emu-val>), or <emu-val>undefined</emu-val> for a JavaScript module.</li>
+    <li><emu-xref aoid="HostLoadImportedModule" id="_ref_25"><a href="#sec-hostloadimportedmodule">HostLoadImportedModule</a></emu-xref> would take a <emu-xref href="#sec-modulerequest-record" id="_ref_26"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref> parameter in place of a specifier string, which would be passed down through several <emu-xref href="#sec-algorithm-conventions-abstract-operations"><a href="https://tc39.es/ecma262/#sec-algorithm-conventions-abstract-operations">abstract operations</a></emu-xref> to reach the <a href="https://html.spec.whatwg.org/#fetch-a-single-module-script">fetch a single module script</a> algorithm. Somewhere near the entrypoint, if the <emu-xref href="#sec-modulerequest-record" id="_ref_27"><a href="#sec-modulerequest-record">ModuleRequest Record</a></emu-xref>'s [[Assertions]] field has an element <var>entry</var> such that <var>entry</var>.[[Key]] is <emu-val>"type"</emu-val>, then let <var>type</var> be <var>entry</var>.[[Value]]; otherwise let <var>type</var> be <emu-val>undefined</emu-val>. If the type is invalid, then an exception is thrown and module loading fails. Otherwise, this will equal the module type, if the module can be successfully fetched with a matching MIME type.</li>
+    <li>In the <a href="https://html.spec.whatwg.org/#fetch-the-descendants-of-a-module-script">fetch the descendents of a module script</a> algorithm, when iterating over [[RequestedModules]], the elements are ModuleRequest <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Records</a></emu-xref> rather than just specifier strings; these <emu-xref href="#sec-list-and-record-specification-type"><a href="https://tc39.es/ecma262/#sec-list-and-record-specification-type">Records</a></emu-xref> is passed on to the internal module script graph fetching procedure (which sends it to "fetch a single module script". Other usage sites of [[RequestedModules]] ignore the assertion.</li>
+    <li>"Fetch a single module script" would check the assertion in two places:
+      <ul>
+        <li>The module map is keyed with both the absolute URL and the module type, so an existing entry will be found only if its <var>type</var> matches.</li>
+        <li>When a new module is fetched, before writing it into the module map, the MIME type is checked to ensure that it matches <var>type</var>. (Note that the interpretation of the module is still driven by the MIME type, but once the MIME type is established, this is checked against the <var>type</var>.) If they differ, then an exception is thrown and module loading fails. The <var>type</var> is written into the module script as the type.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <p>The module map is keyed by the absolute URL and the <var>type</var>. Initially no other import assertions are supported, so they are not present.</p>
+</emu-annex>
+</div></body>
