@@ -1,8 +1,11 @@
 # Import Assertions
 
-Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), Myles Borins ([@MylesBorins](https://github.com/MylesBorins)), and Dan Clark ([@dandclark](https://github.com/dandclark))
+Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), Myles Borins ([@MylesBorins](https://github.com/MylesBorins)), Dan Clark ([@dandclark](https://github.com/dandclark)), and Nicolò Ribaudo ([@nicolo-ribaudo](https://github.com/nicolo-ribaudo)).
 
-Status: Stage 3.
+Status: Stage 2.
+
+> ⚠️ This proposal has been demoted from Stage 3 to Stage 2 in January 2023 due to [problems with the web integration](https://github.com/whatwg/html/issues/7233). TC39 is working on a solution, which will require relaxing the "assert only" semantics and potentially changing the syntax.
+> Import assertions have already been shipped in some implementations, consider the current instability when using them.
 
 Please leave any feedback you have in the [issues](http://github.com/tc39/proposal-import-assertions/issues)!
 
