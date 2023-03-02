@@ -2,19 +2,51 @@
 <meta charset="utf8">
 <script src="ecmarkup.js"></script>
 <link rel="stylesheet" href="ecmarkup.css">
-<title>import assertions</title>
+<title>Import Assertions</title>
 <pre class="metadata">
-  title: Import assertions
+  title: Import Assertions
   status: proposal
   stage: 2
   location: https://github.com/tc39/proposal-import-assertions
   copyright: false
   contributors: Sven Sauleau, Myles Borins, Daniel Ehrenberg, Daniel Clark, Nicolò Ribaudo
 </pre>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Ecmarkup only supports annotating algorithm steps with a single attribute,
+    // so we map [normative-optional][legacy] to [normative-optional-legacy].
+    document.querySelectorAll("[normative-optional-legacy]").forEach(el => {
+      el.setAttribute("normative-optional", "");
+      el.setAttribute("legacy", "");
+    });
+    // Ecmarkup only injects the clause-attributes-tag header into
+    // normative-optional/legacy emu-clause elements.
+    document.querySelectorAll("li[normative-optional][legacy], ins[normative-optional][legacy]").forEach(el => {
+      el.insertAdjacentHTML("afterbegin", `
+        <div class="clause-attributes-tag">
+          <a href="https://tc39.es/ecma262/#sec-conformance">Normative Optional</a>,
+          <a href="https://tc39.es/ecma262/#sec-conformance">Legacy</a>
+        </div>
+      `);
+    });
+  })
+</script>
+<style>
+  li[normative-optional] {
+    display: list-item;
+  }
+  ins[normative-optional] > emu-rhs {
+    padding-left: 60px;
+  }
+</style>
+
 <emu-intro id="intro">
   <h1>Import Assertions</h1>
   <p>See <a href="https://github.com/tc39/proposal-import-assertions/blob/master/README.md">the explainer</a> for information.</p>
   <p>The relevant syntax changes are in the <a href="#sec-left-hand-side-expressions">Import Calls</a> and <a href="#sec-imports">Imports</a> sections.</p>
+
+  <p>This proposal would ideally use the `with` keyword to denote assertions, but there are existing implementations based on the previous version of the proposal using the `assert` keyword. Due to potential web compatibility risks, the proposal still includes `assert` marked as <emu-xref href="#sec-conformance">normative optional</emu-xref> and <emu-xref href="#sec-conformance">legacy</emu-xref> in sections <emu-xref href="#sec-evaluate-import-call"></emu-xref> and <emu-xref href="#sec-imports"></emu-xref>. Usage of the old syntax is discouraged, and it removal is being investigated.</p>
 </emu-intro>
 
 <emu-clause id="sec-ecmascript-language-expressions" number="13">
@@ -87,8 +119,11 @@
             1. If Type(_options_) is not Object,
               1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
               1. Return _promiseCapability_.[[Promise]].
-            1. Let _assertionsObj_ be Completion(Get(_options_, *"assert"*)).
+            1. Let _assertionsObj_ be Completion(Get(_options_, *"with"*)).
             1. IfAbruptRejectPromise(_assertionsObj_, _promiseCapability_).
+            1. [normative-optional-legacy=""] If _assertionsObj_ is *undefined*, then
+                1. Let _assertionsObj_ be Completion(Get(_options_, *"assert"*)).
+                1. IfAbruptRejectPromise(_assertionsObj_, _promiseCapability_).
             1. If _assertionsObj_ is not *undefined*,
               1. If Type(_assertionsObj_) is not Object,
                 1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
@@ -615,8 +650,12 @@
 
         <ins>
           AssertClause :
+            `with` `{` `}`
+            `with` `{` AssertEntries `,`? `}`
+            <ins normative-optional="" legacy="">
             `assert` `{` `}`
             `assert` `{` AssertEntries `,`? `}`
+            </ins>
 
           AssertEntries :
             AssertionKey `:` StringLiteral
@@ -632,7 +671,11 @@
         <h1>Static Semantics: Early Errors</h1>
 
         <emu-grammar>
-          <ins>AssertClause : `assert` `{` AssertEntries `,`? `}`</ins>
+          <ins>
+            AssertClause :
+              `with` `{` AssertEntries `,`? `}`
+              `assert` `{` AssertEntries `,`? `}`
+          </ins>
         </emu-grammar>
         <ul>
           <li><ins>It is a Syntax Error if AssertClauseToAssertions of |AssertClause| has two entries _a_ and _b_ such that _a_.[[Key]] is _b_.[[Key]].</ins></li>
@@ -650,12 +693,20 @@
         <dl class="header">
         </dl>
 
-        <emu-grammar>AssertClause : `assert` `{` `}`</emu-grammar>
+        <emu-grammar>
+          AssertClause :
+            `with` `{` `}`
+            `assert` `{` `}`
+        </emu-grammar>
         <emu-alg>
           1. Return a new empty List.
         </emu-alg>
 
-        <emu-grammar>AssertClause : `assert` `{` AssertEntries `,`? `}`</emu-grammar>
+        <emu-grammar>
+          AssertClause :
+            `with` `{` AssertEntries `,`? `}`
+            `assert` `{` AssertEntries `,`? `}`
+        </emu-grammar>
         <emu-alg>
           1. Let _assertions_ be AssertClauseToAssertions of |AssertEntries|.
           1. Sort _assertions_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among assertions by the order they occur in.
