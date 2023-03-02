@@ -72,7 +72,6 @@
         <emu-alg>
           1. Let _referrer_ be GetActiveScriptOrModule().
           1. If _referrer_ is *null*, set _referrer_ to the current Realm Record.
-          1. Let _referencingScriptOrModule_ be ! GetActiveScriptOrModule().
           1. Let _specifierRef_ be the result of evaluating _specifierExpression_.
           1. Let _specifier_ be ? GetValue(_specifierRef_).
           1. If _optionsExpression_ is present, then
@@ -81,24 +80,24 @@
           1. Else,
             1. Let _options_ be *undefined*.
           1. Let _promiseCapability_ be ! NewPromiseCapability(%Promise%).
-          1. Let _specifierString_ be ToString(_specifier_).
+          1. Let _specifierString_ be Completion(ToString(_specifier_)).
           1. IfAbruptRejectPromise(_specifierString_, _promiseCapability_).
           1. Let _assertions_ be a new empty List.
           1. If _options_ is not *undefined*, then
             1. If Type(_options_) is not Object,
               1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
               1. Return _promiseCapability_.[[Promise]].
-            1. Let _assertionsObj_ be Get(_options_, *"assert"*).
+            1. Let _assertionsObj_ be Completion(Get(_options_, *"assert"*)).
             1. IfAbruptRejectPromise(_assertionsObj_, _promiseCapability_).
             1. If _assertionsObj_ is not *undefined*,
               1. If Type(_assertionsObj_) is not Object,
                 1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
                 1. Return _promiseCapability_.[[Promise]].
-              1. Let _keys_ be EnumerableOwnPropertyNames(_assertionsObj_, ~key~).
+              1. Let _keys_ be Completion(EnumerableOwnPropertyNames(_assertionsObj_, ~key~)).
               1. IfAbruptRejectPromise(_keys_, _promiseCapability_).
               1. Let _supportedAssertions_ be ! HostGetSupportedImportAssertions().
               1. For each String _key_ of _keys_,
-                1. Let _value_ be Get(_assertionsObj_, _key_).
+                1. Let _value_ be Completion(Get(_assertionsObj_, _key_)).
                 1. IfAbruptRejectPromise(_value_, _promiseCapability_).
                 1. If Type(_value_) is not String, then
                   1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
