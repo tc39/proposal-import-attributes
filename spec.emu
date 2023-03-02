@@ -3,13 +3,13 @@
 <script src="ecmarkup.js"></script>
 <link rel="stylesheet" href="ecmarkup.css">
 <title>import assertions</title>
-<pre class=metadata>
+<pre class="metadata">
   title: Import assertions
   status: proposal
   stage: 2
   location: https://github.com/tc39/proposal-import-assertions
   copyright: false
-  contributors: Sven Sauleau, Myles Borins, Daniel Ehrenberg, Daniel Clark
+  contributors: Sven Sauleau, Myles Borins, Daniel Ehrenberg, Daniel Clark, Nicolò Ribaudo
 </pre>
 <emu-intro id="intro">
   <h1>Import Assertions</h1>
