@@ -35,14 +35,14 @@
       <emu-clause id="sec-import-call-runtime-semantics-evaluation" type="sdo">
         <h1>Runtime Semantics: Evaluation</h1>
 
-        <emu-grammar>ImportCall : `import` `(` AssignmentExpression `,`? `)`</emu-grammar>
+        <emu-grammar><ins>ImportCall : `import` `(` AssignmentExpression `,`? `)`</ins></emu-grammar>
         <emu-alg>
-          1. Return ? EvaluateImportCall(|AssignmentExpression|).
+          1. <ins>Return ? EvaluateImportCall(|AssignmentExpression|).</ins>
         </emu-alg>
 
-        <ins><emu-grammar>ImportCall : `import` `(` AssignmentExpression `,` AssignmentExpression `,`? `)`</emu-grammar></ins>
+        <emu-grammar><ins>ImportCall : `import` `(` AssignmentExpression `,` AssignmentExpression `,`? `)`</ins></emu-grammar>
         <emu-alg>
-          1. Return ? EvaluateImportCall(the first |AssignmentExpression|, the second |AssignmentExpression|).
+          1. <ins>Return ? EvaluateImportCall(the first |AssignmentExpression|, the second |AssignmentExpression|).</ins>
         </emu-alg>
 
         <emu-grammar><del>ImportCall : `import` `(` AssignmentExpression `)`</del></emu-grammar>
@@ -70,6 +70,8 @@
         </h1>
         <dl class="header"></dl>
         <emu-alg>
+          1. Let _referrer_ be GetActiveScriptOrModule().
+          1. If _referrer_ is *null*, set _referrer_ to the current Realm Record.
           1. Let _referencingScriptOrModule_ be ! GetActiveScriptOrModule().
           1. Let _specifierRef_ be the result of evaluating _specifierExpression_.
           1. Let _specifier_ be ? GetValue(_specifierRef_).
