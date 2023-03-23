@@ -7,7 +7,7 @@
   title: Import Attributes
   status: proposal
   stage: 2
-  location: https://github.com/tc39/proposal-import-assertions
+  location: https://github.com/tc39/proposal-import-attributes
   copyright: false
   contributors: Sven Sauleau, Myles Borins, Daniel Ehrenberg, Daniel Clark, Nicolò Ribaudo
 </pre>
@@ -43,7 +43,7 @@
 
 <emu-intro id="intro">
   <h1>Import Attributes</h1>
-  <p>See <a href="https://github.com/tc39/proposal-import-assertions/blob/master/README.md">the explainer</a> for information.</p>
+  <p>See <a href="https://github.com/tc39/proposal-import-attributes/blob/master/README.md">the explainer</a> for information.</p>
   <p>The relevant syntax changes are in the <a href="#sec-left-hand-side-expressions">Import Calls</a> and <a href="#sec-imports">Imports</a> sections.</p>
 
   <p>This proposal would ideally use the `with` keyword to denote attributes, but there are existing implementations based on the previous version of the proposal using the `assert` keyword. Due to potential web compatibility risks, the proposal still includes `assert` marked as <emu-xref href="#sec-conformance">normative optional</emu-xref> and <emu-xref href="#sec-conformance">legacy</emu-xref> in sections <emu-xref href="#sec-evaluate-import-call"></emu-xref> and <emu-xref href="#sec-imports"></emu-xref>. Usage of the old syntax is discouraged, and it removal is being investigated.</p>
