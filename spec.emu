@@ -44,7 +44,7 @@
 <emu-clause id="sec-conformance" number="2">
   <h1>Conformance</h1>
 
-  <p><ins>A conforming implementation of ECMAScript should not implement <dfn>Deprecated</dfn> subclauses. All of the language features and behaviours specified within Deprecated subclauses have one or more undesirable characteristics. However, their usage in existing applications currently prevents their removal from this specification. These features are not considered part of the core ECMAScript language. Programmers should not use or assume the existence of these features and behaviours when writing new ECMAScript code.</ins></p>
+  <p><ins>A conforming implementation of ECMAScript should not implement <dfn>Deprecated</dfn> subclauses, unless necessary for compatibility with existing applications that already run in such implementation before the deprecation of the given language feature. All of the language features and behaviours specified within Deprecated subclauses have one or more undesirable characteristics. However, their usage in existing applications currently prevents their removal from this specification. These features are not considered part of the core ECMAScript language. Programmers should not use or assume the existence of these features and behaviours when writing new ECMAScript code.</ins></p>
 
   <emu-clause id="sec-conformance-deprecated" example deprecated>
     <h1>Example Deprecated Clause Heading</h1>
