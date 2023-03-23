@@ -15,8 +15,8 @@ The Import Assertions proposal adds an inline syntax for module import statement
 
 The syntax will be as follows (shown here is the proposed method for importing a JSON module):
 ```js
-import json from "./foo.json" assert { type: "json" };
-import("foo.json", { assert: { type: "json" } });
+import json from "./foo.json" with { type: "json" };
+import("foo.json", { with: { type: "json" } });
 ```
 
 The specification of JSON modules was originally part of this proposal, but it was [resolved](https://github.com/tc39/notes/blob/master/meetings/2020-07/july-21.md#import-conditions-for-stage-3) during the July 2020 meeting to split JSON modules out into a [separate Stage 3 proposal](http://github.com/tc39/proposal-json-modules).
@@ -199,7 +199,7 @@ import value from "module" given { type: 'json' };
 
 - How dynamic import would accept import assertions:
 ```mjs
-import("foo.wasm", { assert: { type: "webassembly" } });
+import("foo.wasm", { with: { type: "webassembly" } });
 ```
 
 For consistency the `assert` key is used for both dynamic and static imports.
