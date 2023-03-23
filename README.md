@@ -29,9 +29,9 @@ However, in [an issue](https://github.com/w3c/webcomponents/issues/839), Ryosuke
 
 Some developers have the intuition that the file extension could be used to determine the module type, as it is in many existing non-standard module systems. However, it's a deep web architectural principle that the suffix of the URL (which you might think of as the "file extension" outside of the web) does not lead to semantics of how the page is interpreted. In practice, on the web, there is a widespread [mismatch between file extension and the HTTP Content Type header](content-type-vs-file-extension.md). All of this sums up to it being infeasible to depend on file extensions/suffixes included in the module specifier to be the basis for this checking.
 
-There are other possible pieces of metadata which could be associated with modules, see [#8](https://github.com/tc39/proposal-import-assertions/issues/8) for further discussion.
+There are other possible pieces of metadata which could be associated with modules, see [#8](https://github.com/tc39/proposal-import-assertions/issues/8) and [tc39/proposal-import-reflection#18](https://github.com/tc39/proposal-import-reflection/issues/18) for further discussion.
 
-Proposed ES module types that are blocked by this security concern, in addition to JSON modules, include [CSS modules](https://github.com/whatwg/html/pull/4898) and potentially [HTML modules](https://github.com/whatwg/html/pull/4505) if the HTML module  proposal is restricted to [not allow script](https://github.com/w3c/webcomponents/issues/805).
+Proposed ES module types that are blocked by this security concern, in addition to JSON modules, include [CSS modules](https://github.com/whatwg/html/pull/4898) and potentially [HTML modules](https://github.com/whatwg/html/pull/4505) if the HTML module proposal is restricted to [not allow script](https://github.com/w3c/webcomponents/issues/805).
 
 ## Rationale
 
@@ -49,35 +49,28 @@ This proposal pursues the third option, as we expect it to lead to the best deve
 
 ## Proposed syntax
 
-Import assertions have to be made available in several different contexts. This section contains one possible syntax, but there are other options, discussed in [#6](https://github.com/tc39/proposal-import-assertions/issues/6).
-
-Here, a key-value syntax is used, with the key `type` used as an example indicating the module type. Such key-value syntax can be used in various different contexts.
+Import assertions have to be made available in several different contexts. They use a key-value syntax is used preceded by the `with` keyword, with the key `type` used as an example indicating the module type. Such key-value syntax can be used in various different contexts.
 
 ### import statements
 
-The ImportDeclaration would allow any arbitrary assertions after the `assert` keyword.
+The ImportDeclaration would allow any arbitrary assertions after the `with` keyword.
 
 For example, the `type` assertion could be used to indicate a module type, for example importing a JSON module with the following syntax.
 
 ```mjs
-import json from "./foo.json" assert { type: "json" };
+import json from "./foo.json" with { type: "json" };
 ```
 
-The `assert` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-assertions/issues/5)):
+The `with` syntax in the `ImportDeclaration` statement uses curly braces, for the following reasons (as discussed in [#5](https://github.com/tc39/proposal-import-assertions/issues/5)):
 - JavaScript developers are already used to the Object literal syntax and since it allows a trailing comma copy/pasting assertions will be easy.
-- Follow-up proposals might specify new types of import attributes (see [Follow-up proposal "evaluator attributes"](https://github.com/tc39/proposal-import-assertions#follow-up-proposal-evaluator-attributes)) and we will be able to group attributes with different keywords, for instance:
-```js
-import json from "./foo.json" assert { type: "json" } with { transformA: "value" };
-```
-
-The `assert` keyword is designed to match the check-only semantics. As shown by the example above, one could imagine a new follow-up proposal that uses `with` for transformations.
+- it clearly indicates the end of the assertions list when splitting them across multiple lines.
 
 ### re-export statements
 
-Similar to import statements, the ExportDeclaration, when re-exporting from another module, would allow any arbitrary assertions after the `assert` keyword.
+Similar to import statements, the ExportDeclaration, when re-exporting from another module, would allow any arbitrary assertions after the `with` keyword.
 
 ```mjs
-export { val } from './foo.js' assert { type: "javascript" };
+export { val } from './foo.js' with { type: "javascript" };
 ```
 
 ### dynamic import()
@@ -85,10 +78,10 @@ export { val } from './foo.js' assert { type: "javascript" };
 The `import()` pseudo-function would allow import assertions to be indicated in an options bag in the second argument.
 
 ```js
-import("foo.json", { assert: { type: "json" } })
+import("foo.json", { with: { type: "json" } })
 ```
 
-The second parameter to `import()` is an options bag, with the only option currently defined to be `assert`: the value here is an object containing the import assertions. There are no other current proposals for entries to put in the options bag, but better safe than sorry with forward-compatibility.
+The second parameter to `import()` is an options bag, with the only option currently defined to be `with`: the value here is an object containing the import assertions. There are other proposals for entries to put in the options bag: for example, the [Module Source Imports](https://github.com/tc39/proposal-import-reflection) proposal introduces a `phase` property.
 
 ### Integration of modules into environments
 
@@ -97,24 +90,24 @@ Host environments (e.g., the Web platform, Node.js) often provide various differ
 #### Worker instantiation
 
 ```js
-new Worker("foo.wasm", { type: "module", assert: { type: "webassembly" } });
+new Worker("foo.wasm", { type: "module", with: { type: "webassembly" } });
 ```
 
 Sidebar about WebAssembly module types and the web: it's still uncertain whether importing WebAssembly modules would need to be marked specially, or would be imported just like JavaScript. Further discussion in [#19](https://github.com/tc39/proposal-import-assertions/issues/19).
 
 #### HTML
 
-Although changes to HTML won't be specified by TC39, an idea here would be that each import attribute, preceded by `assert`, becomes an HTML attribute which could be used in script tags.
+Although changes to HTML won't be specified by TC39, an idea here would be that each import attribute, preceded by `with`, becomes an HTML attribute which could be used in script tags.
 
 ```html
-<script src="foo.wasm" type="module" asserttype="webassembly"></script>
+<script src="foo.wasm" type="module" withtype="webassembly"></script>
 ```
 
 (See the caveat about WebAssembly above.)
 
 #### WebAssembly
 
-In the context of the [WebAssembly/ESM integration proposal](https://github.com/webassembly/esm-integration): For imports of other module types from within a WebAssembly module, this proposal would introduce a new custom section (named `importassertions`) that will annotate with assertions each imported module (which is listed in the import section).
+In the context of the [WebAssembly/ESM integration proposal](https://github.com/webassembly/esm-integration): for imports of other module types from within a WebAssembly module, this proposal would introduce a new custom section (named `importassertions`) that will annotate with assertions each imported module (which is listed in the import section).
 
 ## Proposed semantics and interoperability
 
@@ -123,19 +116,6 @@ This proposal does not specify behavior for any particular assertion key or valu
 Assertions in addition  than `type` may also be introduced for purposes not yet foreseen.
 
 JavaScript implementations are encouraged to reject assertions and type values which are not implemented in their environment (rather than ignoring them). This is to allow for maximal flexibility in the design space in the future--in particular, it enables new import assertions to be defined which change the interpretation of a module, without breaking backwards-compatibility.
-
-## Follow-up proposal "evaluator attributes"
-
-Implementations are not permitted to interpret a module differently at multiple import sites if the only difference between the sites is the set of import assertions.  Future follow-up proposals may relax this restriction with "evaluator attributes" that would change the contents of the module.
-
-There are three possible ways to handle multiple imports of the same module with "evaluator attributes":
-- **Race** and use the attribute that was requested by the first import. This seems broken--the second usage is ignored.
-- **Reject** the module graph and don't load if attributes differ. This seems bad for composition--using two unrelated packages together could break, if they load the same module with disagreeing attributes.
-- **Clone** and make two copies of the module, for the different ways it's transformed. In this case, the attributes would have to be part of the cache key. These semantics would run counter to the intuition that there is just one copy of a module.
-
-It's possible that one of these three options may make sense for a module load, on a case-by-case basis by attribute, but it's worth careful thought before making this choice.
-
-Plumbing-wise, the JavaScript standard would basically be responsible for passing the attributes up to the host environment, which would then decide how to interpret it, within the requirements listed above. Issues [#24](https://github.com/tc39/proposal-import-assertions/issues/24) and [#25](https://github.com/tc39/proposal-import-assertions/issues/25) discuss the Web and Node.js feature and semantic requirements respectively, and issue [#10](https://github.com/tc39/proposal-import-assertions/issues/10) discusses how to allow different JavaScript environments to have interoperability.
 
 ## FAQ
 
@@ -164,7 +144,7 @@ The topic of attribute divergence is further discussed in  [#34](https://github.
 
 ### How would this proposal work with caching?
 
-Assertions are not part of the module cache key. Implementations are required to return the same module, or an error, regardless of the assertions.
+Assertions are part of the module cache key and can affect how a module is loaded: the cache key is extended from _(referrer, specifier)_ to _(referrer, specifier, assertions)_.
 
 ### Why not use more terse syntax to indicate module types, like `import json from "./foo.json" as "json"`?
 
@@ -185,6 +165,9 @@ We propose to omit this generalization in the initial proposal, as a key/value l
 ### What are you open to changing? When do we have to settle down on the details?
 
 We are planning to make descisions and reach consensus during specific stages of this proposal. Here's our plan.
+
+<details>
+<summary><em>Original plan before Stage 2 and Stage 3</em></sumary>
 
 #### Before stage 2
 
@@ -228,13 +211,15 @@ import("foo.wasm", { type: "webassembly" });
 
 However, that's not possible with the `Worker` API since it already uses an object with a `type` key as the second parameter. Which would make the APIs inconsistent.
 
+</details>
+
 #### Before Stage 4
 
 - The integration of import assertions into various host environments.
     - For example, in the Web Platform, how import assertions would be enabled when launching a worker (if that is supported in the initial version to be shipped on the Web) or included in a `<script>` tag.
 
 ```mjs
-new Worker("foo.wasm", { type: "module", assert: { type: "webassembly" } });
+new Worker("foo.wasm", { type: "module", with: { type: "webassembly" } });
 ```
 
 Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/tc39/proposal-import-assertions/issues/10), [#24](https://github.com/tc39/proposal-import-assertions/issues/24) and [#25](https://github.com/tc39/proposal-import-assertions/issues/25)).
