@@ -97,7 +97,7 @@
             EvaluateImportCall (
               _specifierExpression_: a ParseNode,
               optional _optionsExpression_: a ParseNode
-            ): a Promise
+            ): either a normal completion containing a Promise or a throw completion
           </ins>
         </h1>
         <dl class="header"></dl>
@@ -116,7 +116,7 @@
           1. IfAbruptRejectPromise(_specifierString_, _promiseCapability_).
           1. Let _attributes_ be a new empty List.
           1. If _options_ is not *undefined*, then
-            1. If Type(_options_) is not Object,
+            1. If Type(_options_) is not Object, then
               1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
               1. Return _promiseCapability_.[[Promise]].
             1. Let _attributesObj_ be Completion(Get(_options_, *"with"*)).
@@ -124,13 +124,13 @@
             1. [normative-optional-legacy=""] If _attributesObj_ is *undefined*, then
                 1. Let _attributesObj_ be Completion(Get(_options_, *"assert"*)).
                 1. IfAbruptRejectPromise(_attributesObj_, _promiseCapability_).
-            1. If _attributesObj_ is not *undefined*,
-              1. If Type(_attributesObj_) is not Object,
+            1. If _attributesObj_ is not *undefined*, then
+              1. If Type(_attributesObj_) is not Object, then
                 1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
                 1. Return _promiseCapability_.[[Promise]].
-              1. Let _keys_ be Completion(EnumerableOwnPropertyNames(_attributesObj_, ~key~)).
+              1. Let _keys_ be Completion(EnumerableOwnProperties(_attributesObj_, ~key~)).
               1. IfAbruptRejectPromise(_keys_, _promiseCapability_).
-              1. For each String _key_ of _keys_,
+              1. For each String _key_ of _keys_, do
                 1. Let _value_ be Completion(Get(_attributesObj_, _key_)).
                 1. IfAbruptRejectPromise(_value_, _promiseCapability_).
                 1. If Type(_value_) is not String, then
@@ -550,7 +550,7 @@
         </dl>
         <emu-alg>
           1. If _result_ is a normal completion, then
-            1. If _referrer_.[[LoadedModules]] contains a Record whose [[Specifier]] is <del>_specifier_</del><ins>_moduleRequest_.[[Specifier]] and AttributesEqual(_record_.[[Attributes]], _moduleRequest_.[[Attributes]]) is *true*</ins>, then
+            1. If _referrer_.[[LoadedModules]] contains a Record _record_ such that [[Specifier]] is <del>_specifier_</del><ins>_moduleRequest_.[[Specifier]] and AttributesEqual(_record_.[[Attributes]], _moduleRequest_.[[Attributes]]) is *true*</ins>, then
               1. Assert: That Record's [[Module]] is _result_.[[Value]].
             1. Else, append the Record { [[Specifier]]: <del>_specifier_</del><ins>_moduleRequest_.[[Specifer]]</ins>, <ins>[[Attributes]]: _moduleRequest_.[[Attributes]]</ins>, [[Module]]: _result_.[[Value]] } to _referrer_.[[LoadedModules]].
           1. If _payload_ is a GraphLoadingState Record, then
@@ -713,14 +713,14 @@
           1. Return _attributes_.
         </emu-alg>
 
-        <emu-grammar> WithEntries : AttributeKey `:` StringLiteral </emu-grammar>
+        <emu-grammar> WithEntries : AttributeKey `:` StringLiteral</emu-grammar>
         <emu-alg>
           1. Let _key_ be StringValue of |AttributeKey|.
           1. Let _entry_ be the ImportAttribute Record { [[Key]]: _key_, [[Value]]: StringValue of |StringLiteral| }.
           1. Return « _entry_ ».
         </emu-alg>
 
-        <emu-grammar> WithEntries : AttributeKey `:` StringLiteral `,` WithEntries </emu-grammar>
+        <emu-grammar> WithEntries : AttributeKey `:` StringLiteral `,` WithEntries</emu-grammar>
         <emu-alg>
           1. Let _key_ be StringValue of |AttributeKey|.
           1. Let _entry_ be the ImportAttribute Record { [[Key]]: _key_, [[Value]]: StringValue of |StringLiteral| }.
