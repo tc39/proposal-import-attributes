@@ -4,8 +4,7 @@ Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@
 
 Status: Stage 2.
 
-> ⚠️ This proposal has been demoted from Stage 3 to Stage 2 in January 2023 due to [problems with the web integration](https://github.com/whatwg/html/issues/7233). TC39 is working on a solution, which will require relaxing the "assert only" semantics and potentially changing the syntax.
-> Import assertions have already been shipped in some implementations, consider the current instability when using them.
+> ℹ️ This proposal reached _conditional_ consensus for Stage 3 in March 2023 meeting, pending reviews of the specification text.
 
 Please leave any feedback you have in the [issues](http://github.com/tc39/proposal-import-attributes/issues)!
 
@@ -167,7 +166,7 @@ We propose to omit this generalization in the initial proposal, as a key/value l
 We are planning to make descisions and reach consensus during specific stages of this proposal. Here's our plan.
 
 <details>
-<summary><em>Original plan before Stage 2 and Stage 3</em></sumary>
+<summary><em>Original plan before Stage 2 and Stage 3</em></summary>
 
 #### Before stage 2
 
@@ -223,6 +222,15 @@ new Worker("foo.wasm", { type: "module", with: { type: "webassembly" } });
 ```
 
 Standardization here would consist of building consensus not just in TC39 but also in WHATWG HTML as well as the Node.js ESM effort and a general audit of semantic requirements across various host environments ([#10](https://github.com/tc39/proposal-import-attributes/issues/10), [#24](https://github.com/tc39/proposal-import-attributes/issues/24) and [#25](https://github.com/tc39/proposal-import-attributes/issues/25)).
+
+## History
+
+- **2019-12**: The proposal, named _module attributes_ is approved for Stage 1 ([notes part 1](https://github.com/tc39/notes/blob/c7fa95d3f2d0af68eaba9d388d5f79f2e166a4cc/meetings/2019-12/december-5.md#module-attributes-for-stage-1), [notes part 2](https://github.com/tc39/notes/blob/c7fa95d3f2d0af68eaba9d388d5f79f2e166a4cc/meetings/2019-12/december-5.md#module-attributes-continuation-of-earlier-discussion), [slides](https://docs.google.com/presentation/d/1pyRtuOjnaTV_wr3a7sOZEt3PVxrbhgy_JCXovm0Dklk)) to explore metadata for module imports, and to explore guarantees about modules with no code execution.
+- **2020-06**: _Module attributes_ advances to Stage 2 ([notes part 1](https://github.com/tc39/notes/blob/c7fa95d3f2d0af68eaba9d388d5f79f2e166a4cc/meetings/2020-06/june-3.md#module-attributes-for-stage-2), [notes part 2](https://github.com/tc39/notes/blob/c7fa95d3f2d0af68eaba9d388d5f79f2e166a4cc/meetings/2020-06/june-4.md#continuation-module-attributes-for-stage-2), [slides](https://docs.google.com/presentation/d/1MOVBh0gw7-tqEx-maEvS2HsgwXd5X5pcwL80V67xCIg)), with consensus based on the restriction that import attributes cannot be part of the cache key in the modules map. The proposed syntax is `import { x } from "./mod" with type: "json", something: "else";`.
+- **2020-09**: The proposal, renamed to _import assertions_, advances to Stage 3 ([notes](https://github.com/tc39/notes/blob/c7fa95d3f2d0af68eaba9d388d5f79f2e166a4cc/meetings/2020-09/sept-22.md#import-assertions-for-stage-3), [slides](https://docs.google.com/presentation/d/1RuWMkNAatIZ6lhcdslD8cUD-zntioptqH1-hTbVlhzg)). The rename better describes the agreed assert-only semantics, and the keyword changes from `with` to `assert`. However, the proposal relaxes the caching restriction so that HTML can still include the module type as part of the cache key, while still respecting the "spirit" of the proposal.
+- **2021-05**–**2022-02**: The proposal, with the `import { x } from "./mod" assert { type: "json" };` syntax, is implemented and shipped in Chrome, Node.js and Deno. They all support the [JSON modules](https://github.com/tc39/proposal-json-modules) proposal.
+- **2023-01**: Due to [incommpatibility](https://github.com/whatwg/html/issues/7233) with the semantics needed by HTML for non-JavaScript modules, specifically regarding HTTP fetching and CSPs, the proposal is demoted back to Stage 2 ([notes part 1](https://github.com/tc39/notes/blob/c7fa95d3f2d0af68eaba9d388d5f79f2e166a4cc/meetings/2023-01/jan-31.md#problems-with-import-assertions-for-module-types-and-a-possible-general-solution--downgrade-to-stage-2), [notes part 2](https://github.com/tc39/notes/blob/c7fa95d3f2d0af68eaba9d388d5f79f2e166a4cc/meetings/2023-01/feb-02.md#import-assertions), [slides](https://docs.google.com/presentation/d/1HbWhyo4tSnpv4vMZqCa2YQvi_mKdpDi4JWWBtSUQqQY)) to investigate a solution to the web platform's needs.
+- **2023-03**: The proposal is renamed to _Import attributes_ and moves back to Stage 3 (TODO: notes, [slides](https://docs.google.com/presentation/d/1Abdr54Iflz_4sah2_yX2qS3K09qDJGV84qIZ6pHAqIk)). The restriction on the cache key is completely removed, and the keyword changes back from `assert` to `with`: `import { x } from "./mod" with { type: "json" };`. For compatibility with existing implementations, the `assert` keyword will still be supported until it's safe to remove it, if it will ever be.
 
 ## Specification
 
