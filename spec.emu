@@ -670,10 +670,6 @@
           WithClause :
             `with` `{` `}`
             `with` `{` WithEntries `,`? `}`
-            <ins deprecated="">
-            `assert` `{` `}`
-            `assert` `{` WithEntries `,`? `}`
-            </ins>
 
           WithEntries :
             AttributeKey `:` StringLiteral
@@ -686,7 +682,7 @@
       </emu-grammar>
 
       <emu-note>
-        Removal of the `assert` keyword in |AssertClause| is being investigated.
+        <p><ins>This section is extended by <emu-xref href="#sec-deprecated-assert-keyword-for-import-attributes"></emu-xref>.</ins></p>
       </emu-note>
 
       <emu-clause id="sec-imports-static-semantics-early-errors">
@@ -694,15 +690,17 @@
 
         <emu-grammar>
           <ins>
-            WithClause :
-              `with` `{` WithEntries `,`? `}`
-              `assert` `{` WithEntries `,`? `}`
+            WithClause : `with` `{` WithEntries `,`? `}`
           </ins>
         </emu-grammar>
         <ul>
           <li><ins>It is a Syntax Error if WithClauseToAttributes of |WithClause| has two entries _a_ and _b_ such that _a_.[[Key]] is _b_.[[Key]].</ins></li>
           <li><ins>It is a Syntax Error if AllImportAttributesSupported(WithClauseToAttributes of |WithClause|) is *false*.</ins></li>
         </ul>
+
+        <emu-note>
+          <p><ins>This section is extended by <emu-xref href="#sec-deprecated-assert-keyword-for-import-attributes"></emu-xref>.</ins></p>
+        </emu-note>
       </emu-clause>
 
       <emu-clause id="sec-import-static-semantics-attribute-name" type="sdo">
@@ -741,18 +739,14 @@
         </dl>
 
         <emu-grammar>
-          WithClause :
-            `with` `{` `}`
-            `assert` `{` `}`
+          WithClause : `with` `{` `}`
         </emu-grammar>
         <emu-alg>
           1. Return a new empty List.
         </emu-alg>
 
         <emu-grammar>
-          WithClause :
-            `with` `{` WithEntries `,`? `}`
-            `assert` `{` WithEntries `,`? `}`
+          WithClause : `with` `{` WithEntries `,`? `}`
         </emu-grammar>
         <emu-alg>
           1. Let _attributes_ be WithClauseToAttributes of |WithEntries|.
@@ -773,6 +767,53 @@
           1. Let _entry_ be the ImportAttribute Record { [[Key]]: _key_, [[Value]]: SV of |StringLiteral| }.
           1. Let _rest_ be WithClauseToAttributes of |WithEntries|.
           1. Return the list-concatenation of « _entry_ » and _rest_.
+        </emu-alg>
+
+        <emu-note>
+          <p><ins>This section is extended by <emu-xref href="#sec-deprecated-assert-keyword-for-import-attributes"></emu-xref>.</ins></p>
+        </emu-note>
+      </emu-clause>
+
+      <emu-clause id="sec-deprecated-assert-keyword-for-import-attributes" deprecated>
+        <h1><ins>Deprecated `assert` keyword for Import Attributes</ins></h1>
+
+        <p>Import Attributes are denoted using the `with` keyword. However, there are existing implementations based on a previous version of the proposal using the `assert` keyword. Due to potential web compatibility risks, the `assert` keyword is still included in this specification, but its removal is being investigated.</p>
+
+        <p>The following augments the |ImportDeclaration| production in <emu-xref href="#sec-imports"></emu-xref>:</p>
+        <emu-grammar type="definition">
+          ImportDeclaration :
+            `import` ImportClause FromClause [no LineTerminator here] AssertClause `;`
+            `import` ModuleSpecifier [no LineTerminator here] AssertClause `;`
+
+          AssertClause :
+            `assert` `{` `}`
+            `assert` `{` WithEntries `,`? `}`
+        </emu-grammar>
+
+        <p>The static semantics of Early Errors in <emu-xref href="#sec-imports-static-semantics-early-errors"></emu-xref> are augmented with the following:</p>
+        <emu-grammar>
+          AssertClause :  `assert` `{` WithEntries `,`? `}`
+        </emu-grammar>
+        <ul>
+          <li>It is a Syntax Error if WithClauseToAttributes of |AssertClause| has two entries _a_ and _b_ such that _a_.[[Key]] is _b_.[[Key]].</li>
+          <li>It is a Syntax Error if AllImportAttributesSupported(WithClauseToAttributes of |AssertClause|) is *false*.</li>
+        </ul>
+
+        <p>The static semantics of WithClauseToAttributes in <emu-xref href="#sec-with-clause-to-attributes"></emu-xref> are augmented with the following:</p>
+        <emu-grammar>
+          AssertClause : `assert` `{` `}`
+        </emu-grammar>
+        <emu-alg>
+          1. Return a new empty List.
+        </emu-alg>
+
+        <emu-grammar>
+          AssertClause : `assert` `{` WithEntries `,`? `}`
+        </emu-grammar>
+        <emu-alg>
+          1. Let _attributes_ be WithClauseToAttributes of |WithEntries|.
+          1. Sort _attributes_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among attributes by the order they occur in.
+          1. Return _attributes_.
         </emu-alg>
       </emu-clause>
     </emu-clause>
