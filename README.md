@@ -154,7 +154,7 @@ Another option considered and not selected has been to use a single string as th
 We could permit import attributes to have more complex values than simply strings, for example:
 
 ```js
-import value from "module" assert { attr: { key1: "value1", key2: [1, 2, 3] } };
+import value from "module" with { attr: { key1: "value1", key2: [1, 2, 3] } };
 ```
 
 This would allow import attributes to scale to support a larger variety of metadata.
@@ -181,7 +181,7 @@ import value from "module" as "json";
 // Not selected
 import value from "module" with type: "json";
 
-// Current proposal, to settle on before Stage 3
+// Proposal that was approved from Stage 2 to Stage 3 the first time
 import value from "module" assert { type: "json" };
 ```
 
