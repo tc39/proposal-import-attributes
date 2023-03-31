@@ -28,9 +28,6 @@
   li[deprecated] {
     display: list-item;
   }
-  ins[deprecated] > emu-rhs {
-    padding-left: 60px;
-  }
 </style>
 
 <emu-intro id="intro">
@@ -124,7 +121,7 @@
               1. Return _promiseCapability_.[[Promise]].
             1. Let _attributesObj_ be Completion(Get(_options_, *"with"*)).
             1. IfAbruptRejectPromise(_attributesObj_, _promiseCapability_).
-            1. [deprecated=""] If _attributesObj_ is *undefined*, then
+            1. [deprecated=""] If the host supports the <emu-xref href="#sec-deprecated-assert-keyword-for-import-attributes">deprecated `assert` keyword for import attributes</emu-xref> and _attributesObj_ is *undefined*, then
                 1. Let _attributesObj_ be Completion(Get(_options_, *"assert"*)).
                 1. IfAbruptRejectPromise(_attributesObj_, _promiseCapability_).
             1. If _attributesObj_ is not *undefined*, then
