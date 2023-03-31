@@ -792,7 +792,7 @@
 
         <p>The static semantics of Early Errors in <emu-xref href="#sec-imports-static-semantics-early-errors"></emu-xref> are augmented with the following:</p>
         <emu-grammar>
-          AssertClause :  `assert` `{` WithEntries `,`? `}`
+          AssertClause : `assert` `{` WithEntries `,`? `}`
         </emu-grammar>
         <ul>
           <li>It is a Syntax Error if WithClauseToAttributes of |AssertClause| has two entries _a_ and _b_ such that _a_.[[Key]] is _b_.[[Key]].</li>
