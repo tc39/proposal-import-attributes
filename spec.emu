@@ -140,7 +140,7 @@
             1. If AllImportAttributesSupported(_attributes_) is *false*, then
               1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
               1. Return _promiseCapability_.[[Promise]].
-            1. Sort _attributes_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among attributes by the order they occur in.
+            1. Sort _attributes_ according to the lexicographic order of their [[Key]] fields, treating the value of each such field as a sequence of UTF-16 code unit values. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among attributes by the order they occur in.
           1. Let _moduleRequest_ be a new ModuleRequest Record { [[Specifier]]: _specifierString_, [[Attributes]]: _attributes_ }.
           1. Perform HostLoadImportedModule(_referrer_, _moduleRequest_, ~empty~, _promiseCapability_).
           1. Return _promiseCapability_.[[Promise]].
@@ -744,7 +744,7 @@
         </emu-grammar>
         <emu-alg>
           1. Let _attributes_ be WithClauseToAttributes of |WithEntries|.
-          1. Sort _attributes_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among attributes by the order they occur in.
+          1. Sort _attributes_ according to the lexicographic order of their [[Key]] fields, treating the value of each such field as a sequence of UTF-16 code unit values. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among attributes by the order they occur in.
           1. Return _attributes_.
         </emu-alg>
 
