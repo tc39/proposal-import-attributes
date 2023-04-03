@@ -265,7 +265,8 @@
         <emu-alg>
           1. Let <del>_moduleNames_</del><ins>_requests_</ins> be ModuleRequests of |ModuleItemList|.
           1. Let <del>_additionalNames_</del><ins>_additionalRequests_</ins> be ModuleRequests of |ModuleItem|.
-          1. For each <del>String</del><ins>ModuleRequest Record</ins> <del>_name_</del><ins>_mr_</ins> of <del>_additionalNames_</del><ins>_additionalRequests_</ins>, do
+          1. <del>For each String _name_ of _additionalNames_, do</del>
+          1. <ins>For each ModuleRequest Record _mr_ of _additionalRequests_, do</ins>
             1. If <del>_moduleNames_</del><ins>_requests_</ins> does not contain <del>_name_</del> <ins>a ModuleRequest Record _mr2_ such that _mr_.[[Specifer]] is _mr2_.[[Specifer]] and AttributesEqual(_mr_.[[Attributes]], _mr2_.[[Attributes]]) is *true*</ins>, then
               1. Append <del>_name_</del><ins>_mr_</ins> to <del>_moduleNames_</del><ins>_requests_</ins>.
           1. Return <del>_moduleNames_</del><ins>_requests_</ins>.
@@ -533,7 +534,7 @@
         <emu-note>
           <p>There are three possible ways to handle multiple imports of the same module with different valid attributes:</p>
           <ul>
-            <li><strong>Race</strong> and use the attribute that was requested by the first import. The second usage is ignored, which could lead to incorrect or unexpected behaviors depending on which import is handled first.</li>
+            <li><strong>Race</strong> and use the attribute that was requested by the first import. The second usage is ignored, which could lead to incorrect or unexpected behaviour depending on which import is handled first.</li>
             <li><strong>Reject</strong> the module graph and don't load if attributes differ. This may be bad for composition: using two unrelated packages together could break, if they load the same module with disagreeing attributes.</li>
             <li><strong>Clone</strong> and make two copies of the module, for the different ways it's transformed. These semantics would run counter to the intuition that there is just one copy of a module for each specifier.</li>
           </ul>
