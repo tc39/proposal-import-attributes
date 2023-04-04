@@ -280,7 +280,7 @@
         </emu-grammar>
         <emu-alg>
           1. <del>Return ModuleRequests of |FromClause|.</del>
-          1. <ins>Let _specifier_ be SV of |ModuleSpecifier|.</ins>
+          1. <ins>Let _specifier_ be SV of |FromClause|.</ins>
           1. <ins>Return a List whose sole element is the ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: « » }.</ins>
         </emu-alg>
         <emu-grammar>
