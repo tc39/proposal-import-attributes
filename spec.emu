@@ -140,7 +140,7 @@
             1. If AllImportAttributesSupported(_attributes_) is *false*, then
               1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
               1. Return _promiseCapability_.[[Promise]].
-            1. Sort _attributes_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among attributes by the order they occur in.
+            1. Sort _attributes_ according to the lexicographic order of their [[Key]] fields, treating the value of each such field as a sequence of UTF-16 code unit values. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among attributes by the order they occur in.
           1. Let _moduleRequest_ be a new ModuleRequest Record { [[Specifier]]: _specifierString_, [[Attributes]]: _attributes_ }.
           1. Perform HostLoadImportedModule(_referrer_, _moduleRequest_, ~empty~, _promiseCapability_).
           1. Return _promiseCapability_.[[Promise]].
@@ -263,12 +263,13 @@
         </emu-alg>
         <emu-grammar>ModuleItemList : ModuleItemList ModuleItem</emu-grammar>
         <emu-alg>
-          1. Let _moduleNames_ be ModuleRequests of |ModuleItemList|.
-          1. Let _additionalNames_ be ModuleRequests of |ModuleItem|.
-          1. For each String _name_ of _additionalNames_, do
-            1. If _moduleNames_ does not contain _name_, then
-              1. Append _name_ to _moduleNames_.
-          1. Return _moduleNames_.
+          1. Let <del>_moduleNames_</del><ins>_requests_</ins> be ModuleRequests of |ModuleItemList|.
+          1. Let <del>_additionalNames_</del><ins>_additionalRequests_</ins> be ModuleRequests of |ModuleItem|.
+          1. <del>For each String _name_ of _additionalNames_, do</del>
+          1. <ins>For each ModuleRequest Record _mr_ of _additionalRequests_, do</ins>
+            1. If <del>_moduleNames_</del><ins>_requests_</ins> does not contain <del>_name_</del> <ins>a ModuleRequest Record _mr2_ such that _mr_.[[Specifer]] is _mr2_.[[Specifer]] and AttributesEqual(_mr_.[[Attributes]], _mr2_.[[Attributes]]) is *true*</ins>, then
+              1. Append <del>_name_</del><ins>_mr_</ins> to <del>_moduleNames_</del><ins>_requests_</ins>.
+          1. Return <del>_moduleNames_</del><ins>_requests_</ins>.
         </emu-alg>
         <emu-grammar>ModuleItem : StatementListItem</emu-grammar>
         <emu-alg>
@@ -279,16 +280,16 @@
         </emu-grammar>
         <emu-alg>
           1. <del>Return ModuleRequests of |FromClause|.</del>
-          1. <ins>Let _specifier_ be SV of the |ModuleSpecifier| contained in |FromClause|.</ins>
-          1. <ins>Return a ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: « » }.</ins>
+          1. <ins>Let _specifier_ be SV of |FromClause|.</ins>
+          1. <ins>Return a List whose sole element is the ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: « » }.</ins>
         </emu-alg>
         <emu-grammar>
           <ins>ImportDeclaration : `import` ImportClause FromClause WithClause `;`</ins>
         </emu-grammar>
         <emu-alg>
-          1. <ins>Let _specifier_ be SV of the |ModuleSpecifier| contained in |FromClause|.</ins>
+          1. <ins>Let _specifier_ be the SV of |FromClause|.</ins>
           1. <ins>Let _attributes_ be WithClauseToAttributes of |WithClause|.</ins>
-          1. <ins>Return a ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: _attributes_ }.</ins>
+          1. <ins>Return a List whose sole element is the ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: _attributes_ }.</ins>
         </emu-alg>
         <emu-grammar><del>ModuleSpecifier : StringLiteral</del></emu-grammar>
         <emu-alg>
@@ -299,16 +300,16 @@
         </emu-grammar>
         <emu-alg>
           1. <del>Return ModuleRequests of |FromClause|.</del>
-          1. <ins>Let _specifier_ be SV of the |ModuleSpecifier| contained in |FromClause|.</ins>
-          1. <ins>Return a ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: « » }.</ins>
+          1. <ins>Let _specifier_ be SV of |FromClause|.</ins>
+          1. <ins>Return a List whose sole element is the ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: « » }.</ins>
         </emu-alg>
         <emu-grammar>
           <ins>ExportDeclaration : `export` ExportFromClause FromClause WithClause `;`</ins>
         </emu-grammar>
         <emu-alg>
-          1. <ins>Let _specifier_ be SV of the |ModuleSpecifier| contained in |FromClause|.</ins>
+          1. <ins>Let _specifier_ be SV of |FromClause|.</ins>
           1. <ins>Let _attributes_ be WithClauseToAttributes of |WithClause|.</ins>
-          1. <ins>Return a ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: _attributes_ }.</ins>
+          1. <ins>Return a List whose sole element is the ModuleRequest Record { [[Specifer]]: _specifier_, [[Attributes]]: _attributes_ }.</ins>
         </emu-alg>
         <emu-grammar>
           ExportDeclaration :
@@ -514,7 +515,14 @@
             The host environment must perform FinishLoadingImportedModule(_referrer_, <del>_specifier_</del><ins>_moduleRequest_</ins>, _payload_, _result_), where _result_ is either a normal completion containing the loaded Module Record or a throw completion, either synchronously or asynchronously.
           </li>
           <li>
-            If this operation is called multiple times with the same <del>(_referrer_, _specifier_) pair</del><ins>(_referrer_, _moduleRequest_.[[Specifer]], _moduleRequest_.[[Attributes]]) triple</ins> and it performs FinishLoadingImportedModule(_referrer_, <del>_specifier_</del><ins>_moduleRequest_</ins>, _payload_, _result_) where _result_ is a normal completion, then it must perform FinishLoadingImportedModule(_referrer_, <del>_specifier_</del><ins>_moduleRequest_</ins>, _payload_, _result_) with the same _result_ each time.
+            <p>If this operation is called multiple times with <del>the same</del><ins>two</ins> (_referrer_, <del>_specifier_</del><ins>_moduleRequest_</ins>) pair<ins>s</ins> such that:</p>
+            <ul>
+              <li><ins>the first _referrer_ is the same as the second _referrer_;</ins></li>
+              <li><ins>the first _moduleRequest_.[[Specifier]] is the same as the second _moduleRequest_.[[Specifier]];</ins></li>
+              <li><ins>AttributesEqual(the first _moduleRequest_.[[Attributes]], the second _moduleRequest_.[[Attributes]]) is *true*;</ins></li>
+              <li>it performs FinishLoadingImportedModule(_referrer_, <del>_specifier_</del><ins>_moduleRequest_</ins>, _payload_, _result_) where _result_ is a normal completion,</li>
+            </ul>
+            <p>then it must perform FinishLoadingImportedModule(_referrer_, <del>_specifier_</del><ins>_moduleRequest_</ins>, _payload_, _result_) with the same _result_ each time.</p>
           </li>
           <li>
             The operation must treat _payload_ as an opaque value to be passed through to FinishLoadingImportedModule.
@@ -526,7 +534,7 @@
         <emu-note>
           <p>There are three possible ways to handle multiple imports of the same module with different valid attributes:</p>
           <ul>
-            <li><strong>Race</strong> and use the attribute that was requested by the first import. The second usage is ignored.</li>
+            <li><strong>Race</strong> and use the attribute that was requested by the first import. The second usage is ignored, which could lead to incorrect or unexpected behaviour depending on which import is handled first.</li>
             <li><strong>Reject</strong> the module graph and don't load if attributes differ. This may be bad for composition: using two unrelated packages together could break, if they load the same module with disagreeing attributes.</li>
             <li><strong>Clone</strong> and make two copies of the module, for the different ways it's transformed. These semantics would run counter to the intuition that there is just one copy of a module for each specifier.</li>
           </ul>
@@ -583,8 +591,11 @@
             1. For each ImportAttribute Record _r_ of _left_, do
               1. Let _found_ be *false*.
               1. For each ImportAttribute Record _s_ of _right_, do
-                1. If _r_.[[Key]] is _s_.[[Key]] and _r_.[[Value]] is _s_.[[Value]], then
-                  1. Set _found_ to *true*.
+                1. If _r_.[[Key]] is _s_.[[Key]], then
+                  1. If _r_.[[Value]] is _s_.[[Value]], then
+                    1. Set _found_ to *true*.
+                  1. Else,
+                    1. Return *false*.
               1. If _found_ is *false*, return *false*.
             1. Return *true*.
           </emu-alg>
@@ -605,7 +616,7 @@
         </dl>
         <emu-alg>
           1. Let _supported_ be HostGetSupportedImportAttributes().
-          1. For each Record _attribute_ of _attributes_, do
+          1. For each ImportAttribute Record _attribute_ of _attributes_, do
             1. If _supported_ does not contain _attribute_.[[Key]], return *false*.
           1. Return *true*.
         </emu-alg>
@@ -683,7 +694,32 @@
         </ul>
       </emu-clause>
 
-      <emu-clause id="sec-assert-clause-to-attributes" type="sdo">
+      <emu-clause id="sec-import-static-semantics-attribute-name" type="sdo">
+        <h1>
+          <ins>
+            Static Semantics: AttributeName (
+            ): a String
+          </ins>
+        </h1>
+        <dl class="header">
+        </dl>
+
+        <emu-grammar>
+          AttributeKey : IdentifierName
+        </emu-grammar>
+        <emu-alg>
+          1. Return the StringValue of |IdentifierName|.
+        </emu-alg>
+
+        <emu-grammar>
+          AttributeKey : StringLiteral
+        </emu-grammar>
+        <emu-alg>
+          1. Return the SV of |StringLiteral|.
+        </emu-alg>
+      </emu-clause>
+
+      <emu-clause id="sec-with-clause-to-attributes" type="sdo">
         <h1>
           <ins>
             Static Semantics: WithClauseToAttributes (
@@ -709,21 +745,21 @@
         </emu-grammar>
         <emu-alg>
           1. Let _attributes_ be WithClauseToAttributes of |WithEntries|.
-          1. Sort _attributes_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among attributes by the order they occur in.
+          1. Sort _attributes_ according to the lexicographic order of their [[Key]] fields, treating the value of each such field as a sequence of UTF-16 code unit values. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among attributes by the order they occur in.
           1. Return _attributes_.
         </emu-alg>
 
         <emu-grammar> WithEntries : AttributeKey `:` StringLiteral</emu-grammar>
         <emu-alg>
-          1. Let _key_ be StringValue of |AttributeKey|.
-          1. Let _entry_ be the ImportAttribute Record { [[Key]]: _key_, [[Value]]: StringValue of |StringLiteral| }.
+          1. Let _key_ be the AttributeName of |AttributeKey|.
+          1. Let _entry_ be the ImportAttribute Record { [[Key]]: _key_, [[Value]]: SV of |StringLiteral| }.
           1. Return « _entry_ ».
         </emu-alg>
 
         <emu-grammar> WithEntries : AttributeKey `:` StringLiteral `,` WithEntries</emu-grammar>
         <emu-alg>
-          1. Let _key_ be StringValue of |AttributeKey|.
-          1. Let _entry_ be the ImportAttribute Record { [[Key]]: _key_, [[Value]]: StringValue of |StringLiteral| }.
+          1. Let _key_ be the AttributeName of |AttributeKey|.
+          1. Let _entry_ be the ImportAttribute Record { [[Key]]: _key_, [[Value]]: SV of |StringLiteral| }.
           1. Let _rest_ be WithClauseToAttributes of |WithEntries|.
           1. Return the list-concatenation of « _entry_ » and _rest_.
         </emu-alg>
