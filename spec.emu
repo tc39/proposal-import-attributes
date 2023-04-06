@@ -15,14 +15,31 @@
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[deprecated]").forEach(el => {
-      el.setAttribute("legacy", ""); // just to get the styles
-      el.insertAdjacentHTML("afterbegin", `
-        <div class="clause-attributes-tag">
-          <a href="#sec-conformance">Deprecated</a>
-        </div>
-      `);
-    });
-  })
+
+      let tagsContainer = el.querySelector(".clause-attributes-tag");
+      if (!tagsContainer) {
+        tagsContainer = document.createElement("div");
+        tagsContainer.classList.add("clause-attributes-tag");
+        el.insertAdjacentElement("afterbegin", tagsContainer);
+
+        if (el.hasAttribute("normative-optional")) {
+          let tag = document.createElement("a");
+          tag.setAttribute("href", "#sec-conformance");
+          tag.textContent = "Normative Optional";
+          tagsContainer.insertAdjacentElement("afterbegin", tag);
+        }
+      }
+      if (tagsContainer.childElementCount > 0) {
+        tagsContainer.insertAdjacentText("afterbegin", ", ");
+      }
+      let tag = document.createElement("a");
+      tag.setAttribute("href", "#sec-conformance");
+      tag.textContent = "Deprecated";
+      tagsContainer.insertAdjacentElement("afterbegin", tag);
+
+      el.setAttribute("normative-optional", ""); // just to get the style
+  });
+});
 </script>
 <style>
   li[deprecated] {
@@ -41,7 +58,7 @@
 <emu-clause id="sec-conformance" number="2">
   <h1>Conformance</h1>
 
-  <p><ins>A conforming implementation of ECMAScript should not implement <dfn>Deprecated</dfn> subclauses, unless necessary for compatibility with existing applications that already run in such implementation before the deprecation of the given language feature. All of the language features and behaviours specified within Deprecated subclauses have one or more undesirable characteristics. However, their usage in existing applications currently prevents their removal from this specification. These features are not considered part of the core ECMAScript language. Programmers should not use or assume the existence of these features and behaviours when writing new ECMAScript code.</ins></p>
+  <p><ins>A conforming implementation of ECMAScript should not implement <dfn>Deprecated</dfn> subclauses or slgorithm steps, unless necessary for compatibility with existing applications that already run in such implementation before the deprecation of the given language feature. All of the language features and behaviours specified within Deprecated subclauses or slgorithm steps have one or more undesirable characteristics. However, their usage in existing applications currently prevents their removal from this specification. These features are not considered part of the core ECMAScript language. Programmers should not use or assume the existence of these features and behaviours when writing new ECMAScript code.</ins></p>
 
   <emu-clause id="sec-conformance-deprecated" example deprecated>
     <h1>Example Deprecated Clause Heading</h1>
@@ -121,7 +138,7 @@
               1. Return _promiseCapability_.[[Promise]].
             1. Let _attributesObj_ be Completion(Get(_options_, *"with"*)).
             1. IfAbruptRejectPromise(_attributesObj_, _promiseCapability_).
-            1. [deprecated=""] If the host supports the <emu-xref href="#sec-deprecated-assert-keyword-for-import-attributes">deprecated `assert` keyword for import attributes</emu-xref> and _attributesObj_ is *undefined*, then
+            1. [id="step-evaluate-import-call-assert-fallback", deprecated="", normative-optional=""] If _attributesObj_ is *undefined*, then
                 1. Let _attributesObj_ be Completion(Get(_options_, *"assert"*)).
                 1. IfAbruptRejectPromise(_attributesObj_, _promiseCapability_).
             1. If _attributesObj_ is not *undefined*, then
@@ -145,6 +162,8 @@
           1. Perform HostLoadImportedModule(_referrer_, _moduleRequest_, ~empty~, _promiseCapability_).
           1. Return _promiseCapability_.[[Promise]].
         </emu-alg>
+
+        <p>Implementations that implement step <emu-xref href="#step-evaluate-import-call-assert-fallback"></emu-xref> must also implement support for the deprecated `assert` keyword for import attributes in import declarations (<emu-xref href="#sec-deprecated-assert-keyword-for-import-attributes"></emu-xref>).</p>
 
         <emu-note>
           Removal of the `assert` fallback when _options_'s `with` property is *undefined* is being investigated.
@@ -771,10 +790,12 @@
         </emu-note>
       </emu-clause>
 
-      <emu-clause id="sec-deprecated-assert-keyword-for-import-attributes" deprecated>
+      <emu-clause id="sec-deprecated-assert-keyword-for-import-attributes" deprecated normative-optional>
         <h1><ins>Deprecated `assert` keyword for Import Attributes</ins></h1>
 
         <p>Import Attributes are denoted using the `with` keyword. However, there are existing implementations based on a previous version of the proposal using the `assert` keyword. Due to potential web compatibility risks, the `assert` keyword is still included in this specification, but its removal is being investigated.</p>
+
+        <p>Implementations that implement this clause must also implement support for the deprecated `assert` fallback for import attributes in import calls (step <emu-xref href="#step-evaluate-import-call-assert-fallback"></emu-xref> of <emu-xref href="#sec-evaluate-import-call"></emu-xref>).</p>
 
         <p>The following augments the |ImportDeclaration| production in <emu-xref href="#sec-imports"></emu-xref>:</p>
         <emu-grammar type="definition">
