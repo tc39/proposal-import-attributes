@@ -12,41 +12,6 @@
   contributors: Sven Sauleau, Myles Borins, Daniel Ehrenberg, Daniel Clark, Nicolò Ribaudo
 </pre>
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll("[deprecated]").forEach(el => {
-
-      let tagsContainer = el.querySelector(".clause-attributes-tag");
-      if (!tagsContainer) {
-        tagsContainer = document.createElement("div");
-        tagsContainer.classList.add("clause-attributes-tag");
-        el.insertAdjacentElement("afterbegin", tagsContainer);
-
-        if (el.hasAttribute("normative-optional")) {
-          let tag = document.createElement("a");
-          tag.setAttribute("href", "#sec-conformance");
-          tag.textContent = "Normative Optional";
-          tagsContainer.insertAdjacentElement("afterbegin", tag);
-        }
-      }
-      if (tagsContainer.childElementCount > 0) {
-        tagsContainer.insertAdjacentText("afterbegin", ", ");
-      }
-      let tag = document.createElement("a");
-      tag.setAttribute("href", "#sec-conformance");
-      tag.textContent = "Deprecated";
-      tagsContainer.insertAdjacentElement("afterbegin", tag);
-
-      el.setAttribute("normative-optional", ""); // just to get the style
-  });
-});
-</script>
-<style>
-  li[deprecated] {
-    display: list-item;
-  }
-</style>
-
 <emu-intro id="intro">
   <h1>Import Attributes</h1>
   <p>See <a href="https://github.com/tc39/proposal-import-attributes/blob/master/README.md">the explainer</a> for information.</p>
