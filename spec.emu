@@ -138,7 +138,7 @@
               1. Return _promiseCapability_.[[Promise]].
             1. Let _attributesObj_ be Completion(Get(_options_, *"with"*)).
             1. IfAbruptRejectPromise(_attributesObj_, _promiseCapability_).
-            1. [id="step-evaluate-import-call-assert-fallback", deprecated="", normative-optional=""] If _attributesObj_ is *undefined*, then
+            1. [id="step-evaluate-import-call-assert-fallback", deprecated="", normative-optional=""] If the host supports the <emu-xref href="#sec-deprecated-assert-keyword-for-import-attributes">deprecated `assert` keyword for import attributes</emu-xref> and _attributesObj_ is *undefined*, then
                 1. Let _attributesObj_ be Completion(Get(_options_, *"assert"*)).
                 1. IfAbruptRejectPromise(_attributesObj_, _promiseCapability_).
             1. If _attributesObj_ is not *undefined*, then
@@ -162,8 +162,6 @@
           1. Perform HostLoadImportedModule(_referrer_, _moduleRequest_, ~empty~, _promiseCapability_).
           1. Return _promiseCapability_.[[Promise]].
         </emu-alg>
-
-        <p>Implementations that implement step <emu-xref href="#step-evaluate-import-call-assert-fallback"></emu-xref> must also implement support for the deprecated `assert` keyword for import attributes in import declarations (<emu-xref href="#sec-deprecated-assert-keyword-for-import-attributes"></emu-xref>).</p>
 
         <emu-note>
           Removal of the `assert` fallback when _options_'s `with` property is *undefined* is being investigated.
@@ -795,7 +793,7 @@
 
         <p>Import Attributes are denoted using the `with` keyword. However, there are existing implementations based on a previous version of the proposal using the `assert` keyword. Due to potential web compatibility risks, the `assert` keyword is still included in this specification, but its removal is being investigated.</p>
 
-        <p>Implementations that implement this clause must also implement support for the deprecated `assert` fallback for import attributes in import calls (step <emu-xref href="#step-evaluate-import-call-assert-fallback"></emu-xref> of <emu-xref href="#sec-evaluate-import-call"></emu-xref>).</p>
+        <p>This deprecated feature includes the `assert` fallback for import attributes in import calls (step <emu-xref href="#step-evaluate-import-call-assert-fallback"></emu-xref> of <emu-xref href="#sec-evaluate-import-call"></emu-xref>).</p>
 
         <p>The following augments the |ImportDeclaration| production in <emu-xref href="#sec-imports"></emu-xref>:</p>
         <emu-grammar type="definition">
