@@ -52,13 +52,13 @@
   <p>See <a href="https://github.com/tc39/proposal-import-attributes/blob/master/README.md">the explainer</a> for information.</p>
   <p>The relevant syntax changes are in the <a href="#sec-left-hand-side-expressions">Import Calls</a> and <a href="#sec-imports">Imports</a> sections.</p>
 
-  <p>This proposal would ideally use the `with` keyword to denote attributes, but there are existing implementations based on the previous version of the proposal using the `assert` keyword. Due to potential web compatibility risks, the proposal still includes `assert` marked as <emu-xref href="#sec-conformance">deprecated</emu-xref>. Usage of the old syntax is discouraged, and it removal is being investigated.</p>
+  <p>This feature would ideally use the `with` keyword to denote attributes, but there are existing implementations based on a previous version of the proposal using the `assert` keyword. Due to potential web compatibility risks, the proposal still includes `assert` marked as <emu-xref href="#sec-conformance">deprecated</emu-xref>. Usage of the old syntax is discouraged, and its removal is being investigated.</p>
 </emu-intro>
 
 <emu-clause id="sec-conformance" number="2">
   <h1>Conformance</h1>
 
-  <p><ins>A conforming implementation of ECMAScript should not implement <dfn>Deprecated</dfn> subclauses or slgorithm steps, unless necessary for compatibility with existing applications that already run in such implementation before the deprecation of the given language feature. All of the language features and behaviours specified within Deprecated subclauses or slgorithm steps have one or more undesirable characteristics. However, their usage in existing applications currently prevents their removal from this specification. These features are not considered part of the core ECMAScript language. Programmers should not use or assume the existence of these features and behaviours when writing new ECMAScript code.</ins></p>
+  <p><ins>A conforming implementation of ECMAScript should not implement <dfn>Deprecated</dfn> subclauses or algorithm steps, unless necessary for compatibility with existing applications that already run in such implementation before the deprecation of the given language feature. All of the language features and behaviours specified within Deprecated subclauses or algorithm steps have one or more undesirable characteristics. However, their use in existing applications currently prevents their removal from this specification. These features are not considered part of the core ECMAScript language. Programmers should not use or assume the existence of these features and behaviours when writing new ECMAScript code.</ins></p>
 
   <emu-clause id="sec-conformance-deprecated" example deprecated>
     <h1>Example Deprecated Clause Heading</h1>
@@ -817,7 +817,7 @@
           <li>It is a Syntax Error if AllImportAttributesSupported(WithClauseToAttributes of |AssertClause|) is *false*.</li>
         </ul>
 
-        <p>The static semantics of WithClauseToAttributes in <emu-xref href="#sec-with-clause-to-attributes"></emu-xref> are augmented with the following:</p>
+        <p>The static semantics of WithClauseToAttributes in <emu-xref href="#sec-with-clause-to-attributes"></emu-xref> are augmented to include the following:</p>
         <emu-grammar>
           AssertClause : `assert` `{` `}`
         </emu-grammar>
