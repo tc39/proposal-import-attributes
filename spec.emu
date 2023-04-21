@@ -12,42 +12,24 @@
   contributors: Sven Sauleau, Myles Borins, Daniel Ehrenberg, Daniel Clark, Nicolò Ribaudo
 </pre>
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // Ecmarkup only supports annotating algorithm steps with a single attribute,
-    // so we map [normative-optional][legacy] to [normative-optional-legacy].
-    document.querySelectorAll("[normative-optional-legacy]").forEach(el => {
-      el.setAttribute("normative-optional", "");
-      el.setAttribute("legacy", "");
-    });
-    // Ecmarkup only injects the clause-attributes-tag header into
-    // normative-optional/legacy emu-clause elements.
-    document.querySelectorAll("li[normative-optional][legacy], ins[normative-optional][legacy]").forEach(el => {
-      el.insertAdjacentHTML("afterbegin", `
-        <div class="clause-attributes-tag">
-          <a href="https://tc39.es/ecma262/#sec-conformance">Normative Optional</a>,
-          <a href="https://tc39.es/ecma262/#sec-conformance">Legacy</a>
-        </div>
-      `);
-    });
-  })
-</script>
-<style>
-  li[normative-optional] {
-    display: list-item;
-  }
-  ins[normative-optional] > emu-rhs {
-    padding-left: 60px;
-  }
-</style>
-
 <emu-intro id="intro">
   <h1>Import Attributes</h1>
   <p>See <a href="https://github.com/tc39/proposal-import-attributes/blob/master/README.md">the explainer</a> for information.</p>
   <p>The relevant syntax changes are in the <a href="#sec-left-hand-side-expressions">Import Calls</a> and <a href="#sec-imports">Imports</a> sections.</p>
 
-  <p>This proposal would ideally use the `with` keyword to denote attributes, but there are existing implementations based on the previous version of the proposal using the `assert` keyword. Due to potential web compatibility risks, the proposal still includes `assert` marked as <emu-xref href="#sec-conformance">normative optional</emu-xref> and <emu-xref href="#sec-conformance">legacy</emu-xref> in sections <emu-xref href="#sec-evaluate-import-call"></emu-xref> and <emu-xref href="#sec-imports"></emu-xref>. Usage of the old syntax is discouraged, and it removal is being investigated.</p>
+  <p>This feature would ideally use the `with` keyword to denote attributes, but there are existing implementations based on a previous version of the proposal using the `assert` keyword. Due to potential web compatibility risks, the proposal still includes `assert` marked as <emu-xref href="#sec-conformance">deprecated</emu-xref>. Usage of the old syntax is discouraged, and its removal is being investigated.</p>
 </emu-intro>
+
+<emu-clause id="sec-conformance" number="2">
+  <h1>Conformance</h1>
+
+  <p><ins>A conforming implementation of ECMAScript should not implement <dfn>Deprecated</dfn> subclauses or algorithm steps, unless necessary for compatibility with existing applications that already run in such implementation before the deprecation of the given language feature. All of the language features and behaviours specified within Deprecated subclauses or algorithm steps have one or more undesirable characteristics. However, their use in existing applications currently prevents their removal from this specification. These features are not considered part of the core ECMAScript language. Programmers should not use or assume the existence of these features and behaviours when writing new ECMAScript code.</ins></p>
+
+  <emu-clause id="sec-conformance-deprecated" example deprecated>
+    <h1>Example Deprecated Clause Heading</h1>
+    <p>Example clause contents.</p>
+  </emu-clause>
+</emu-clause>
 
 <emu-clause id="sec-ecmascript-language-expressions" number="13">
   <h1>ECMAScript Language: Expressions</h1>
@@ -121,7 +103,7 @@
               1. Return _promiseCapability_.[[Promise]].
             1. Let _attributesObj_ be Completion(Get(_options_, *"with"*)).
             1. IfAbruptRejectPromise(_attributesObj_, _promiseCapability_).
-            1. [normative-optional-legacy=""] If _attributesObj_ is *undefined*, then
+            1. [id="step-evaluate-import-call-assert-fallback", deprecated="", normative-optional=""] If the host supports the <emu-xref href="#sec-deprecated-assert-keyword-for-import-attributes">deprecated `assert` keyword for import attributes</emu-xref> and _attributesObj_ is *undefined*, then
                 1. Let _attributesObj_ be Completion(Get(_options_, *"assert"*)).
                 1. IfAbruptRejectPromise(_attributesObj_, _promiseCapability_).
             1. If _attributesObj_ is not *undefined*, then
@@ -145,6 +127,10 @@
           1. Perform HostLoadImportedModule(_referrer_, _moduleRequest_, ~empty~, _promiseCapability_).
           1. Return _promiseCapability_.[[Promise]].
         </emu-alg>
+
+        <emu-note>
+          Removal of the `assert` fallback when _options_'s `with` property is *undefined* is being investigated.
+        </emu-note>
       </emu-clause>
     </emu-clause>
   </emu-clause>
@@ -663,10 +649,6 @@
           WithClause :
             `with` `{` `}`
             `with` `{` WithEntries `,`? `}`
-            <ins normative-optional="" legacy="">
-            `assert` `{` `}`
-            `assert` `{` WithEntries `,`? `}`
-            </ins>
 
           WithEntries :
             AttributeKey `:` StringLiteral
@@ -678,20 +660,26 @@
         </ins>
       </emu-grammar>
 
+      <emu-note>
+        <p><ins>This section is extended by <emu-xref href="#sec-deprecated-assert-keyword-for-import-attributes"></emu-xref>.</ins></p>
+      </emu-note>
+
       <emu-clause id="sec-imports-static-semantics-early-errors">
         <h1>Static Semantics: Early Errors</h1>
 
         <emu-grammar>
           <ins>
-            WithClause :
-              `with` `{` WithEntries `,`? `}`
-              `assert` `{` WithEntries `,`? `}`
+            WithClause : `with` `{` WithEntries `,`? `}`
           </ins>
         </emu-grammar>
         <ul>
           <li><ins>It is a Syntax Error if WithClauseToAttributes of |WithClause| has two entries _a_ and _b_ such that _a_.[[Key]] is _b_.[[Key]].</ins></li>
           <li><ins>It is a Syntax Error if AllImportAttributesSupported(WithClauseToAttributes of |WithClause|) is *false*.</ins></li>
         </ul>
+
+        <emu-note>
+          <p><ins>This section is extended by <emu-xref href="#sec-deprecated-assert-keyword-for-import-attributes"></emu-xref>.</ins></p>
+        </emu-note>
       </emu-clause>
 
       <emu-clause id="sec-import-static-semantics-attribute-name" type="sdo">
@@ -730,18 +718,14 @@
         </dl>
 
         <emu-grammar>
-          WithClause :
-            `with` `{` `}`
-            `assert` `{` `}`
+          WithClause : `with` `{` `}`
         </emu-grammar>
         <emu-alg>
           1. Return a new empty List.
         </emu-alg>
 
         <emu-grammar>
-          WithClause :
-            `with` `{` WithEntries `,`? `}`
-            `assert` `{` WithEntries `,`? `}`
+          WithClause : `with` `{` WithEntries `,`? `}`
         </emu-grammar>
         <emu-alg>
           1. Let _attributes_ be WithClauseToAttributes of |WithEntries|.
@@ -762,6 +746,55 @@
           1. Let _entry_ be the ImportAttribute Record { [[Key]]: _key_, [[Value]]: SV of |StringLiteral| }.
           1. Let _rest_ be WithClauseToAttributes of |WithEntries|.
           1. Return the list-concatenation of « _entry_ » and _rest_.
+        </emu-alg>
+
+        <emu-note>
+          <p><ins>This section is extended by <emu-xref href="#sec-deprecated-assert-keyword-for-import-attributes"></emu-xref>.</ins></p>
+        </emu-note>
+      </emu-clause>
+
+      <emu-clause id="sec-deprecated-assert-keyword-for-import-attributes" deprecated normative-optional>
+        <h1><ins>Deprecated `assert` keyword for Import Attributes</ins></h1>
+
+        <p>Import Attributes are denoted using the `with` keyword. However, there are existing implementations based on a previous version of the proposal using the `assert` keyword. Due to potential web compatibility risks, the `assert` keyword is still included in this specification, but its removal is being investigated.</p>
+
+        <p>This deprecated feature includes the `assert` fallback for import attributes in import calls (step <emu-xref href="#step-evaluate-import-call-assert-fallback"></emu-xref> of <emu-xref href="#sec-evaluate-import-call"></emu-xref>).</p>
+
+        <p>The following augments the |ImportDeclaration| production in <emu-xref href="#sec-imports"></emu-xref>:</p>
+        <emu-grammar type="definition">
+          ImportDeclaration :
+            `import` ImportClause FromClause [no LineTerminator here] AssertClause `;`
+            `import` ModuleSpecifier [no LineTerminator here] AssertClause `;`
+
+          AssertClause :
+            `assert` `{` `}`
+            `assert` `{` WithEntries `,`? `}`
+        </emu-grammar>
+
+        <p>The static semantics of Early Errors in <emu-xref href="#sec-imports-static-semantics-early-errors"></emu-xref> are augmented with the following:</p>
+        <emu-grammar>
+          AssertClause : `assert` `{` WithEntries `,`? `}`
+        </emu-grammar>
+        <ul>
+          <li>It is a Syntax Error if WithClauseToAttributes of |AssertClause| has two entries _a_ and _b_ such that _a_.[[Key]] is _b_.[[Key]].</li>
+          <li>It is a Syntax Error if AllImportAttributesSupported(WithClauseToAttributes of |AssertClause|) is *false*.</li>
+        </ul>
+
+        <p>The static semantics of WithClauseToAttributes in <emu-xref href="#sec-with-clause-to-attributes"></emu-xref> are augmented to include the following:</p>
+        <emu-grammar>
+          AssertClause : `assert` `{` `}`
+        </emu-grammar>
+        <emu-alg>
+          1. Return a new empty List.
+        </emu-alg>
+
+        <emu-grammar>
+          AssertClause : `assert` `{` WithEntries `,`? `}`
+        </emu-grammar>
+        <emu-alg>
+          1. Let _attributes_ be WithClauseToAttributes of |WithEntries|.
+          1. Sort _attributes_ by the code point order of the [[Key]] of each element. NOTE: This sorting is observable only in that hosts are prohibited from distinguishing among attributes by the order they occur in.
+          1. Return _attributes_.
         </emu-alg>
       </emu-clause>
     </emu-clause>
