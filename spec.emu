@@ -110,11 +110,11 @@
               1. If Type(_attributesObj_) is not Object, then
                 1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
                 1. Return _promiseCapability_.[[Promise]].
-              1. Let _keys_ be Completion(EnumerableOwnProperties(_attributesObj_, ~key~)).
-              1. IfAbruptRejectPromise(_keys_, _promiseCapability_).
-              1. For each String _key_ of _keys_, do
-                1. Let _value_ be Completion(Get(_attributesObj_, _key_)).
-                1. IfAbruptRejectPromise(_value_, _promiseCapability_).
+              1. Let _entries_ be Completion(EnumerableOwnProperties(_attributesObj_, ~key+value~)).
+              1. IfAbruptRejectPromise(_entries_, _promiseCapability_).
+              1. For each _entry_ of _entries_, do
+                1. Let _key_ be ! <emu-meta suppress-effects="user-code">Get(_entry_, *"0"*)</emu-meta>.
+                1. Let _value_ be ! <emu-meta suppress-effects="user-code">Get(_entry_, *"1"*)</emu-meta>.
                 1. If Type(_value_) is not String, then
                   1. Perform ! Call(_promiseCapability_.[[Reject]], *undefined*, &laquo; a newly created *TypeError* object &raquo;).
                   1. Return _promiseCapability_.[[Promise]].
@@ -623,7 +623,7 @@
           <ul>
             <li>It must return a List of Strings, each indicating a supported attribute.</li>
 
-            <li>Each time this operation is called, it must return the same List with the same contents.</li>
+            <li>Each time this operation is called, it must return the same List with the same contents in the same order.</li>
 
             <li>An implementation of HostGetSupportedImportAttributes must always complete normally (i.e., not return an abrupt completion).</li>
           </ul>
