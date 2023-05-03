@@ -253,7 +253,7 @@
           1. Let <del>_additionalNames_</del><ins>_additionalRequests_</ins> be ModuleRequests of |ModuleItem|.
           1. <del>For each String _name_ of _additionalNames_, do</del>
           1. <ins>For each ModuleRequest Record _mr_ of _additionalRequests_, do</ins>
-            1. If <del>_moduleNames_</del><ins>_requests_</ins> does not contain <del>_name_</del> <ins>a ModuleRequest Record _mr2_ such that _mr_.[[Specifer]] is _mr2_.[[Specifer]] and AttributesEqual(_mr_.[[Attributes]], _mr2_.[[Attributes]]) is *true*</ins>, then
+            1. If <del>_moduleNames_</del><ins>_requests_</ins> does not contain <del>_name_</del> <ins>a ModuleRequest Record _mr2_ such that _mr_.[[Specifer]] is _mr2_.[[Specifer]] and ImportAttributesEqual(_mr_.[[Attributes]], _mr2_.[[Attributes]]) is *true*</ins>, then
               1. Append <del>_name_</del><ins>_mr_</ins> to <del>_moduleNames_</del><ins>_requests_</ins>.
           1. Return <del>_moduleNames_</del><ins>_requests_</ins>.
         </emu-alg>
@@ -505,7 +505,7 @@
             <ul>
               <li><ins>the first _referrer_ is the same as the second _referrer_;</ins></li>
               <li><ins>the first _moduleRequest_.[[Specifier]] is the same as the second _moduleRequest_.[[Specifier]];</ins></li>
-              <li><ins>AttributesEqual(the first _moduleRequest_.[[Attributes]], the second _moduleRequest_.[[Attributes]]) is *true*;</ins></li>
+              <li><ins>ImportAttributesEqual(the first _moduleRequest_.[[Attributes]], the second _moduleRequest_.[[Attributes]]) is *true*;</ins></li>
               <li>it performs FinishLoadingImportedModule(_referrer_, <del>_specifier_</del><ins>_moduleRequest_</ins>, _payload_, _result_) where _result_ is a normal completion,</li>
             </ul>
             <p>then it must perform FinishLoadingImportedModule(_referrer_, <del>_specifier_</del><ins>_moduleRequest_</ins>, _payload_, _result_) with the same _result_ each time.</p>
@@ -544,7 +544,7 @@
         </dl>
         <emu-alg>
           1. If _result_ is a normal completion, then
-            1. If _referrer_.[[LoadedModules]] contains a Record _record_ such that _record_.[[Specifier]] is <del>_specifier_</del><ins>_moduleRequest_.[[Specifier]] and AttributesEqual(_record_.[[Attributes]], _moduleRequest_.[[Attributes]]) is *true*</ins>, then
+            1. If _referrer_.[[LoadedModules]] contains a Record _record_ such that _record_.[[Specifier]] is <del>_specifier_</del><ins>_moduleRequest_.[[Specifier]] and ImportAttributesEqual(_record_.[[Attributes]], _moduleRequest_.[[Attributes]]) is *true*</ins>, then
               1. Assert: _record_.[[Module]] is _result_.[[Value]].
             1. Else, append the Record { [[Specifier]]: <del>_specifier_</del><ins>_moduleRequest_.[[Specifer]]</ins>, <ins>[[Attributes]]: _moduleRequest_.[[Attributes]]</ins>, [[Module]]: _result_.[[Value]] } to _referrer_.[[LoadedModules]].
           1. If _payload_ is a GraphLoadingState Record, then
@@ -558,10 +558,10 @@
           <p>The description of the [[LoadedModules]] field of Realm Record, Script Record, and Cyclic Module Record should be updated to include the [[Attributes]] field.</p>
         </emu-note>
 
-        <emu-clause id="sec-FinishLoadingImportedModule-AttributesEqual" type="abstract operation">
+        <emu-clause id="sec-FinishLoadingImportedModule-ImportAttributesEqual" type="abstract operation">
           <h1>
             <ins>
-              AttributesEqual (
+              ImportAttributesEqual (
                 _left_: a List of ImportAttribute Records,
                 _right_: a List of ImportAttribute Records,
               ): a Boolean
