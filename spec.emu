@@ -6,7 +6,7 @@
 <pre class="metadata">
   title: Import Attributes
   status: proposal
-  stage: 2
+  stage: 3
   location: https://github.com/tc39/proposal-import-attributes
   copyright: false
   contributors: Sven Sauleau, Myles Borins, Daniel Ehrenberg, Daniel Clark, Nicolò Ribaudo

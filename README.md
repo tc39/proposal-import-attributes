@@ -2,9 +2,7 @@
 
 Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), Myles Borins ([@MylesBorins](https://github.com/MylesBorins)), Dan Clark ([@dandclark](https://github.com/dandclark)), and Nicolò Ribaudo ([@nicolo-ribaudo](https://github.com/nicolo-ribaudo)).
 
-Status: Stage 2.
-
-> ℹ️ This proposal reached _conditional_ consensus for Stage 3 in March 2023 meeting, pending reviews of the specification text.
+Status: Stage 3
 
 Please leave any feedback you have in the [issues](http://github.com/tc39/proposal-import-attributes/issues)!
 
