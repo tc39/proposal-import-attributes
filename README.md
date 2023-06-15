@@ -4,6 +4,10 @@ Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@
 
 Status: Stage 3
 
+> ⚠️ The specification in this proposal might be out of date.  [tc39/ecma262#3057](https://github.com/tc39/ecma262/pull/3057) is the latest version.
+>
+> Some of the changes present in the current specification have not been presented to committee yet: [#142](https://github.com/tc39/proposal-import-attributes/issues/142)
+
 Please leave any feedback you have in the [issues](http://github.com/tc39/proposal-import-attributes/issues)!
 
 ## Synopsis
