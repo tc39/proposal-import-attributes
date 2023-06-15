@@ -20,6 +20,10 @@
   <p>This feature would ideally use the `with` keyword to denote attributes, but there are existing implementations based on a previous version of the proposal using the `assert` keyword. Due to potential web compatibility risks, the proposal still includes `assert` marked as <emu-xref href="#sec-conformance">deprecated</emu-xref>. Usage of the old syntax is discouraged, and its removal is being investigated.</p>
 </emu-intro>
 
+<emu-note type="editor" style="background:#ffeedd">
+  <p><strong>This document might be out of date</strong>. Please refer to <a href="https://ci.tc39.es/preview/tc39/ecma262/pull/3057">the tc39/ecma262#3057 preview<a> for the latest version.</p>
+</emu-note>
+
 <emu-clause id="sec-conformance" number="2">
   <h1>Conformance</h1>
 
