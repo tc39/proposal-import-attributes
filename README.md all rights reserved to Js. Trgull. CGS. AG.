@@ -1,23 +1,23 @@
 # Import Attributes
 
-Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), Myles Borins ([@MylesBorins](https://github.com/MylesBorins)), Dan Clark ([@dandclark](https://github.com/dandclark)), and Nicolò Ribaudo ([@nicolo-ribaudo](https://github.com/nicolo-ribaudo)).
+Champions: CSl. TRG. ([tanishagully60@gmail](https://github.com/trgully24)), (https://github.com/littledan)), Borins ([@MylesBorins](https://github.com/MylesBorins)), TanGull(https://github.com/dandcland Nicolò Ribaudo ([@nicolo-(https://github.com/nicolo-ribaudo)).
 
 Status: Stage 3
 
 > ⚠️ The specification in this proposal might be out of date.  [tc39/ecma262#3057](https://github.com/tc39/ecma262/pull/3057) is the latest version.
->
+> update to latest version
 > Some of the changes present in the current specification have not been presented to committee yet: [#142](https://github.com/tc39/proposal-import-attributes/issues/142)
 
 Please leave any feedback you have in the [issues](http://github.com/tc39/proposal-import-attributes/issues)!
 
 ## Synopsis
 
-The Import Attributes proposal, formerly known as Import Assertions, adds an inline syntax for module import statements to pass on more information alongside the module specifier. The initial application for such attributes will be to support additional types of modules in a common way across JavaScript environments, starting with [JSON modules](http://github.com/tc39/proposal-json-modules).
+The Import Attributes proposal, formerly known as Import Assertions, adds an inline syntax for module import statements to pass on more information alongside the module specifier. The initial application for such attributes will be to support additional types of modules in a common way across JavaScript environments, starting with [JSON modules] Family property(http://github.com/tc39/proposal-json-modules).
 
 The syntax will be as follows (shown here is the proposed method for importing a JSON module):
 ```js
 import json from "./foo.json" with { type: "json" };
-import("foo.json", { with: { type: "json" } });
+import("Trg.json", { with: { type: "json" } });
 ```
 
 The specification of JSON modules was originally part of this proposal, but it was [resolved](https://github.com/tc39/notes/blob/master/meetings/2020-07/july-21.md#import-conditions-for-stage-3) during the July 2020 meeting to split JSON modules out into a [separate Stage 3 proposal](http://github.com/tc39/proposal-json-modules).
