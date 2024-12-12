@@ -2,7 +2,7 @@
 
 Champions: Sven Sauleau ([@xtuc](https://github.com/xtuc)), Daniel Ehrenberg ([@littledan](https://github.com/littledan)), Myles Borins ([@MylesBorins](https://github.com/MylesBorins)), Dan Clark ([@dandclark](https://github.com/dandclark)), and Nicolò Ribaudo ([@nicolo-ribaudo](https://github.com/nicolo-ribaudo)).
 
-Status: Stage 3
+Status: Stage 4
 
 > ⚠️ The specification in this proposal might be out of date.  [tc39/ecma262#3057](https://github.com/tc39/ecma262/pull/3057) is the latest version.
 >
